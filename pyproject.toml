@@ -1,0 +1,31 @@
+[project]
+name = "stringalign"
+version = "0.1.0"
+description = "Align strings and compute evaluation metrics"
+authors = [
+    {name = "Yngve Mardal Moe", email = "yngve.m.moe@gmail.com"},
+]
+dependencies = [
+    "numpy>=2.1.1",
+]
+requires-python = ">=3.12"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.pdm]
+distribution = true
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "ruff>=0.6.7",
+    "pytest>=8.3.3",
+    "hypothesis>=6.112.1",
+]
+
+[tool.ruff.lint]
+select = ["I", "TCH"]
