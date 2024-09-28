@@ -1,20 +1,27 @@
 [project]
 name = "stringalign"
-version = "0.1.0"
 description = "Align strings and compute evaluation metrics"
 authors = [
     {name = "Yngve Mardal Moe", email = "yngve.m.moe@gmail.com"},
-]
-dependencies = [
-    "numpy>=2.1.1",
+    {name = "Marie Roald", email = "roald.marie@gmail.com"},
 ]
 requires-python = ">=3.12"
 readme = "README.md"
 license = {text = "MIT"}
+dependencies = [
+    "numpy>=2.1.1",
+]
+dynamic = ["version"]
+
 
 [build-system]
-requires = ["setuptools>=61", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+python-source = "python"
+module-name = "stringalign._stringutils"
 
 
 [tool.pdm]
@@ -27,6 +34,9 @@ dev = [
     "hypothesis>=6.112.1",
     "pytest-cov>=5.0.0",
 ]
+
+[tool.ruff]
+line-length = 120
 
 [tool.ruff.lint]
 select = ["I", "TCH"]

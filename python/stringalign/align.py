@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import unicodedata
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Self, Sequence
 
 import numpy as np
 
-if TYPE_CHECKING:
+from stringalign.unicode import grapheme_clusters
+
+if TYPE_CHECKING:  # pragma: nocov
     from collections.abc import Generator
 
 
@@ -57,7 +60,7 @@ AlignmentOperation = Insert | Delete | Replace
 AlignmentList = list[AlignmentOperation | None]
 
 
-def create_cost_matrix(reference: str, predicted: str) -> np.ndarray:
+def create_cost_matrix(reference: Sequence[str], predicted: Sequence[str]) -> np.ndarray:
     m, n = len(reference), len(predicted)
     cost_matrix = np.zeros((m + 1, n + 1))
 
@@ -78,27 +81,25 @@ def create_cost_matrix(reference: str, predicted: str) -> np.ndarray:
 
 
 def character_align_strings(reference: str, predicted: str) -> AlignmentList:
-    cost_matrix = create_cost_matrix(reference, predicted)
+    reference, predicted = unicodedata.normalize("NFD", reference), unicodedata.normalize("NFD", predicted)
+    reference_clusters, predicted_clusters = grapheme_clusters(reference), grapheme_clusters(predicted)
+    cost_matrix = create_cost_matrix(reference_clusters, predicted_clusters)
 
     alignment: AlignmentList = []
     row, col = cost_matrix.shape[0] - 1, cost_matrix.shape[1] - 1
     while row > 0 or col > 0:
-        if row > 0 and col > 0 and reference[row - 1] == predicted[col - 1]:
+        if row > 0 and col > 0 and reference_clusters[row - 1] == predicted_clusters[col - 1]:
             alignment.append(None)
             row -= 1
             col -= 1
-        elif row > 0 and (
-            col == 0 or cost_matrix[row][col] == cost_matrix[row - 1][col] + 1
-        ):
-            alignment.append(Insert(reference[row - 1]))
+        elif row > 0 and (col == 0 or cost_matrix[row][col] == cost_matrix[row - 1][col] + 1):
+            alignment.append(Insert(reference_clusters[row - 1]))
             row -= 1
-        elif col > 0 and (
-            row == 0 or cost_matrix[row][col] == cost_matrix[row][col - 1] + 1
-        ):
-            alignment.append(Delete(predicted[col - 1]))
+        elif col > 0 and (row == 0 or cost_matrix[row][col] == cost_matrix[row][col - 1] + 1):
+            alignment.append(Delete(predicted_clusters[col - 1]))
             col -= 1
         else:
-            alignment.append(Replace(predicted[col - 1], reference[row - 1]))
+            alignment.append(Replace(predicted_clusters[col - 1], reference_clusters[row - 1]))
             row -= 1
             col -= 1
 

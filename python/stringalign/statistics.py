@@ -48,9 +48,7 @@ class StringConfusionMatrix:
             false_negatives=false_negatives,
         )
 
-    def compute_true_positive_rate(
-        self, aggregate_over: str | None = None
-    ) -> dict[str, float] | float:
+    def compute_true_positive_rate(self, aggregate_over: str | None = None) -> dict[str, float] | float:
         """The number of true positives divided by the total number of positives"""
         if aggregate_over:
             tp = sum(self.true_positives[c] for c in aggregate_over)
@@ -64,9 +62,7 @@ class StringConfusionMatrix:
     compute_recall = compute_true_positive_rate
     compute_sensitivity = compute_true_positive_rate
 
-    def compute_positive_predictive_value(
-        self, aggregate_over: str | None = None
-    ) -> dict[str, float] | float:
+    def compute_positive_predictive_value(self, aggregate_over: str | None = None) -> dict[str, float] | float:
         """The number of true positives divided by the total number of predicted positives
 
         Note that the false discovery rate is omitted for characters that have a true positive count of zero.
@@ -78,16 +74,11 @@ class StringConfusionMatrix:
             return tp / (tp + fp)
 
         predicted_positive = self.true_positives + self.false_positives
-        return {
-            key: self.true_positives[key] / predicted_positive[key]
-            for key in self.true_positives
-        }
+        return {key: self.true_positives[key] / predicted_positive[key] for key in self.true_positives}
 
     compute_precision = compute_positive_predictive_value
 
-    def compute_false_discovery_rate(
-        self, aggregate_over: str | None = None
-    ) -> dict[str, float] | float:
+    def compute_false_discovery_rate(self, aggregate_over: str | None = None) -> dict[str, float] | float:
         """The number of false positives divided by the total number of predicted positives
 
         Note that the false discovery rate is omitted for characters that have a false positive count of zero.
@@ -99,14 +90,9 @@ class StringConfusionMatrix:
             return fp / (tp + fp)
 
         predicted_positive = self.true_positives + self.false_positives
-        return {
-            key: self.false_positives[key] / predicted_positive[key]
-            for key in self.false_positives
-        }
+        return {key: self.false_positives[key] / predicted_positive[key] for key in self.false_positives}
 
-    def compute_f1_score(
-        self, aggregate_over: str | None = None
-    ) -> dict[str, float] | float:
+    def compute_f1_score(self, aggregate_over: str | None = None) -> dict[str, float] | float:
         """The harmonic mean of the true positive rate and positive predictive value."""
         tpr = self.compute_true_positive_rate(aggregate_over=aggregate_over)
         ppv = self.compute_positive_predictive_value(aggregate_over=aggregate_over)
@@ -116,17 +102,10 @@ class StringConfusionMatrix:
             return (tpr * ppv) / (0.5 * (tpr + ppv))
 
         assert isinstance(tpr, dict) and isinstance(ppv, dict)
-        all_chars = (
-            set(self.true_positives)
-            | set(self.false_positives)
-            | set(self.false_negatives)
-        )
+        all_chars = set(self.true_positives) | set(self.false_positives) | set(self.false_negatives)
         tpr, ppv = defaultdict(int, tpr), defaultdict(int, ppv)
         return {
-            c: (tpr[c] * ppv[c])
-            / (
-                0.5 * (tpr[c] + ppv[c] or 1)
-            )  # or 1 avoids division by 0, the value is 0 anyways
+            c: (tpr[c] * ppv[c]) / (0.5 * (tpr[c] + ppv[c] or 1))  # or 1 avoids division by 0, the value is 0 anyways
             for c in all_chars
         }
 
