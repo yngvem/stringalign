@@ -25,8 +25,12 @@ def test_cost_matrix_values(reference, predicted):
     assert cost_matrix.max() <= max(len(reference), len(predicted))
     for i in range(1, len(reference) + 1):
         for j in range(1, len(predicted) + 1):
-            assert cost_matrix[i, j] >= min(cost_matrix[i-1, j], cost_matrix[i, j-1], cost_matrix[i-1, j-1])
-            assert cost_matrix[i, j] <= 1 + max(cost_matrix[i-1, j], cost_matrix[i, j-1], cost_matrix[i-1, j-1])
+            assert cost_matrix[i, j] >= min(
+                cost_matrix[i - 1, j], cost_matrix[i, j - 1], cost_matrix[i - 1, j - 1]
+            )
+            assert cost_matrix[i, j] <= 1 + max(
+                cost_matrix[i - 1, j], cost_matrix[i, j - 1], cost_matrix[i - 1, j - 1]
+            )
 
 
 @given(st.text())

@@ -33,22 +33,22 @@ class Delete:
 
 @dataclass(frozen=True, slots=True)
 class Replace:
-    replace_string: str
+    substring: str
     replacement: str
 
     def as_replace(self) -> Self:
         return self
 
     def simplify(self) -> Replace | Insert | Delete:
-        if not self.replace_string:
+        if not self.substring:
             return Insert(self.replacement)
         if not self.replacement:
-            return Delete(self.replace_string)
+            return Delete(self.substring)
         return self
 
     def merge(self, other: Replace) -> Replace:
         return Replace(
-            replace_string=self.replace_string + other.replace_string,
+            substring=self.substring + other.substring,
             replacement=self.replacement + other.replacement,
         )
 

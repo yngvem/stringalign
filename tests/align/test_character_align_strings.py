@@ -20,7 +20,7 @@ def test_align_strings_types(reference, predicted):
 @given(st.text(), st.text())
 def test_align_strings_reconstruct(reference, predicted):
     alignment = character_align_strings(reference, predicted)
-    
+
     rec_predicted = ""
     rec_reference = ""
     pred_iter = iter(predicted)
@@ -35,9 +35,9 @@ def test_align_strings_reconstruct(reference, predicted):
             pred_char = next(pred_iter)
 
             assert ref_char == op.replacement
-            assert pred_char == op.replace_string
+            assert pred_char == op.substring
 
-            rec_predicted += op.replace_string
+            rec_predicted += op.substring
             rec_reference += op.replacement
 
         elif isinstance(op, Insert):
@@ -49,7 +49,7 @@ def test_align_strings_reconstruct(reference, predicted):
             char = next(pred_iter)
             assert char == op.substring
             rec_predicted += char
-    
+
     assert rec_reference == reference
     assert rec_predicted == predicted
 
@@ -71,7 +71,7 @@ def test_normalise_unicode():
 
 def test_align_combining_grapheme():
     """Test that graphemes that consist of multiple code-points are handled as a single character.
-    
+
     See e.g. https://tonsky.me/blog/unicode/ and https://grapheme.readthedocs.io/en/latest/grapheme.html
     """
     assert character_align_strings("ą́", "a") == [Replace("a", "ą́")]
@@ -79,13 +79,13 @@ def test_align_combining_grapheme():
 
 def test_align_emojis():
     """Test that emojis that consist of multiple code-points are handled as a single character.
-    
+
     See e.g. https://tonsky.me/blog/unicode/ and https://grapheme.readthedocs.io/en/latest/grapheme.html
     """
     rainbow_flag = "🏳️‍🌈"
-    assert rainbow_flag == "".join(['🏳', '️', '‍', '🌈'])
+    assert rainbow_flag == "".join(["🏳", "️", "‍", "🌈"])
 
     rainbow = "🌈"
-    
+
     alignment = character_align_strings(rainbow_flag, rainbow)
     assert alignment == [Replace("🌈", "🏳️‍🌈")]

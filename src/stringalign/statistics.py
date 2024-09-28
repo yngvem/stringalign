@@ -35,7 +35,7 @@ class StringConfusionMatrix:
                 continue
 
             op = op.as_replace()
-            for char in op.replace_string:
+            for char in op.substring:
                 false_positives[char] += 1
                 next(pred_iter)
 

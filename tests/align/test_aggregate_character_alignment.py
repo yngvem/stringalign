@@ -18,7 +18,7 @@ def alignment_strategy():
             st.none(),
             st.builds(Insert, st.text(min_size=1)),
             st.builds(Delete, st.text(min_size=1)),
-            st.builds(Replace, st.text(min_size=1), st.text(min_size=1))
+            st.builds(Replace, st.text(min_size=1), st.text(min_size=1)),
         )
     )
 
@@ -40,11 +40,27 @@ def test_aggregate_alignment_consecutive_not_nones(alignment):
     for op1, op2 in pairwise(aggregate_character_alignment(alignment)):
         if op1 is not None:
             assert op2 is None, (op1, op2)
-        
+
         if op2 is not None:
             assert op1 is None, (op1, op2)
 
 
 def test_aggregate_alignment_with_example():
-    alignment = [Insert('a'), Insert('b'), None, Replace('a', 'b'), Insert('a'), Replace('b', 'c'), Delete('a'), None, Replace('a', 'e')]
-    assert list(aggregate_character_alignment(alignment)) == [Insert('ab'), None, Replace('aba', 'bac'), None, Replace('a', 'e')] 
+    alignment = [
+        Insert("a"),
+        Insert("b"),
+        None,
+        Replace("a", "b"),
+        Insert("a"),
+        Replace("b", "c"),
+        Delete("a"),
+        None,
+        Replace("a", "e"),
+    ]
+    assert list(aggregate_character_alignment(alignment)) == [
+        Insert("ab"),
+        None,
+        Replace("aba", "bac"),
+        None,
+        Replace("a", "e"),
+    ]
