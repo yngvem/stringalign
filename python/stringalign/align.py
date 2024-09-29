@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Self, Sequence
 
 import numpy as np
 
-from stringalign.unicode import grapheme_clusters
+import stringalign.tokenize
 
 if TYPE_CHECKING:  # pragma: nocov
     from collections.abc import Generator
@@ -80,9 +80,13 @@ def create_cost_matrix(reference: Sequence[str], predicted: Sequence[str]) -> np
     return cost_matrix
 
 
-def character_align_strings(reference: str, predicted: str) -> AlignmentList:
-    reference, predicted = unicodedata.normalize("NFD", reference), unicodedata.normalize("NFD", predicted)
-    reference_clusters, predicted_clusters = grapheme_clusters(reference), grapheme_clusters(predicted)
+def align_strings(
+    reference: str, predicted: str, tokenizer: stringalign.tokenize.Tokenizer | None = None
+) -> AlignmentList:
+    if tokenizer is None:
+        tokenizer = stringalign.tokenize.grapheme_cluster_tokenizer
+
+    reference_clusters, predicted_clusters = tokenizer(reference), tokenizer(predicted)
     cost_matrix = create_cost_matrix(reference_clusters, predicted_clusters)
 
     alignment: AlignmentList = []

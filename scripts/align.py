@@ -2,11 +2,10 @@ from pprint import pprint
 
 import stringalign
 
-
 reference = "heeei du er kul"
 predicted = "hei du er cool"
 
-alignment = stringalign.align.character_align_strings(reference, predicted)
+alignment = stringalign.align.align_strings(reference, predicted)
 confusion_matrix = stringalign.statistics.StringConfusionMatrix.from_strings_and_alignment(
     reference, predicted, alignment
 )
