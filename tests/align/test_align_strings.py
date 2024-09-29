@@ -2,26 +2,26 @@ import unicodedata
 
 import hypothesis.strategies as st
 from hypothesis import given
-from stringalign.align import Delete, Insert, Replace, align_strings
+from stringalign.align import AlignmentOperation, Delete, Insert, Keep, Replace, align_strings
 from stringalign.tokenize import grapheme_cluster_tokenizer
 
 
-@given(st.text(), st.text())
-def test_align_strings_length(reference, predicted):
+@given(reference=st.text(), predicted=st.text())
+def test_align_strings_length(reference: str, predicted: str) -> None:
     alignment = align_strings(reference, predicted)
     ref_clusters, pred_clusters = grapheme_cluster_tokenizer(reference), grapheme_cluster_tokenizer(predicted)
     assert len(alignment) >= max(len(ref_clusters), len(pred_clusters))
 
 
-@given(st.text(), st.text())
-def test_align_strings_types(reference, predicted):
+@given(reference=st.text(), predicted=st.text())
+def test_align_strings_types(reference: str, predicted: str) -> None:
     alignment = align_strings(reference, predicted)
     for op in alignment:
-        assert isinstance(op, (Insert, Delete, Replace)) or op is None
+        assert isinstance(op, AlignmentOperation)
 
 
-@given(st.text(), st.text())
-def test_align_strings_reconstruct(reference, predicted):
+@given(reference=st.text(), predicted=st.text())
+def test_align_strings_reconstruct(reference: str, predicted: str) -> None:
     alignment = align_strings(reference, predicted)
 
     rec_predicted = ""
@@ -29,7 +29,7 @@ def test_align_strings_reconstruct(reference, predicted):
     pred_iter = iter(grapheme_cluster_tokenizer(predicted))
     ref_iter = iter(grapheme_cluster_tokenizer(reference))
     for op in alignment:
-        if op is None:
+        if isinstance(op, Keep):
             rec_predicted += next(ref_iter)
             rec_reference += next(pred_iter)
 
@@ -50,8 +50,6 @@ def test_align_strings_reconstruct(reference, predicted):
 
         elif isinstance(op, Delete):
             char = next(pred_iter)
-            if char != op.substring:
-                breakpoint()
             assert char == op.substring
             rec_predicted += char
 
@@ -59,22 +57,22 @@ def test_align_strings_reconstruct(reference, predicted):
     assert rec_predicted == predicted
 
 
-@given(st.text())
-def test_align_strings_identical(text):
+@given(text=st.text())
+def test_align_strings_identical(text: str) -> None:
     alignment = align_strings(text, text)
-    assert all(op is None for op in alignment)
+    assert all(isinstance(op, Keep) for op in alignment)
     assert len(alignment) == len(grapheme_cluster_tokenizer(text))
 
 
-def test_normalise_unicode():
+def test_normalise_unicode() -> None:
     a_with_ring = "Å"
     letter_å = "Å"
 
     assert a_with_ring != letter_å
-    assert align_strings(a_with_ring, letter_å) == [None]
+    assert align_strings(a_with_ring, letter_å) == [Keep(letter_å)]
 
 
-def test_align_combining_grapheme():
+def test_align_combining_grapheme() -> None:
     """Test that graphemes that consist of multiple code-points are handled as a single character.
 
     See e.g. https://tonsky.me/blog/unicode/ and https://grapheme.readthedocs.io/en/latest/grapheme.html
@@ -82,7 +80,7 @@ def test_align_combining_grapheme():
     assert align_strings("ą́", "a") == [Replace("a", unicodedata.normalize("NFC", "ą́"))]
 
 
-def test_align_emojis():
+def test_align_emojis() -> None:
     """Test that emojis that consist of multiple code-points are handled as a single character.
 
     See e.g. https://tonsky.me/blog/unicode/ and https://grapheme.readthedocs.io/en/latest/grapheme.html

@@ -2,9 +2,9 @@ from collections import Counter, defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
 from numbers import Number
-from typing import Self
+from typing import Self, cast
 
-from stringalign.align import AlignmentOperation
+from stringalign.align import AlignmentOperation, Keep, Replace
 
 
 @dataclass
@@ -20,7 +20,7 @@ class StringConfusionMatrix:
         cls,
         reference: str,
         predicted: str,
-        alignment: Iterable[AlignmentOperation | None],
+        alignment: Iterable[AlignmentOperation],
     ) -> Self:
         ref_iter = iter(reference)
         pred_iter = iter(predicted)
@@ -29,12 +29,12 @@ class StringConfusionMatrix:
         false_positives: Counter[str] = Counter()
         false_negatives: Counter[str] = Counter()
         for op in alignment:
-            if op is None:
+            if isinstance(op, Keep):
                 true_positives[next(ref_iter)] += 1
                 next(pred_iter)
                 continue
 
-            op = op.as_replace()
+            op = cast(Replace, op.generalize())
             for char in op.substring:
                 false_positives[char] += 1
                 next(pred_iter)

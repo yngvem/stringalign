@@ -1,21 +1,13 @@
 from collections import Counter
 
-from stringalign.align import Delete, Insert, Replace
+from stringalign.align import Delete, Insert, Keep, Replace, align_strings
 from stringalign.statistics import StringConfusionMatrix
 
 
-def test_from_strings_and_alignment():
+def test_from_strings_and_alignment() -> None:
     reference = "abcbaa"
     predicted = "acdeai"
-    alignment = [
-        None,
-        Insert("b"),
-        None,
-        Replace("d", "b"),
-        Replace("e", "a"),
-        None,
-        Delete("i"),
-    ]
+    alignment = align_strings(reference=reference, predicted=predicted)
 
     result = StringConfusionMatrix.from_strings_and_alignment(reference, predicted, alignment)
 
@@ -24,7 +16,7 @@ def test_from_strings_and_alignment():
     assert result.false_negatives == Counter({"b": 2, "a": 1})
 
 
-def test_from_strings_and_alignment_empty():
+def test_from_strings_and_alignment_empty() -> None:
     result = StringConfusionMatrix.from_strings_and_alignment("", "", [])
 
     assert result.true_positives == Counter()

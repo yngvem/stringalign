@@ -5,7 +5,7 @@ from stringalign.statistics import StringConfusionMatrix
 
 
 @pytest.fixture
-def sample_confusion_matrix():
+def sample_confusion_matrix() -> StringConfusionMatrix:
     return StringConfusionMatrix(
         true_positives=Counter({"a": 3, "b": 2, "c": 1}),
         false_positives=Counter({"a": 1, "b": 1, "d": 1}),
@@ -13,7 +13,7 @@ def sample_confusion_matrix():
     )
 
 
-def test_compute_f1_score(sample_confusion_matrix):
+def test_compute_f1_score(sample_confusion_matrix: StringConfusionMatrix) -> None:
     f1 = sample_confusion_matrix.compute_f1_score()
     supposed = {
         "a": 0.75,
@@ -25,6 +25,6 @@ def test_compute_f1_score(sample_confusion_matrix):
     assert f1 == pytest.approx(supposed)
 
 
-def test_compute_f1_score_aggregate(sample_confusion_matrix):
+def test_compute_f1_score_aggregate(sample_confusion_matrix: StringConfusionMatrix) -> None:
     f1 = sample_confusion_matrix.compute_f1_score(aggregate_over="ab")
     assert f1 == pytest.approx(10 / (10 + 2 + 1))

@@ -3,7 +3,7 @@ from collections import Counter
 from stringalign.statistics import StringConfusionMatrix
 
 
-def test_compute_f1_score(sample_confusion_matrix):
+def test__add__() -> None:
     cm1 = StringConfusionMatrix(
         true_positives=Counter({"a": 3, "b": 2, "c": 1}),
         false_positives=Counter({"a": 1, "b": 1, "d": 1}),
