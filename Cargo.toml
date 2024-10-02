@@ -9,5 +9,9 @@ name = "stringalign"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = "0.22.0"
+numpy = "0.21.0"
+pyo3 = { version = "0.21", features = ["extension-module"] }
 unicode-segmentation = "1.12.0"
+
+[package.metadata.clippy]
+deny = ["clippy::all", "clippy::pedantic", "clippy::cargo"]

@@ -22,3 +22,19 @@ repos:
     rev: 'v1.11.2'
     hooks:
     -   id: mypy
+-   repo: local
+    hooks:
+      - id: rustfmt
+        name: rustfmt
+        description: Check if all files follow the rustfmt style
+        entry: cargo fmt --all -- --color always
+        language: system
+        pass_filenames: false
+        types: [rust]
+      - id: clippy
+        name: clippy
+        description: Check if all files follow the rustfmt style
+        entry: cargo clippy -- -D warnings
+        language: system
+        pass_filenames: false
+        types: [rust]

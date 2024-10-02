@@ -3,9 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-import numpy as np
-
 import stringalign.tokenize
+from stringalign._stringutils import create_cost_matrix
 
 if TYPE_CHECKING:  # pragma: nocov
     from collections.abc import Generator, Iterable, Sequence
@@ -86,26 +85,6 @@ class Keep:
         if not isinstance(other, self.__class__):
             raise TypeError(f"Can only merge Keep instance with other Keep instances, not {type(other)}")
         return Keep(substring=self.substring + other.substring)
-
-
-def create_cost_matrix(reference: Sequence[str], predicted: Sequence[str]) -> np.ndarray:
-    m, n = len(reference), len(predicted)
-    cost_matrix = np.zeros((m + 1, n + 1))
-
-    cost_matrix[:, 0] = np.arange(m + 1)
-    cost_matrix[0, :] = np.arange(n + 1)
-
-    for row in range(m):
-        for col in range(n):
-            if reference[row] == predicted[col]:
-                cost_matrix[row + 1][col + 1] = cost_matrix[row][col]
-            else:
-                cost_matrix[row + 1][col + 1] = 1 + min(
-                    cost_matrix[row][col + 1],
-                    cost_matrix[row + 1][col],
-                    cost_matrix[row][col],
-                )
-    return cost_matrix
 
 
 def align_strings(
