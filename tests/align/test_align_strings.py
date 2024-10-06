@@ -23,11 +23,11 @@ def test_align_strings_types(reference: str, predicted: str) -> None:
 
 @given(reference=st.text(), predicted=st.text())
 def test_align_strings_reconstruct(reference: str, predicted: str) -> None:
-    alignment = align_strings(reference, predicted)
+    tokenizer = GrahpemeClusterTokenizer(normalization=None)
+    alignment = align_strings(reference, predicted, tokenizer=tokenizer)
 
     rec_predicted = ""
     rec_reference = ""
-    tokenizer = GrahpemeClusterTokenizer()
     pred_iter = iter(tokenizer(predicted))
     ref_iter = iter(tokenizer(reference))
     for op in alignment:

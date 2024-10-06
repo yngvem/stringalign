@@ -1,3 +1,4 @@
+import re
 import unicodedata
 from typing import Literal, Protocol
 
@@ -8,17 +9,86 @@ class Tokenizer(Protocol):
     def __call__(self, text: str) -> list[str]: ...
 
 
-class GrahpemeClusterTokenizer:
+class StringNormalizer:
+    """Simple string normalizer, used to remove "irrelevant" differences when comparing strings.
+
+    Arguments
+    ---------
+    normalization:
+        Which unicode normalization to use
+    case_insensitive:
+        If true, run `str.casefold` to make all letters lowercase
+    normalize_whitespace:
+        Turn any occurance of one or more whitespaces into exactly one regular space
+    remove_whitespace:
+        Turn any occurance of one or more whitespaces into exactly one regular space
+    remove_non_word_characters:
+        Remove any character non-alphabetic and non-numeric unicode characters except spaces.
+    """
+
     def __init__(
-        self, normalization: Literal["NFC", "NFD", "NFKC", "NFKD", None] = "NFC", case_insensitive: bool = False
+        self,
+        normalization: Literal["NFC", "NFD", "NFKC", "NFKD", None] = "NFC",
+        case_insensitive: bool = False,
+        normalize_whitespace: bool = False,
+        remove_whitespace: bool = False,
+        remove_non_word_characters: bool = False,
     ) -> None:
         self.normalization = normalization
         self.case_insensitive = case_insensitive
+        self.normalize_whitespace = normalize_whitespace
+        self.remove_whitespace = remove_whitespace
+        self.remove_non_word_characters = remove_non_word_characters
 
-    def __call__(self, text: str) -> list[str]:
+    def __call__(self, text: str) -> str:
         if self.normalization is not None:
             text = unicodedata.normalize(self.normalization, text)
         if self.case_insensitive:
             text = text.casefold()
+        if self.normalize_whitespace:
+            text = re.sub(r"\s+", " ", text)
+        if self.remove_whitespace:
+            text = re.sub(r"\s", "", text)
+        if self.remove_non_word_characters:
+            text = re.sub(r"[^\w\s]|_", "", text)
 
+        return text
+
+
+class GrahpemeClusterTokenizer:
+    """Turn a text string into a list of extended grapheme clusters :cite:p:`unicode-annex-29`.
+
+    This code uses the ```unicode_segmentation```_ Rust crate to do split the text string into
+    extended grapheme clusters.
+
+    Arguments
+    ---------
+    normalization:
+        Which unicode normalization to use
+    case_insensitive:
+        If true, run `str.casefold` to make all letters lowercase
+    normalize_whitespace:
+        Turn any occurance of one or more whitespaces into exactly one regular space
+    remove_non_word_characters:
+        Remove any character that isn't a Unicode word character as well as underscores.
+
+    .. _``unicode_segmentation``: https://docs.rs/unicode-segmentation/latest/unicode_segmentation/index.html
+    """
+
+    def __init__(
+        self,
+        normalization: Literal["NFC", "NFD", "NFKC", "NFKD", None] = "NFC",
+        case_insensitive: bool = False,
+        normalize_whitespace: bool = False,
+        remove_non_word_characters: bool = False,
+    ) -> None:
+        self.string_normalizer = StringNormalizer(
+            normalization=normalization,
+            case_insensitive=case_insensitive,
+            normalize_whitespace=normalize_whitespace,
+            remove_non_word_characters=remove_non_word_characters,
+        )
+
+    def __call__(self, text: str) -> list[str]:
+        text = self.string_normalizer(text)
         return stringalign._stringutils.grapheme_clusters(text)
