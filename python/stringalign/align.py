@@ -51,6 +51,12 @@ class Insert:
     def simplify(self) -> Self:
         return self
 
+    def to_html(self) -> tuple[str, str]:
+        return (
+            f'<span class="insert reference">{self.substring}</span>',
+            f'<span class="insert predicted"></span>',
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class Delete:
@@ -61,6 +67,12 @@ class Delete:
 
     def simplify(self) -> Self:
         return self
+
+    def to_html(self) -> tuple[str, str]:
+        return (
+            f'<span class="delete reference"></span>',
+            f'<span class="delete predicted">{self.substring}</span>',
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -86,6 +98,12 @@ class Replace:
             replacement=self.replacement + other.replacement,
         )
 
+    def to_html(self) -> tuple[str, str]:
+        return (
+            f'<span class="replace reference">{self.replacement}</span>',
+            f'<span class="replace predicted">{self.substring}</span>',
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class Keep:
@@ -101,6 +119,12 @@ class Keep:
         if not isinstance(other, self.__class__):
             raise TypeError(f"Can only merge Keep instance with other Keep instances, not {type(other)}")
         return Keep(substring=self.substring + other.substring)
+
+    def to_html(self) -> tuple[str, str]:
+        return (
+            f'<span class="keep reference">{self.substring}</span>',
+            f'<span class="keep predicted">{self.substring}</span>',
+        )
 
 
 def create_cost_matrix(reference_tokens: Iterable[str], predicted_tokens: Iterable[str]) -> np.ndarray:
