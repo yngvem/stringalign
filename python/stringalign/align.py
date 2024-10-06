@@ -4,11 +4,27 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 import stringalign.tokenize
-from stringalign._stringutils import create_cost_matrix
+from stringalign._stringutils import create_cost_matrix as _create_cost_matrix
 
 if TYPE_CHECKING:  # pragma: nocov
-    from collections.abc import Generator, Iterable, Sequence
+    from collections.abc import Generator, Iterable
     from typing import Self
+
+    import numpy as np
+
+__all__ = [
+    "AlignmentOperation",
+    "MergableAlignmentOperation",
+    "AlignmentList",
+    "StringType",
+    "Insert",
+    "Delete",
+    "Replace",
+    "Keep",
+    "align_strings",
+    "aggregate_alignment",
+    "create_cost_matrix",
+]
 
 
 @runtime_checkable
@@ -85,6 +101,10 @@ class Keep:
         if not isinstance(other, self.__class__):
             raise TypeError(f"Can only merge Keep instance with other Keep instances, not {type(other)}")
         return Keep(substring=self.substring + other.substring)
+
+
+def create_cost_matrix(reference_tokens: Iterable[str], predicted_tokens: Iterable[str]) -> np.ndarray:
+    return _create_cost_matrix(list(reference_tokens), list(predicted_tokens))
 
 
 def align_strings(
