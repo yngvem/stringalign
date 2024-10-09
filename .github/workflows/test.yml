@@ -1,0 +1,27 @@
+name: Run test
+
+on: [push, pull_request]
+
+jobs:
+  run-tests:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows, macos]
+        python: ['3.9', '3.10', '3.11', '3.12', '3.13']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: ${{ matrix.python }}
+          cache: true
+      - name: Setup rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run pre-commit hooks
+        uses: pre-commit/action@v3.0.1
+      - name: Install project
+        run: pdm Install
+      - name: Run unit tests
+        run: pdm run pytest
