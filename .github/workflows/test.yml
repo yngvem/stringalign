@@ -22,6 +22,6 @@ jobs:
       - name: Run pre-commit hooks
         uses: pre-commit/action@v3.0.1
       - name: Install project
-        run: pdm Install
+        run: pdm install
       - name: Run unit tests
         run: pdm run pytest
