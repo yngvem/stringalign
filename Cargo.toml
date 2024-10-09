@@ -10,7 +10,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 numpy = "0.21.0"
-pyo3 = { version = "0.21", features = ["extension-module"] }
+pyo3 = { version = "0.22.3", features = ["extension-module"] }
 unicode-segmentation = "1.12.0"
 
 [package.metadata.clippy]
