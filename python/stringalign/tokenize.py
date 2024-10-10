@@ -77,18 +77,14 @@ class GrahpemeClusterTokenizer:
 
     def __init__(
         self,
-        normalization: Literal["NFC", "NFD", "NFKC", "NFKD", None] = "NFC",
-        case_insensitive: bool = False,
-        normalize_whitespace: bool = False,
-        remove_non_word_characters: bool = False,
+        pre_clustering_normalizer: StringNormalizer | None = None,
+        post_clustering_normalizer: StringNormalizer | None = None,
     ) -> None:
-        self.string_normalizer = StringNormalizer(
-            normalization=normalization,
-            case_insensitive=case_insensitive,
-            normalize_whitespace=normalize_whitespace,
-            remove_non_word_characters=remove_non_word_characters,
-        )
+        self.pre_clustering_normalizer = pre_clustering_normalizer or StringNormalizer()
+        self.post_clustering_normalizer = post_clustering_normalizer or StringNormalizer()
 
     def __call__(self, text: str) -> list[str]:
-        text = self.string_normalizer(text)
-        return stringalign._stringutils.grapheme_clusters(text)
+        text = self.pre_clustering_normalizer(text)
+        clusters = stringalign._stringutils.grapheme_clusters(text)
+        clusters = [self.post_clustering_normalizer(cluster) for cluster in clusters]
+        return clusters

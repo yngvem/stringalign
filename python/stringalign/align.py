@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Final, Protocol, runtime_checkable
 
 import stringalign.tokenize
 from stringalign._stringutils import create_cost_matrix as _create_cost_matrix
 
-if TYPE_CHECKING:  # pragma: nocov
+if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Generator, Iterable
     from typing import Self
 
@@ -29,6 +29,9 @@ __all__ = [
 
 @runtime_checkable
 class AlignmentOperation(Protocol):
+    @property
+    def substring(self) -> str: ...
+
     def generalize(self) -> MergableAlignmentOperation: ...
     def simplify(self) -> AlignmentOperation: ...
 
@@ -161,14 +164,22 @@ def align_strings(
     return alignment[::-1]
 
 
+def levenshtein_distance(
+    reference: str, predicted: str, tokenizer: stringalign.tokenize.Tokenizer | None = None
+) -> int:
+    return len(tuple(op for op in align_strings(reference, predicted, tokenizer) if not isinstance(op, Keep)))
+
+
 class _EmptyAlignment:
-    def generalize(self) -> Self:
+    """Used as a sentinel object that will make mypy happy."""
+
+    def generalize(self) -> Self:  # pragma: no cover
         return self
 
-    def simplify(self) -> Self:
+    def simplify(self) -> Self:  # pragma: no cover
         return self
 
-    def merge(self) -> Self:
+    def merge(self) -> Self:  # pragma: no cover
         return self
 
 
