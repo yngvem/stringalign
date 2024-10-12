@@ -44,19 +44,3 @@ select = ["I", "TCH"]
 
 [tool.mypy]
 ignore-missing-imports = true
-
-[tool.cibuildwheel]
-build = "*"
-skip = ""
-test-skip = ""
-free-threaded-support = true
-
-archs = ["all"]
-build-frontend = "default"
-config-settings = {}
-dependency-versions = "pinned"
-environment = {}
-environment-pass = []
-build-verbosity = 0
-
-before-all = "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s - -y"

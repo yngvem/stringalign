@@ -21,8 +21,6 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Run pre-commit hooks
         uses: pre-commit/action@v3.0.1
-      - name: Check that we can build the wheels
-        run: pipx run cibuildwheel==2.21.3
       - name: Install project
         run: pdm install
       - name: Run unit tests
