@@ -28,7 +28,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "pre-commit install"
+	"postCreateCommand": "pre-commit install && pdm install"
 
 	// Configure tool-specific properties.
 	// "customizations": {},
