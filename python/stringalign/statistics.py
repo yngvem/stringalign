@@ -37,8 +37,9 @@ class StringConfusionMatrix:
         edit_counts: Counter[AlignmentOperation] = Counter()
         for op in alignment:
             if isinstance(op, Keep):
-                true_positives[next(ref_iter)] += 1
-                next(pred_iter)
+                for char in op.substring:
+                    true_positives[next(ref_iter)] += 1
+                    next(pred_iter)
                 continue
 
             edit_counts[op] += 1

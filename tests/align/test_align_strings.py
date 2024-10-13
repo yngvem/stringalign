@@ -3,13 +3,13 @@ import unicodedata
 import hypothesis.strategies as st
 from hypothesis import given
 from stringalign.align import AlignmentOperation, Delete, Insert, Keep, Replace, align_strings
-from stringalign.tokenize import GrahpemeClusterTokenizer, StringNormalizer
+from stringalign.tokenize import GraphemeClusterTokenizer, StringNormalizer
 
 
 @given(reference=st.text(), predicted=st.text())
 def test_align_strings_length(reference: str, predicted: str) -> None:
     alignment = align_strings(reference, predicted)
-    tokenizer = GrahpemeClusterTokenizer()
+    tokenizer = GraphemeClusterTokenizer()
     ref_clusters, pred_clusters = tokenizer(reference), tokenizer(predicted)
     assert len(alignment) >= max(len(ref_clusters), len(pred_clusters))
 
@@ -23,7 +23,7 @@ def test_align_strings_types(reference: str, predicted: str) -> None:
 
 @given(reference=st.text(), predicted=st.text())
 def test_align_strings_reconstruct(reference: str, predicted: str) -> None:
-    tokenizer = GrahpemeClusterTokenizer(
+    tokenizer = GraphemeClusterTokenizer(
         pre_clustering_normalizer=StringNormalizer(normalization=None),
         post_clustering_normalizer=StringNormalizer(normalization=None),
     )
@@ -66,7 +66,7 @@ def test_align_strings_reconstruct(reference: str, predicted: str) -> None:
 def test_align_strings_identical(text: str) -> None:
     alignment = align_strings(text, text)
     assert all(isinstance(op, Keep) for op in alignment)
-    assert len(alignment) == len(GrahpemeClusterTokenizer()(text))
+    assert len(alignment) == len(GraphemeClusterTokenizer()(text))
 
 
 def test_normalise_unicode() -> None:

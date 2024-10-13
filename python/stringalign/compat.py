@@ -1,8 +1,8 @@
 import sys
 
-if sys.version_info >= (3, 12):
+if sys.version_info >= (3, 12):  # pragma: no coverage
     from itertools import batched
-else:
+else:  # pragma: no coverage
     from itertools import islice
     from typing import Generator, Iterable, Iterator, TypeVar
 
