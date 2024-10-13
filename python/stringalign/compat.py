@@ -4,7 +4,7 @@ if sys.version_info >= (3, 12):
     from itertools import batched
 else:
     from itertools import islice
-    from typing import Iterable, Iterator, TypeVar
+    from typing import Generator, Iterable, Iterator, TypeVar
 
     T = TypeVar("T")
 
