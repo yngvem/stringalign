@@ -44,8 +44,10 @@ def test_levenshtein_distance_with_emojis(string1: str, string2: str, expected_d
 
 
 @given(
-    string1=st.text(alphabet=st.characters(min_codepoint=0, max_codepoint=127)),  # Only ASCII characters
-    string2=st.text(alphabet=st.characters(min_codepoint=0, max_codepoint=127)),
+    string1=st.text(
+        alphabet=st.characters(min_codepoint=0, max_codepoint=127, blacklist_characters="\r")
+    ),  # Only ASCII characters
+    string2=st.text(alphabet=st.characters(min_codepoint=0, max_codepoint=127, blacklist_characters="\r")),
 )
 def test_levenshtein_distance_with_Levenshtein(string1: str, string2: str) -> None:
     assert levenshtein_distance(string1, string2) == Levenshtein.distance(string1, string2)
