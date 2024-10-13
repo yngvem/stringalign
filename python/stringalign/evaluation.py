@@ -1,5 +1,5 @@
 from collections import Counter, deque
-from collections.abc import Generator
+from collections.abc import Generator, Mapping
 from dataclasses import dataclass
 from itertools import chain
 from typing import Iterable, Literal, Self, TypeVar
@@ -73,27 +73,61 @@ def check_operation_for_ngram_duplication_error(
 @dataclass(frozen=True, slots=True)
 class LineError:
     reference: str
-    prediction: str
+    predicted: str
     alignment: tuple[AlignmentOperation, ...]
+    raw_alignment: tuple[AlignmentOperation, ...]
     horisontal_segmentation_errors: tuple[AlignmentOperation, ...]
     character_duplication_errors: tuple[AlignmentOperation, ...]
     removed_duplicate_character_errors: tuple[AlignmentOperation, ...]
     case_errors: tuple[AlignmentOperation, ...]
+    metadata: Mapping[str, str | int | float | tuple[str | bool | int | float, ...]] | None
+
+    def summarise(self) -> dict[str, str | bool | int | float | tuple[str | bool | int | float, ...]]:
+        metadata = self.metadata
+        if metadata is None:
+            metadata = {}
+
+        return {
+            "reference": self.reference,
+            "predicted": self.predicted,
+            "horisontal_segmentation_error": bool(self.horisontal_segmentation_errors),
+            "character_duplication_error": bool(self.character_duplication_errors),
+            "removed_duplicate_character_error": bool(self.removed_duplicate_character_errors),
+            "case_error": bool(self.case_errors),
+            **metadata,
+        }
+
+    @property
+    def confusion_matrix(self) -> StringConfusionMatrix:
+        return StringConfusionMatrix.from_strings_and_alignment(
+            reference=self.reference,
+            predicted=self.predicted,
+            alignment=self.raw_alignment,
+        )
 
     @classmethod
-    def from_strings(cls, reference: str, prediction: str, tokenizer: Tokenizer | None) -> Self:
-        alignment = tuple(aggregate_alignment(align_strings(reference, prediction, tokenizer=tokenizer)))
+    def from_strings(
+        cls,
+        reference: str,
+        predicted: str,
+        tokenizer: Tokenizer | None,
+        metadata: Mapping[str, str | int | float | tuple[str | int | float, ...]] | None = None,
+    ) -> Self:
+        raw_alignment = tuple(align_strings(reference, predicted, tokenizer=tokenizer))
+        alignment = tuple(aggregate_alignment(raw_alignment))
         window: deque[AlignmentOperation | None] = deque(maxlen=3)
 
         if not alignment:
             return cls(
                 reference=reference,
-                prediction=prediction,
+                predicted=predicted,
                 alignment=tuple(),
+                raw_alignment=tuple(),
                 horisontal_segmentation_errors=tuple(),
                 character_duplication_errors=tuple(),
                 removed_duplicate_character_errors=tuple(),
                 case_errors=tuple(),
+                metadata=metadata,
             )
 
         alignment_iterator = iter(alignment)
@@ -121,13 +155,18 @@ class LineError:
 
         return cls(
             reference=reference,
-            prediction=prediction,
+            predicted=predicted,
             alignment=alignment,
+            raw_alignment=raw_alignment,
             horisontal_segmentation_errors=tuple(horisontal_segmentation_errors),
             character_duplication_errors=tuple(character_duplication_errors),
             removed_duplicate_character_errors=tuple(removed_duplicate_character_errors),
             case_errors=tuple(case_errors),
+            metadata=metadata,
         )
+
+    def __str__(self) -> str:
+        return f"LineError('{self.reference}', '{self.predicted}', metadata={self.metadata})"
 
 
 @dataclass(frozen=True, slots=True)
@@ -135,6 +174,9 @@ class TranscriptionEvaluator:
     references: tuple[str, ...]
     predictions: tuple[str, ...]
     line_errors: tuple[LineError, ...]
+
+    def dump(self) -> list[dict[str, tuple[str | bool | int | float, ...] | str | bool | int | float]]:
+        return [le.summarise() for le in self.line_errors]
 
     @property
     def horisontal_segmentation_errors(self) -> Generator[LineError, None, None]:
@@ -156,14 +198,26 @@ class TranscriptionEvaluator:
     def alignment_operators(self) -> Counter[AlignmentOperation]:
         return Counter(op for err in self.line_errors for op in err.alignment)
 
+    @property
+    def confusion_matrix(self) -> StringConfusionMatrix:
+        return sum((le.confusion_matrix for le in self.line_errors), start=StringConfusionMatrix.get_empty())
+
     @classmethod
-    def from_strings(cls, references: Iterable[str], predictions: Iterable[str], tokenizer: Tokenizer | None) -> Self:
+    def from_strings(
+        cls,
+        references: Iterable[str],
+        predictions: Iterable[str],
+        tokenizer: Tokenizer | None = None,
+        metadata: Iterable[Mapping[str, str | int | float | tuple[str | int | float, ...]] | None] | None = None,
+    ) -> Self:
         references = tuple(references)
         predictions = tuple(predictions)
+        if metadata is None:
+            metadata = tuple(None for _ in references)
 
         line_errors = tuple(
-            LineError.from_strings(reference, prediction, tokenizer)
-            for reference, prediction in zip(references, predictions, strict=True)
+            LineError.from_strings(reference, prediction, tokenizer, metadata=metadata)
+            for reference, prediction, metadata in zip(references, predictions, metadata, strict=True)
         )
 
         return cls(
