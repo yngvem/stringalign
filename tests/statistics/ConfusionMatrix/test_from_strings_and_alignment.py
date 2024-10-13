@@ -14,6 +14,14 @@ def test_from_strings_and_alignment() -> None:
     assert result.true_positives == Counter({"a": 2, "c": 1})
     assert result.false_positives == Counter({"d": 1, "e": 1, "i": 1})
     assert result.false_negatives == Counter({"b": 2, "a": 1})
+    assert result.edit_counts == Counter(
+        {
+            Insert("b"): 1,
+            Replace("d", "b"): 1,
+            Replace("e", "a"): 1,
+            Delete("i"): 1,
+        }
+    )
 
 
 def test_from_strings_and_alignment_empty() -> None:
@@ -22,3 +30,4 @@ def test_from_strings_and_alignment_empty() -> None:
     assert result.true_positives == Counter()
     assert result.false_positives == Counter()
     assert result.false_negatives == Counter()
+    assert result.edit_counts == Counter()
