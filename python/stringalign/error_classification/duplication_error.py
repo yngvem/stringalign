@@ -1,6 +1,8 @@
 from collections.abc import Generator, Iterable, Sequence
-from itertools import batched, groupby
+from itertools import groupby
 from typing import Literal, TypeVar
+
+from stringalign.compat import batched
 
 T = TypeVar("T")
 

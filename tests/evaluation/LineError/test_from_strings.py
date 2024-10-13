@@ -16,6 +16,7 @@ from stringalign.evaluation import LineError
                 horisontal_segmentation_errors=(),
                 character_duplication_errors=(),
                 removed_duplicate_character_errors=(),
+                case_errors=(),
             ),
         ),
         (
@@ -28,6 +29,7 @@ from stringalign.evaluation import LineError
                 horisontal_segmentation_errors=(Insert("!"),),
                 character_duplication_errors=(),
                 removed_duplicate_character_errors=(),
+                case_errors=(),
             ),
         ),
         (
@@ -43,6 +45,7 @@ from stringalign.evaluation import LineError
                 ),
                 character_duplication_errors=(),
                 removed_duplicate_character_errors=(),
+                case_errors=(Replace("h", "H"),),
             ),
         ),
         (
@@ -55,6 +58,7 @@ from stringalign.evaluation import LineError
                 horisontal_segmentation_errors=(),
                 character_duplication_errors=(Delete("l"),),
                 removed_duplicate_character_errors=(),
+                case_errors=(),
             ),
         ),
         (
@@ -67,6 +71,7 @@ from stringalign.evaluation import LineError
                 horisontal_segmentation_errors=(),
                 character_duplication_errors=(),
                 removed_duplicate_character_errors=(Insert("l"),),
+                case_errors=(),
             ),
         ),
     ],

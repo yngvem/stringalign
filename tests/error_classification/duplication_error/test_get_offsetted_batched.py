@@ -1,8 +1,7 @@
-from itertools import batched
-
 import hypothesis.strategies as st
 import pytest
 from hypothesis import given
+from stringalign.compat import batched
 from stringalign.error_classification.duplication_error import get_offsetted_batched
 
 

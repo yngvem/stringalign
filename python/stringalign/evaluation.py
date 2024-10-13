@@ -78,6 +78,7 @@ class LineError:
     horisontal_segmentation_errors: tuple[AlignmentOperation, ...]
     character_duplication_errors: tuple[AlignmentOperation, ...]
     removed_duplicate_character_errors: tuple[AlignmentOperation, ...]
+    case_errors: tuple[AlignmentOperation, ...]
 
     @classmethod
     def from_strings(cls, reference: str, prediction: str, tokenizer: Tokenizer | None) -> Self:
@@ -92,6 +93,7 @@ class LineError:
                 horisontal_segmentation_errors=tuple(),
                 character_duplication_errors=tuple(),
                 removed_duplicate_character_errors=tuple(),
+                case_errors=tuple(),
             )
 
         alignment_iterator = iter(alignment)
@@ -101,6 +103,7 @@ class LineError:
         horisontal_segmentation_errors = []
         character_duplication_errors = []
         removed_duplicate_character_errors = []
+        case_errors = []
         op: AlignmentOperation | None
         for op in chain(alignment_iterator, (None, None)):
             window.append(op)
@@ -113,6 +116,8 @@ class LineError:
                 character_duplication_errors.append(window[1])
             if check_operation_for_ngram_duplication_error(window[0], window[1], window[2], n=1, type="delete"):
                 removed_duplicate_character_errors.append(window[1])
+            if check_operation_for_case_error(window[0], window[1], window[2]):
+                case_errors.append(window[1])
 
         return cls(
             reference=reference,
@@ -121,6 +126,7 @@ class LineError:
             horisontal_segmentation_errors=tuple(horisontal_segmentation_errors),
             character_duplication_errors=tuple(character_duplication_errors),
             removed_duplicate_character_errors=tuple(removed_duplicate_character_errors),
+            case_errors=tuple(case_errors),
         )
 
 
@@ -141,6 +147,10 @@ class TranscriptionEvaluator:
     @property
     def removed_duplicate_character_errors(self) -> Generator[LineError, None, None]:
         return (err for err in self.line_errors if err.removed_duplicate_character_errors)
+
+    @property
+    def case_errors(self) -> Generator[LineError, None, None]:
+        return (err for err in self.line_errors if err.case_errors)
 
     @property
     def alignment_operators(self) -> Counter[AlignmentOperation]:
