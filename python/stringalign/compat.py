@@ -8,9 +8,9 @@ else:
 
     T = TypeVar("T")
 
-    def batched(iterable: Iterable[T], n: int) -> Generator[islice[T], None, None]:
+    def batched(iterable: Iterable[T], n: int) -> Generator[tuple[T, ...], None, None]:
         if n < 1:
             raise ValueError("n must be at least one")
         it = iter(iterable)
         while batch := islice(it, n):
-            yield batch
+            yield tuple(batch)
