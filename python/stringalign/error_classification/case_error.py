@@ -7,7 +7,7 @@ def count_case_errors(reference: str, predicted: str) -> int:
     casefolded_distance = levenshtein_distance(
         reference,
         predicted,
-        tokenizer=stringalign.tokenize.GrahpemeClusterTokenizer(
+        tokenizer=stringalign.tokenize.GraphemeClusterTokenizer(
             post_clustering_normalizer=stringalign.tokenize.StringNormalizer(case_insensitive=True)
         ),
     )

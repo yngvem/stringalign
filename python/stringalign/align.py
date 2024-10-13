@@ -138,7 +138,7 @@ def align_strings(
     reference: str, predicted: str, tokenizer: stringalign.tokenize.Tokenizer | None = None
 ) -> AlignmentList:
     if tokenizer is None:
-        tokenizer = stringalign.tokenize.GrahpemeClusterTokenizer()
+        tokenizer = stringalign.tokenize.GraphemeClusterTokenizer()
 
     reference_clusters, predicted_clusters = tokenizer(reference), tokenizer(predicted)
     cost_matrix = create_cost_matrix(reference_clusters, predicted_clusters)

@@ -55,7 +55,7 @@ class StringNormalizer:
         return text
 
 
-class GrahpemeClusterTokenizer:
+class GraphemeClusterTokenizer:
     """Turn a text string into a list of extended grapheme clusters :cite:p:`unicode-annex-29`.
 
     This code uses the ```unicode_segmentation```_ Rust crate to do split the text string into
