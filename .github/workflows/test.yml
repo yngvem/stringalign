@@ -6,7 +6,7 @@ jobs:
   run-tests:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows, macos]
+        os: [ubuntu-latest, macos-latest]
         python: ['3.11', '3.12', '3.13']
     runs-on: ${{ matrix.os }}
     steps:
@@ -24,4 +24,4 @@ jobs:
       - name: Install project
         run: pdm install
       - name: Run unit tests
-        run: pdm run pytest
+        run: pdm run pytest --cov python

@@ -3,7 +3,7 @@ import unicodedata
 import hypothesis.strategies as st
 from hypothesis import given
 from stringalign.align import AlignmentOperation, Delete, Insert, Keep, Replace, align_strings
-from stringalign.tokenize import GrahpemeClusterTokenizer
+from stringalign.tokenize import GrahpemeClusterTokenizer, StringNormalizer
 
 
 @given(reference=st.text(), predicted=st.text())
@@ -23,7 +23,10 @@ def test_align_strings_types(reference: str, predicted: str) -> None:
 
 @given(reference=st.text(), predicted=st.text())
 def test_align_strings_reconstruct(reference: str, predicted: str) -> None:
-    tokenizer = GrahpemeClusterTokenizer(normalization=None)
+    tokenizer = GrahpemeClusterTokenizer(
+        pre_clustering_normalizer=StringNormalizer(normalization=None),
+        post_clustering_normalizer=StringNormalizer(normalization=None),
+    )
     alignment = align_strings(reference, predicted, tokenizer=tokenizer)
 
     rec_predicted = ""
