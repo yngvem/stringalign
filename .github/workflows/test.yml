@@ -24,4 +24,4 @@ jobs:
       - name: Install project
         run: pdm install
       - name: Run unit tests
-        run: pdm run pytest
+        run: pdm run pytest --cov python
