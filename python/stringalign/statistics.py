@@ -4,14 +4,20 @@ from dataclasses import dataclass
 from numbers import Number
 from typing import Self, cast
 
-from stringalign.align import AlignmentOperation, Keep, Replace
+from stringalign.align import AlignmentOperation, Keep, Replace, aggregate_alignment, align_strings
+from stringalign.tokenize import Tokenizer
 
 
-@dataclass
+def sort_by_values(d: dict[str, float], reverse=False) -> dict[str, float]:
+    return dict(sorted(d.items(), key=lambda x: x[1], reverse=reverse))
+
+
+@dataclass(eq=True)
 class StringConfusionMatrix:
     true_positives: Counter[str]
     false_positives: Counter[str]  # Added characters
     false_negatives: Counter[str]  # Removed/missed characters
+    edit_counts: Counter[AlignmentOperation]  # Count of each operation type
     # There is no true negatives when we compare strings.
     # Either, a character is in the string or it is not.
 
@@ -28,11 +34,14 @@ class StringConfusionMatrix:
         true_positives: Counter[str] = Counter()
         false_positives: Counter[str] = Counter()
         false_negatives: Counter[str] = Counter()
+        edit_counts: Counter[AlignmentOperation] = Counter()
         for op in alignment:
             if isinstance(op, Keep):
                 true_positives[next(ref_iter)] += 1
                 next(pred_iter)
                 continue
+
+            edit_counts[op] += 1
 
             op = cast(Replace, op.generalize())
             for char in op.substring:
@@ -46,6 +55,25 @@ class StringConfusionMatrix:
             true_positives=true_positives,
             false_positives=false_positives,
             false_negatives=false_negatives,
+            edit_counts=edit_counts,
+        )
+
+    @classmethod
+    def from_strings(
+        cls, reference: str, predicted: str, tokenizer: Tokenizer | None = None, aggregate: bool = False
+    ) -> Self:
+        alignment = align_strings(reference, predicted, tokenizer=tokenizer)
+        if aggregate:
+            alignment = list(aggregate_alignment(alignment))
+        return cls.from_strings_and_alignment(reference, predicted, alignment)
+
+    @classmethod
+    def get_empty(cls) -> Self:
+        return cls(
+            true_positives=Counter(),
+            false_positives=Counter(),
+            false_negatives=Counter(),
+            edit_counts=Counter(),
         )
 
     def compute_true_positive_rate(self, aggregate_over: str | None = None) -> dict[str, float] | float:
@@ -57,7 +85,7 @@ class StringConfusionMatrix:
             return tp / (tp + fn)
 
         char_count = self.true_positives + self.false_negatives
-        return {key: self.true_positives[key] / char_count[key] for key in char_count}
+        return sort_by_values({key: self.true_positives[key] / char_count[key] for key in char_count}, reverse=True)
 
     compute_recall = compute_true_positive_rate
     compute_sensitivity = compute_true_positive_rate
@@ -74,7 +102,9 @@ class StringConfusionMatrix:
             return tp / (tp + fp)
 
         predicted_positive = self.true_positives + self.false_positives
-        return {key: self.true_positives[key] / predicted_positive[key] for key in self.true_positives}
+        return sort_by_values(
+            {key: self.true_positives[key] / predicted_positive[key] for key in self.true_positives}, reverse=True
+        )
 
     compute_precision = compute_positive_predictive_value
 
@@ -90,7 +120,9 @@ class StringConfusionMatrix:
             return fp / (tp + fp)
 
         predicted_positive = self.true_positives + self.false_positives
-        return {key: self.false_positives[key] / predicted_positive[key] for key in self.false_positives}
+        return sort_by_values(
+            {key: self.false_positives[key] / predicted_positive[key] for key in self.false_positives}, reverse=True
+        )
 
     def compute_f1_score(self, aggregate_over: str | None = None) -> dict[str, float] | float:
         """The harmonic mean of the true positive rate and positive predictive value."""
@@ -104,10 +136,14 @@ class StringConfusionMatrix:
         assert isinstance(tpr, dict) and isinstance(ppv, dict)
         all_chars = set(self.true_positives) | set(self.false_positives) | set(self.false_negatives)
         tpr, ppv = defaultdict(int, tpr), defaultdict(int, ppv)
-        return {
-            c: (tpr[c] * ppv[c]) / (0.5 * (tpr[c] + ppv[c] or 1))  # or 1 avoids division by 0, the value is 0 anyways
-            for c in all_chars
-        }
+        return sort_by_values(
+            {
+                c: (tpr[c] * ppv[c])
+                / (0.5 * (tpr[c] + ppv[c] or 1))  # or 1 avoids division by 0, the value is 0 anyways
+                for c in all_chars
+            },
+            reverse=True,
+        )
 
     compute_dice = compute_f1_score
 
@@ -118,6 +154,7 @@ class StringConfusionMatrix:
             true_positives=self.true_positives + other.true_positives,
             false_positives=self.false_positives + other.false_positives,
             false_negatives=self.false_negatives + other.false_negatives,
+            edit_counts=self.edit_counts + other.edit_counts,
         )
 
     __radd__ = __add__
