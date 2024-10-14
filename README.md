@@ -98,3 +98,12 @@ Stringalign works in a two-step process: first, the input strings are tokenised 
 You can customise this if you want, e.g. switching out the tokeniser with one that casefolds all extended grapheme clusters, to get a case-insensitive alignment, or words to e.g. compute the word-error rate.
 
 We use an extension module written in Rust for two important parts of Stringalign: grouping unicode code-points into extended grapheme clusters (with the [unicode_segmentation](https://docs.rs/unicode-segmentation/latest/unicode_segmentation/index.html) crate) and assembling the Needleman-Wunsch cost-matrix (which has O(n²) time- and memory-complexity).
+
+## Installing Stringalign
+
+Since Stringalign is still experimental, we don't yet provide wheels so you need to compile it from source.
+To do this, you first need to install [Rustup](https://rustup.rs/), which will give you the neccessary Rust tools.
+Then, you can install Stringalign directly form Git: `pip install git+https://github.com/yngvem/stringalign`.
+Alternatively, if you want to use it in a PEP621-formatted pyproject.toml file: `stringalign@git+https://github.com/yngvem/stringalign`.
+
+If you want to install a specific commit of stringalign, then you can run `pip install https://github.com/yngvem/stringalign/archive/{commit-hash}.zip`, or, in a pyproject.toml file: `stringalign@https://github.com/yngvem/stringalign/archive/39d8eab113b5eca272c533b5384da3f4dbe29424.zip`
