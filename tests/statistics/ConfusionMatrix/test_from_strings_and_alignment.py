@@ -1,13 +1,13 @@
 from collections import Counter
 
-from stringalign.align import Delete, Insert, Keep, Replace, align_strings
+from stringalign.align import Delete, Insert, Replace, align_strings
 from stringalign.statistics import StringConfusionMatrix
 
 
 def test_from_strings_and_alignment() -> None:
     reference = "abcbaa"
     predicted = "acdeai"
-    alignment = align_strings(reference=reference, predicted=predicted)
+    alignment = align_strings(reference=reference, predicted=predicted)[0]
 
     result = StringConfusionMatrix.from_strings_and_alignment(reference, predicted, alignment)
 

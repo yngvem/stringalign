@@ -7,7 +7,7 @@ from stringalign.statistics import StringConfusionMatrix
 def test_from_strings() -> None:
     reference = "abcbaa"
     predicted = "acdeai"
-    alignment = align_strings(reference=reference, predicted=predicted)
+    alignment = align_strings(reference=reference, predicted=predicted)[0]
 
     result1 = StringConfusionMatrix.from_strings_and_alignment(reference, predicted, alignment)
     result2 = StringConfusionMatrix.from_strings(reference, predicted)
