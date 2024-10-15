@@ -134,9 +134,12 @@ def create_cost_matrix(reference_tokens: Iterable[str], predicted_tokens: Iterab
     return _create_cost_matrix(list(reference_tokens), list(predicted_tokens))
 
 
+_ALIGNMENT_DIRECTIONS = {Keep: (1, 1), Replace: (1, 1), Insert: (1, 0), Delete: (0, 1)}
+
+
 def align_strings(
     reference: str, predicted: str, tokenizer: stringalign.tokenize.Tokenizer | None = None
-) -> AlignmentList:
+) -> tuple[AlignmentList, bool]:
     if tokenizer is None:
         tokenizer = stringalign.tokenize.GraphemeClusterTokenizer()
 
@@ -145,29 +148,42 @@ def align_strings(
 
     alignment: AlignmentList = []
     row, col = cost_matrix.shape[0] - 1, cost_matrix.shape[1] - 1
+    unique = True
     while row > 0 or col > 0:
-        if row > 0 and col > 0 and reference_clusters[row - 1] == predicted_clusters[col - 1]:
-            alignment.append(Keep(reference_clusters[row - 1]))
-            row -= 1
-            col -= 1
-        elif row > 0 and (col == 0 or cost_matrix[row][col] == cost_matrix[row - 1][col] + 1):
-            alignment.append(Insert(reference_clusters[row - 1]))
-            row -= 1
-        elif col > 0 and (row == 0 or cost_matrix[row][col] == cost_matrix[row][col - 1] + 1):
-            alignment.append(Delete(predicted_clusters[col - 1]))
-            col -= 1
-        else:
-            alignment.append(Replace(predicted_clusters[col - 1], reference_clusters[row - 1]))
-            row -= 1
-            col -= 1
+        num_alignments = 0
+        to_append: AlignmentOperation | None = None
 
-    return alignment[::-1]
+        if row > 0 and col > 0 and reference_clusters[row - 1] == predicted_clusters[col - 1]:
+            num_alignments = 1
+            to_append = Keep(reference_clusters[row - 1])
+        if row > 0 and (col == 0 or cost_matrix[row, col] == cost_matrix[row - 1, col] + 1):
+            num_alignments += 1
+            to_append = to_append or Insert(reference_clusters[row - 1])
+        if col > 0 and (row == 0 or cost_matrix[row, col] == cost_matrix[row, col - 1] + 1):
+            num_alignments += 1
+            to_append = to_append or Delete(predicted_clusters[col - 1])
+        if row > 0 and col > 0 and cost_matrix[row, col] == cost_matrix[row - 1, col - 1] + 1:
+            num_alignments += 1
+            to_append = to_append or Replace(predicted_clusters[col - 1], reference_clusters[row - 1])
+
+        assert num_alignments
+        assert to_append is not None
+
+        alignment.append(to_append)
+        unique = unique and (num_alignments == 1)
+
+        # Decrement row and/or col
+        dr, dc = _ALIGNMENT_DIRECTIONS[to_append.__class__]
+        row -= dr
+        col -= dc
+
+    return alignment[::-1], unique
 
 
 def levenshtein_distance(
     reference: str, predicted: str, tokenizer: stringalign.tokenize.Tokenizer | None = None
 ) -> int:
-    return len(tuple(op for op in align_strings(reference, predicted, tokenizer) if not isinstance(op, Keep)))
+    return len(tuple(op for op in align_strings(reference, predicted, tokenizer)[0] if not isinstance(op, Keep)))
 
 
 class _EmptyAlignment:
