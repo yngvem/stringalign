@@ -198,6 +198,10 @@ class TranscriptionEvaluator:
         return (err for err in self.line_errors if err.case_errors)
 
     @property
+    def not_unique_alignments(self) -> Generator[LineError]:
+        return (err for err in self.line_errors if not err.unique_alignment)
+
+    @property
     def alignment_operators(self) -> Counter[AlignmentOperation]:
         return Counter(op for err in self.line_errors for op in err.alignment)
 
