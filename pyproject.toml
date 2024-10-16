@@ -44,4 +44,4 @@ line-length = 120
 select = ["I", "TCH"]
 
 [tool.mypy]
-ignore-missing-imports = true
+ignore_missing_imports = true
