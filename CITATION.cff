@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Moe"
+  given-names: "Yngve Mardal"
+- family-names: "Roald"
+  given-names: "Marie"
+title: "Stringalign"
+date-released: 2014-10-01
+url: "https://github.com/yngvem/stringalign"
