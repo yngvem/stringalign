@@ -76,6 +76,7 @@ class LineError:
     predicted: str
     alignment: tuple[AlignmentOperation, ...]
     raw_alignment: tuple[AlignmentOperation, ...]
+    unique_alignment: bool
     horisontal_segmentation_errors: tuple[AlignmentOperation, ...]
     character_duplication_errors: tuple[AlignmentOperation, ...]
     removed_duplicate_character_errors: tuple[AlignmentOperation, ...]
@@ -113,7 +114,7 @@ class LineError:
         tokenizer: Tokenizer | None,
         metadata: Mapping[str, str | int | float | tuple[str | int | float, ...]] | None = None,
     ) -> Self:
-        raw_alignment = tuple(align_strings(reference, predicted, tokenizer=tokenizer))
+        raw_alignment, unique_alignment = align_strings(reference, predicted, tokenizer=tokenizer)
         alignment = tuple(aggregate_alignment(raw_alignment))
         window: deque[AlignmentOperation | None] = deque(maxlen=3)
 
@@ -123,6 +124,7 @@ class LineError:
                 predicted=predicted,
                 alignment=tuple(),
                 raw_alignment=tuple(),
+                unique_alignment=True,
                 horisontal_segmentation_errors=tuple(),
                 character_duplication_errors=tuple(),
                 removed_duplicate_character_errors=tuple(),
@@ -157,7 +159,8 @@ class LineError:
             reference=reference,
             predicted=predicted,
             alignment=alignment,
-            raw_alignment=raw_alignment,
+            raw_alignment=tuple(raw_alignment),
+            unique_alignment=unique_alignment,
             horisontal_segmentation_errors=tuple(horisontal_segmentation_errors),
             character_duplication_errors=tuple(character_duplication_errors),
             removed_duplicate_character_errors=tuple(removed_duplicate_character_errors),
@@ -193,6 +196,10 @@ class TranscriptionEvaluator:
     @property
     def case_errors(self) -> Generator[LineError, None, None]:
         return (err for err in self.line_errors if err.case_errors)
+
+    @property
+    def not_unique_alignments(self) -> Generator[LineError]:
+        return (err for err in self.line_errors if not err.unique_alignment)
 
     @property
     def alignment_operators(self) -> Counter[AlignmentOperation]:

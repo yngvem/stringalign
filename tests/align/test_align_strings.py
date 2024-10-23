@@ -1,6 +1,7 @@
 import unicodedata
 
 import hypothesis.strategies as st
+import pytest
 from hypothesis import given
 from stringalign.align import AlignmentOperation, Delete, Insert, Keep, Replace, align_strings
 from stringalign.tokenize import GraphemeClusterTokenizer, StringNormalizer
@@ -8,7 +9,7 @@ from stringalign.tokenize import GraphemeClusterTokenizer, StringNormalizer
 
 @given(reference=st.text(), predicted=st.text())
 def test_align_strings_length(reference: str, predicted: str) -> None:
-    alignment = align_strings(reference, predicted)
+    alignment = align_strings(reference, predicted)[0]
     tokenizer = GraphemeClusterTokenizer()
     ref_clusters, pred_clusters = tokenizer(reference), tokenizer(predicted)
     assert len(alignment) >= max(len(ref_clusters), len(pred_clusters))
@@ -16,7 +17,7 @@ def test_align_strings_length(reference: str, predicted: str) -> None:
 
 @given(reference=st.text(), predicted=st.text())
 def test_align_strings_types(reference: str, predicted: str) -> None:
-    alignment = align_strings(reference, predicted)
+    alignment = align_strings(reference, predicted)[0]
     for op in alignment:
         assert isinstance(op, AlignmentOperation)
 
@@ -27,7 +28,7 @@ def test_align_strings_reconstruct(reference: str, predicted: str) -> None:
         pre_clustering_normalizer=StringNormalizer(normalization=None),
         post_clustering_normalizer=StringNormalizer(normalization=None),
     )
-    alignment = align_strings(reference, predicted, tokenizer=tokenizer)
+    alignment = align_strings(reference, predicted, tokenizer=tokenizer)[0]
 
     rec_predicted = ""
     rec_reference = ""
@@ -64,7 +65,7 @@ def test_align_strings_reconstruct(reference: str, predicted: str) -> None:
 
 @given(text=st.text())
 def test_align_strings_identical(text: str) -> None:
-    alignment = align_strings(text, text)
+    alignment = align_strings(text, text)[0]
     assert all(isinstance(op, Keep) for op in alignment)
     assert len(alignment) == len(GraphemeClusterTokenizer()(text))
 
@@ -74,7 +75,7 @@ def test_normalise_unicode() -> None:
     letter_å = "Å"
 
     assert a_with_ring != letter_å
-    assert align_strings(a_with_ring, letter_å) == [Keep(letter_å)]
+    assert align_strings(a_with_ring, letter_å) == ([Keep(letter_å)], True)
 
 
 def test_align_combining_grapheme() -> None:
@@ -82,7 +83,7 @@ def test_align_combining_grapheme() -> None:
 
     See e.g. https://tonsky.me/blog/unicode/ and https://grapheme.readthedocs.io/en/latest/grapheme.html
     """
-    assert align_strings("ą́", "a") == [Replace("a", unicodedata.normalize("NFC", "ą́"))]
+    assert align_strings("ą́", "a") == ([Replace("a", unicodedata.normalize("NFC", "ą́"))], True)
 
 
 def test_align_emojis() -> None:
@@ -96,4 +97,19 @@ def test_align_emojis() -> None:
     rainbow = "🌈"
 
     alignment = align_strings(rainbow_flag, rainbow)
-    assert alignment == [Replace("🌈", "🏳️‍🌈")]
+    assert alignment == ([Replace("🌈", "🏳️‍🌈")], True)
+
+
+@pytest.mark.parametrize(
+    "reference, predicted, unique_alignment",
+    [
+        ("a", "a", True),
+        ("a", "b", True),
+        ("aa", "ab", True),
+        ("aa", "a", False),
+        ("aa", "b", False),
+        ("ab", "ba", False),
+    ],
+)
+def test_detect_multiple_alignments(reference, predicted, unique_alignment) -> None:
+    assert align_strings(reference, predicted)[1] == unique_alignment
