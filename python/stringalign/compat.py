@@ -12,5 +12,5 @@ else:  # pragma: no coverage
         if n < 1:
             raise ValueError("n must be at least one")
         it = iter(iterable)
-        while batch := islice(it, n):
-            yield tuple(batch)
+        while batch := tuple(islice(it, n)):
+            yield batch
