@@ -107,3 +107,11 @@ Then, you can install Stringalign directly form Git: `pip install git+https://gi
 Alternatively, if you want to use it in a PEP621-formatted pyproject.toml file: `stringalign@git+https://github.com/yngvem/stringalign`.
 
 If you want to install a specific commit of stringalign, then you can run `pip install https://github.com/yngvem/stringalign/archive/{commit-hash}.zip`, or, in a pyproject.toml file: `stringalign@https://github.com/yngvem/stringalign/archive/39d8eab113b5eca272c533b5384da3f4dbe29424.zip`
+
+## Citing Stringalign
+
+If you use Stringalign for your research, then please cite this repo. For example:
+
+```
+Moe, Y. M., & Roald, M. (2014). Stringalign [Computer software]. https://github.com/yngvem/stringalign
+```
