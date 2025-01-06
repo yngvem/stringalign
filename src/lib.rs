@@ -20,7 +20,7 @@ fn unicode_words(s: &str) -> PyResult<Vec<&str>> {
 }
 
 #[pyfunction]
-fn split_unicode_word_bounds(s: &str) -> PyResult<Vec<&str>> {
+fn split_at_word_boundaries(s: &str) -> PyResult<Vec<&str>> {
     let g = UnicodeSegmentation::split_word_bounds(s).collect::<Vec<&str>>();
 
     Ok(g)
@@ -77,7 +77,7 @@ fn create_cost_matrix(
 fn _stringutils(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(grapheme_clusters, m)?)?;
     m.add_function(wrap_pyfunction!(unicode_words, m)?)?;
-    m.add_function(wrap_pyfunction!(split_unicode_word_bounds, m)?)?;
+    m.add_function(wrap_pyfunction!(split_at_word_boundaries, m)?)?;
     m.add_function(wrap_pyfunction!(unicode_sentences, m)?)?;
     m.add_function(wrap_pyfunction!(split_unicode_sentence_bounds, m)?)?;
     m.add_function(wrap_pyfunction!(create_cost_matrix, m)?)?;
