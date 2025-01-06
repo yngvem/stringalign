@@ -65,7 +65,7 @@ class StringConfusionMatrix:
     ) -> Self:
         alignment = align_strings(reference, predicted, tokenizer=tokenizer)[0]
         if aggregate:
-            alignment = list(aggregate_alignment(alignment))
+            alignment = tuple(aggregate_alignment(alignment))
         return cls.from_strings_and_alignment(reference, predicted, alignment)
 
     @classmethod

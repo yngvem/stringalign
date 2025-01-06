@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final, Protocol, runtime_checkable
 
@@ -15,7 +16,7 @@ if TYPE_CHECKING:  # pragma: no cover
 __all__ = [
     "AlignmentOperation",
     "MergableAlignmentOperation",
-    "AlignmentList",
+    "AlignmentTuple",
     "StringType",
     "Insert",
     "Delete",
@@ -41,6 +42,7 @@ class MergableAlignmentOperation(AlignmentOperation, Protocol):
     def merge(self, other: Self) -> Self: ...
 
 
+AlignmentTuple = tuple[AlignmentOperation, ...]
 AlignmentList = list[AlignmentOperation]
 
 
@@ -137,9 +139,23 @@ def create_cost_matrix(reference_tokens: Iterable[str], predicted_tokens: Iterab
 _ALIGNMENT_DIRECTIONS = {Keep: (1, 1), Replace: (1, 1), Insert: (1, 0), Delete: (0, 1)}
 
 
+def _backtrack(
+    row: int, col: int, reference_clusters: list[str], predicted_clusters: list[str], cost_matrix: np.ndarray
+) -> Generator[AlignmentOperation, None, None]:
+    """Generator that yields all optimal alignment operations at the current position in the cost matrix."""
+    if row > 0 and col > 0 and reference_clusters[row - 1] == predicted_clusters[col - 1]:
+        yield Keep(reference_clusters[row - 1])
+    if row > 0 and (col == 0 or cost_matrix[row, col] == cost_matrix[row - 1, col] + 1):
+        yield Insert(reference_clusters[row - 1])
+    if col > 0 and (row == 0 or cost_matrix[row, col] == cost_matrix[row, col - 1] + 1):
+        yield Delete(predicted_clusters[col - 1])
+    if row > 0 and col > 0 and cost_matrix[row, col] == cost_matrix[row - 1, col - 1] + 1:
+        yield Replace(predicted_clusters[col - 1], reference_clusters[row - 1])
+
+
 def align_strings(
     reference: str, predicted: str, tokenizer: stringalign.tokenize.Tokenizer | None = None
-) -> tuple[AlignmentList, bool]:
+) -> tuple[AlignmentTuple, bool]:
     if tokenizer is None:
         tokenizer = stringalign.tokenize.GraphemeClusterTokenizer()
 
@@ -150,40 +166,67 @@ def align_strings(
     row, col = cost_matrix.shape[0] - 1, cost_matrix.shape[1] - 1
     unique = True
     while row > 0 or col > 0:
-        num_alignments = 0
-        to_append: AlignmentOperation | None = None
+        next_alignment_ops = _backtrack(row, col, reference_clusters, predicted_clusters, cost_matrix)
+        next_op = next(next_alignment_ops)
 
-        if row > 0 and col > 0 and reference_clusters[row - 1] == predicted_clusters[col - 1]:
-            num_alignments = 1
-            to_append = Keep(reference_clusters[row - 1])
-        if row > 0 and (col == 0 or cost_matrix[row, col] == cost_matrix[row - 1, col] + 1):
-            num_alignments += 1
-            to_append = to_append or Insert(reference_clusters[row - 1])
-        if col > 0 and (row == 0 or cost_matrix[row, col] == cost_matrix[row, col - 1] + 1):
-            num_alignments += 1
-            to_append = to_append or Delete(predicted_clusters[col - 1])
-        if row > 0 and col > 0 and cost_matrix[row, col] == cost_matrix[row - 1, col - 1] + 1:
-            num_alignments += 1
-            to_append = to_append or Replace(predicted_clusters[col - 1], reference_clusters[row - 1])
-
-        assert num_alignments
-        assert to_append is not None
-
-        alignment.append(to_append)
-        unique = unique and (num_alignments == 1)
+        alignment.append(next_op)
+        unique = unique and (next(next_alignment_ops, None) is None)
 
         # Decrement row and/or col
-        dr, dc = _ALIGNMENT_DIRECTIONS[to_append.__class__]
-        row -= dr
-        col -= dc
+        dr, dc = _ALIGNMENT_DIRECTIONS[next_op.__class__]
+        row, col = row - dr, col - dc
 
-    return alignment[::-1], unique
+    return tuple(alignment[::-1]), unique
+
+
+def find_all_alignments(
+    reference: str, predicted: str, tokenizer: stringalign.tokenize.Tokenizer | None = None
+) -> Generator[AlignmentTuple, None, None]:
+    """Works similarly to align_strings, but returns all possible alignments.
+
+    It's implemented as a generator that yields all possible alignments. It holds a que of alignments
+    and every time the dynamic programming backtracking encounters a branching point, it creates adds
+    the new branches to the queue.
+
+    The backtracking is completed for one alignment before the next is started (with no caching, so the same
+    subpaths might be traversed multiple times).
+    """
+    if tokenizer is None:
+        tokenizer = stringalign.tokenize.GraphemeClusterTokenizer()
+
+    reference_clusters, predicted_clusters = tokenizer(reference), tokenizer(predicted)
+    cost_matrix = create_cost_matrix(reference_clusters, predicted_clusters)
+
+    alignment_queue: deque[AlignmentList] = deque([[]])
+    node_queue = deque([(cost_matrix.shape[0] - 1, cost_matrix.shape[1] - 1)])
+    while node_queue:
+        row, col = node_queue.popleft()
+        alignment = alignment_queue.popleft()
+
+        while row > 0 or col > 0:
+            next_alignment_ops = _backtrack(row, col, reference_clusters, predicted_clusters, cost_matrix)
+            next_op = next(next_alignment_ops)
+
+            for alignment_op in next_alignment_ops:
+                dr, dc = _ALIGNMENT_DIRECTIONS[alignment_op.__class__]
+                alignment_queue.append(alignment + [alignment_op])
+                node_queue.append((row - dr, col - dc))
+
+            alignment.append(next_op)
+            dr, dc = _ALIGNMENT_DIRECTIONS[next_op.__class__]
+            row, col = row - dr, col - dc
+
+        yield tuple(alignment[::-1])
+
+
+def compute_levenshtein_distance_from_alignment(alignment: AlignmentTuple) -> int:
+    return len(tuple(op for op in alignment if not isinstance(op, Keep)))
 
 
 def levenshtein_distance(
     reference: str, predicted: str, tokenizer: stringalign.tokenize.Tokenizer | None = None
 ) -> int:
-    return len(tuple(op for op in align_strings(reference, predicted, tokenizer)[0] if not isinstance(op, Keep)))
+    return compute_levenshtein_distance_from_alignment(align_strings(reference, predicted, tokenizer)[0])
 
 
 class _EmptyAlignment:
