@@ -5,7 +5,7 @@ from numbers import Number
 from typing import Self, cast
 
 from stringalign.align import AlignmentOperation, Keep, Replace, aggregate_alignment, align_strings
-from stringalign.tokenize import Tokenizer
+from stringalign.tokenize import GraphemeClusterTokenizer, Tokenizer
 
 
 def sort_by_values(d: dict[str, float], reverse=False) -> dict[str, float]:
@@ -23,13 +23,13 @@ class StringConfusionMatrix:
 
     @classmethod
     def from_strings_and_alignment(
-        cls,
-        reference: str,
-        predicted: str,
-        alignment: Iterable[AlignmentOperation],
+        cls, reference: str, predicted: str, alignment: Iterable[AlignmentOperation], tokenizer: Tokenizer | None = None
     ) -> Self:
-        ref_iter = iter(reference)
-        pred_iter = iter(predicted)
+        if tokenizer is None:
+            tokenizer = GraphemeClusterTokenizer()
+
+        ref_iter = iter(tokenizer(reference))
+        pred_iter = iter(tokenizer(predicted))
 
         true_positives: Counter[str] = Counter()
         false_positives: Counter[str] = Counter()
@@ -37,7 +37,7 @@ class StringConfusionMatrix:
         edit_counts: Counter[AlignmentOperation] = Counter()
         for op in alignment:
             if isinstance(op, Keep):
-                for char in op.substring:
+                for char in tokenizer(op.substring):
                     true_positives[next(ref_iter)] += 1
                     next(pred_iter)
                 continue
@@ -45,11 +45,11 @@ class StringConfusionMatrix:
             edit_counts[op] += 1
 
             op = cast(Replace, op.generalize())
-            for char in op.substring:
+            for char in tokenizer(op.substring):
                 false_positives[char] += 1
                 next(pred_iter)
 
-            for char in op.replacement:
+            for char in tokenizer(op.replacement):
                 false_negatives[char] += 1
                 next(ref_iter)
         return cls(
@@ -63,10 +63,13 @@ class StringConfusionMatrix:
     def from_strings(
         cls, reference: str, predicted: str, tokenizer: Tokenizer | None = None, aggregate: bool = False
     ) -> Self:
+        if tokenizer is None:
+            tokenizer = GraphemeClusterTokenizer()
+
         alignment = align_strings(reference, predicted, tokenizer=tokenizer)[0]
         if aggregate:
             alignment = list(aggregate_alignment(alignment))
-        return cls.from_strings_and_alignment(reference, predicted, alignment)
+        return cls.from_strings_and_alignment(reference, predicted, alignment, tokenizer=tokenizer)
 
     @classmethod
     def get_empty(cls) -> Self:
