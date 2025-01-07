@@ -16,7 +16,9 @@
 				"eamodio.gitlens",
 				"GitHub.copilot",
 				"GitHub.copilot-chat",
-				"Gruntfuggly.todo-tree"
+				"Gruntfuggly.todo-tree",
+				"charliermarsh.ruff",
+				"github.vscode-github-actions"
 			]
 		}
 	},
