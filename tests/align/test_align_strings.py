@@ -75,7 +75,7 @@ def test_normalise_unicode() -> None:
     letter_å = "Å"
 
     assert a_with_ring != letter_å
-    assert align_strings(a_with_ring, letter_å) == ([Keep(letter_å)], True)
+    assert align_strings(a_with_ring, letter_å) == ((Keep(letter_å),), True)
 
 
 def test_align_combining_grapheme() -> None:
@@ -83,7 +83,7 @@ def test_align_combining_grapheme() -> None:
 
     See e.g. https://tonsky.me/blog/unicode/ and https://grapheme.readthedocs.io/en/latest/grapheme.html
     """
-    assert align_strings("ą́", "a") == ([Replace("a", unicodedata.normalize("NFC", "ą́"))], True)
+    assert align_strings("ą́", "a") == ((Replace("a", unicodedata.normalize("NFC", "ą́")),), True)
 
 
 def test_align_emojis() -> None:
@@ -97,7 +97,7 @@ def test_align_emojis() -> None:
     rainbow = "🌈"
 
     alignment = align_strings(rainbow_flag, rainbow)
-    assert alignment == ([Replace("🌈", "🏳️‍🌈")], True)
+    assert alignment == ((Replace("🌈", "🏳️‍🌈"),), True)
 
 
 @pytest.mark.parametrize(

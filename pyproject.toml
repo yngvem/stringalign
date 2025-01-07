@@ -35,6 +35,7 @@ dev = [
     "pytest-cov>=5.0.0",
     "ipython>=8.27.0",
     "Levenshtein>=0.26.0",
+    "mypy>=1.13.0",
 ]
 
 [tool.ruff]
