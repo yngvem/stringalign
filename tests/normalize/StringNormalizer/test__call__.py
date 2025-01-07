@@ -4,7 +4,7 @@ from typing import Literal
 import hypothesis.strategies as st
 import pytest
 from hypothesis import given
-from stringalign.tokenize import StringNormalizer
+from stringalign.normalize import StringNormalizer
 
 
 @given(string=st.text(alphabet=st.characters()))  # Specify st.characters to get invalid utf-8 code-points
@@ -194,3 +194,30 @@ def test_remove_non_word_characters_length(string: str) -> None:
     normalized_string = normalizer(string)
 
     assert len(normalized_string) <= len(string)
+
+
+@given(string=st.text(), confusable_character=st.characters(codec="utf-8"), target=st.characters(codec="utf-8"))
+def test_all_confusable_characters_are_resolved(string: str, confusable_character: str, target: str) -> None:
+    confusable_map = {confusable_character: target}
+    normalizer = StringNormalizer(resolve_confusables=confusable_map)
+    assert normalizer(string) == string.replace(confusable_character, target)
+
+
+def test_confusable_txt_is_used():
+    """confusables.txt is used when specified.
+
+    To test this, we use the APL FUNCTIONAL SYMBOL RHO symbol, which in the confusables.txt should be replaced with
+    LATIN SMALL LETTER P, and in the intentional.txt should be replaced with GREEK SMALL LETTER RHO.
+    """
+    normalizer = StringNormalizer(resolve_confusables="confusables")
+    assert normalizer("\u2374") == "p"
+
+
+def test_intentional_txt_is_used():
+    """intentional.txt is used when specified.
+
+    To test this, we use the APL FUNCTIONAL SYMBOL RHO symbol, which in the confusables.txt should be replaced with
+    LATIN SMALL LETTER P, and in the intentional.txt should be replaced with GREEK SMALL LETTER RHO.
+    """
+    normalizer = StringNormalizer(resolve_confusables="intentional")
+    assert normalizer("\u2374") == "\u03c1"
