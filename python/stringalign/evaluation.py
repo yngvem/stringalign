@@ -251,3 +251,9 @@ class TranscriptionEvaluator:
             predictions=predictions,
             line_errors=line_errors,
         )
+
+    def __len__(self) -> int:
+        return len(self.line_errors)
+
+    def __str__(self) -> str:
+        return f"TranscriptionEvaluator(len={len(self)})"
