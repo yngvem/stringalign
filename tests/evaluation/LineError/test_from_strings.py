@@ -1,6 +1,6 @@
 import pytest
 from stringalign.align import Delete, Insert, Keep, Replace, align_strings
-from stringalign.evaluation import LineError
+from stringalign.evaluation import FrozenDict, LineError
 from stringalign.tokenize import UnicodeWordTokenizer
 
 
@@ -95,7 +95,7 @@ from stringalign.tokenize import UnicodeWordTokenizer
                 tokenizer=None,
             ),
         ),
-        (
+        (  # With UnicodeWordTokenizer
             "Hello, world!",
             "Helo, world!",
             LineError(
@@ -118,3 +118,24 @@ from stringalign.tokenize import UnicodeWordTokenizer
 )
 def test_from_strings_with_example(reference: str, predicted: str, line_error: LineError) -> None:
     assert LineError.from_strings(reference, predicted, tokenizer=line_error.tokenizer) == line_error
+
+
+def test_from_strings_with_metadata():
+    reference = "Hello, world!"
+    predicted = "Helo, world!"
+    metadata = {"a": 3}
+    line_error = LineError(
+        reference="Hello, world!",
+        predicted="Helo, world!",
+        alignment=(Keep("He"), Insert("l"), Keep("lo, world!")),
+        raw_alignment=tuple(align_strings("Hello, world!", "Helo, world!")[0]),
+        unique_alignment=False,
+        horisontal_segmentation_errors=(),
+        character_duplication_errors=(),
+        removed_duplicate_character_errors=(Insert("l"),),
+        case_errors=(),
+        metadata=FrozenDict({"a": 3}),
+        tokenizer=None,
+    )
+
+    assert LineError.from_strings(reference, predicted, tokenizer=None, metadata=metadata) == line_error

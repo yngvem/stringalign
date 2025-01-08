@@ -1,8 +1,9 @@
 from collections import Counter, defaultdict, deque
-from collections.abc import Generator, Mapping
+from collections.abc import Generator, Hashable, Iterator, Mapping
 from dataclasses import dataclass
+from functools import cached_property
 from itertools import chain
-from typing import Iterable, Literal, Self, TypeVar
+from typing import Any, Iterable, Literal, Self, TypeVar
 
 from stringalign.align import (
     AlignmentOperation,
@@ -70,6 +71,28 @@ def check_operation_for_ngram_duplication_error(
     return check_ngram_duplication_errors(window_text_reference, window_text_prediction, n=n, type=type)
 
 
+class FrozenDict(Mapping[Hashable, Hashable]):
+    def __init__(self, data: Mapping[Hashable, Hashable] | None = None):
+        if not data:
+            data = {}
+        self._data = data
+
+    def __getitem__(self, key: Hashable) -> Hashable:
+        return self._data[key]
+
+    def __iter__(self) -> Iterator[Hashable]:
+        return iter(self._data)
+
+    def __contains__(self, value: Any) -> bool:
+        return value in self._data
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __hash__(self) -> int:
+        return hash(tuple(self.items()))
+
+
 @dataclass(frozen=True, slots=True)
 class LineError:
     reference: str
@@ -81,13 +104,13 @@ class LineError:
     character_duplication_errors: tuple[AlignmentOperation, ...]
     removed_duplicate_character_errors: tuple[AlignmentOperation, ...]
     case_errors: tuple[AlignmentOperation, ...]
-    metadata: Mapping[str, str | int | float | tuple[str | bool | int | float, ...]] | None
+    metadata: FrozenDict | None
     tokenizer: Tokenizer | None
 
-    def summarise(self) -> dict[str, str | bool | int | float | tuple[str | bool | int | float, ...]]:
+    def summarise(self) -> dict[Hashable, Hashable]:
         metadata = self.metadata
         if metadata is None:
-            metadata = {}
+            metadata = FrozenDict()
 
         return {
             "reference": self.reference,
@@ -99,7 +122,7 @@ class LineError:
             **metadata,
         }
 
-    @property
+    @cached_property
     def confusion_matrix(self) -> StringConfusionMatrix:
         return StringConfusionMatrix.from_strings_and_alignment(
             reference=self.reference, predicted=self.predicted, alignment=self.raw_alignment, tokenizer=self.tokenizer
@@ -111,11 +134,15 @@ class LineError:
         reference: str,
         predicted: str,
         tokenizer: Tokenizer | None,
-        metadata: Mapping[str, str | int | float | tuple[str | int | float, ...]] | None = None,
+        metadata: Mapping[Hashable, Hashable] | None = None,
     ) -> Self:
         raw_alignment, unique_alignment = align_strings(reference, predicted, tokenizer=tokenizer)
         alignment = tuple(aggregate_alignment(raw_alignment))
         window: deque[AlignmentOperation | None] = deque(maxlen=3)
+        if metadata is not None:
+            frozen_metadata = FrozenDict(metadata)
+        else:
+            frozen_metadata = None
 
         if not alignment:
             return cls(
@@ -128,7 +155,7 @@ class LineError:
                 character_duplication_errors=tuple(),
                 removed_duplicate_character_errors=tuple(),
                 case_errors=tuple(),
-                metadata=metadata,
+                metadata=frozen_metadata,
                 tokenizer=tokenizer,
             )
 
@@ -165,7 +192,7 @@ class LineError:
             character_duplication_errors=tuple(character_duplication_errors),
             removed_duplicate_character_errors=tuple(removed_duplicate_character_errors),
             case_errors=tuple(case_errors),
-            metadata=metadata,
+            metadata=frozen_metadata,
             tokenizer=tokenizer,
         )
 
@@ -179,18 +206,18 @@ class TranscriptionEvaluator:
     predictions: tuple[str, ...]
     line_errors: tuple[LineError, ...]
 
-    def dump(self) -> list[dict[str, tuple[str | bool | int | float, ...] | str | bool | int | float]]:
+    def dump(self) -> list[dict[Hashable, Hashable]]:
         return [le.summarise() for le in self.line_errors]
 
-    @property
+    @cached_property
     def horisontal_segmentation_errors(self) -> Generator[LineError, None, None]:
         return (err for err in self.line_errors if err.horisontal_segmentation_errors)
 
-    @property
+    @cached_property
     def character_duplication_errors(self) -> Generator[LineError, None, None]:
         return (err for err in self.line_errors if err.character_duplication_errors)
 
-    @property
+    @cached_property
     def removed_duplicate_character_errors(self) -> Generator[LineError, None, None]:
         return (err for err in self.line_errors if err.removed_duplicate_character_errors)
 
@@ -198,15 +225,15 @@ class TranscriptionEvaluator:
     def case_errors(self) -> Generator[LineError, None, None]:
         return (err for err in self.line_errors if err.case_errors)
 
-    @property
+    @cached_property
     def not_unique_alignments(self) -> Generator[LineError]:
         return (err for err in self.line_errors if not err.unique_alignment)
 
-    @property
+    @cached_property
     def alignment_operators(self) -> Counter[AlignmentOperation]:
         return Counter(op for err in self.line_errors for op in err.alignment)
 
-    @property
+    @cached_property
     def confusion_matrix(self) -> StringConfusionMatrix:
         return sum((le.confusion_matrix for le in self.line_errors), start=StringConfusionMatrix.get_empty())
 
@@ -234,7 +261,7 @@ class TranscriptionEvaluator:
         references: Iterable[str],
         predictions: Iterable[str],
         tokenizer: Tokenizer | None = None,
-        metadata: Iterable[Mapping[str, str | int | float | tuple[str | int | float, ...]] | None] | None = None,
+        metadata: Iterable[Mapping[Hashable, Hashable] | None] | None = None,
     ) -> Self:
         references = tuple(references)
         predictions = tuple(predictions)
