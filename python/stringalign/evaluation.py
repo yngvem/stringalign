@@ -1,4 +1,4 @@
-from collections import Counter, deque
+from collections import Counter, defaultdict, deque
 from collections.abc import Generator, Mapping
 from dataclasses import dataclass
 from itertools import chain
@@ -209,6 +209,24 @@ class TranscriptionEvaluator:
     @property
     def confusion_matrix(self) -> StringConfusionMatrix:
         return sum((le.confusion_matrix for le in self.line_errors), start=StringConfusionMatrix.get_empty())
+
+    @property
+    def line_error_raw_lookup(self) -> dict[AlignmentOperation, frozenset[LineError]]:
+        out = defaultdict(set)
+        for line_error in self.line_errors:
+            for alignment_op in line_error.raw_alignment:
+                out[alignment_op].add(line_error)
+
+        return {k: frozenset(v) for k, v in out.items()}
+
+    @property
+    def line_error_aggregated_lookup(self) -> dict[AlignmentOperation, frozenset[LineError]]:
+        out = defaultdict(set)
+        for line_error in self.line_errors:
+            for alignment_op in line_error.alignment:
+                out[alignment_op].add(line_error)
+
+        return {k: frozenset(v) for k, v in out.items()}
 
     @classmethod
     def from_strings(
