@@ -1,6 +1,7 @@
 import pytest
 from stringalign.align import Delete, Insert, Keep, Replace, align_strings
 from stringalign.evaluation import LineError
+from stringalign.tokenize import UnicodeWordTokenizer
 
 
 @pytest.mark.parametrize(
@@ -20,6 +21,7 @@ from stringalign.evaluation import LineError
                 removed_duplicate_character_errors=(),
                 case_errors=(),
                 metadata=None,
+                tokenizer=None,
             ),
         ),
         (
@@ -36,6 +38,7 @@ from stringalign.evaluation import LineError
                 removed_duplicate_character_errors=(),
                 case_errors=(),
                 metadata=None,
+                tokenizer=None,
             ),
         ),
         (
@@ -55,6 +58,7 @@ from stringalign.evaluation import LineError
                 removed_duplicate_character_errors=(),
                 case_errors=(Replace("h", "H"),),
                 metadata=None,
+                tokenizer=None,
             ),
         ),
         (
@@ -71,6 +75,7 @@ from stringalign.evaluation import LineError
                 removed_duplicate_character_errors=(),
                 case_errors=(),
                 metadata=None,
+                tokenizer=None,
             ),
         ),
         (
@@ -87,9 +92,29 @@ from stringalign.evaluation import LineError
                 removed_duplicate_character_errors=(Insert("l"),),
                 case_errors=(),
                 metadata=None,
+                tokenizer=None,
+            ),
+        ),
+        (
+            "Hello, world!",
+            "Helo, world!",
+            LineError(
+                reference="Hello, world!",
+                predicted="Helo, world!",
+                alignment=(Replace("Helo", "Hello"), Keep("world")),
+                raw_alignment=tuple(
+                    align_strings("Hello, world!", "Helo, world!", tokenizer=UnicodeWordTokenizer())[0]
+                ),
+                unique_alignment=True,
+                horisontal_segmentation_errors=(Replace("Helo", "Hello"),),
+                character_duplication_errors=(),
+                removed_duplicate_character_errors=(Replace("Helo", "Hello"),),
+                case_errors=(),
+                metadata=None,
+                tokenizer=UnicodeWordTokenizer(),
             ),
         ),
     ],
 )
 def test_from_strings_with_example(reference: str, predicted: str, line_error: LineError) -> None:
-    assert LineError.from_strings(reference, predicted, tokenizer=None) == line_error
+    assert LineError.from_strings(reference, predicted, tokenizer=line_error.tokenizer) == line_error
