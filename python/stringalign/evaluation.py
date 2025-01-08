@@ -82,6 +82,7 @@ class LineError:
     removed_duplicate_character_errors: tuple[AlignmentOperation, ...]
     case_errors: tuple[AlignmentOperation, ...]
     metadata: Mapping[str, str | int | float | tuple[str | bool | int | float, ...]] | None
+    tokenizer: Tokenizer | None
 
     def summarise(self) -> dict[str, str | bool | int | float | tuple[str | bool | int | float, ...]]:
         metadata = self.metadata
@@ -101,9 +102,7 @@ class LineError:
     @property
     def confusion_matrix(self) -> StringConfusionMatrix:
         return StringConfusionMatrix.from_strings_and_alignment(
-            reference=self.reference,
-            predicted=self.predicted,
-            alignment=self.raw_alignment,
+            reference=self.reference, predicted=self.predicted, alignment=self.raw_alignment, tokenizer=self.tokenizer
         )
 
     @classmethod
@@ -130,6 +129,7 @@ class LineError:
                 removed_duplicate_character_errors=tuple(),
                 case_errors=tuple(),
                 metadata=metadata,
+                tokenizer=tokenizer,
             )
 
         alignment_iterator = iter(alignment)
@@ -166,6 +166,7 @@ class LineError:
             removed_duplicate_character_errors=tuple(removed_duplicate_character_errors),
             case_errors=tuple(case_errors),
             metadata=metadata,
+            tokenizer=tokenizer,
         )
 
     def __str__(self) -> str:
