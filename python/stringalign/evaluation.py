@@ -196,8 +196,10 @@ class LineError:
             tokenizer=tokenizer,
         )
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return f"LineError('{self.reference}', '{self.predicted}', metadata={self.metadata})"
+
+    __str__ = __repr__
 
 
 @dataclass(frozen=True, slots=True)
@@ -278,3 +280,11 @@ class TranscriptionEvaluator:
             predictions=predictions,
             line_errors=line_errors,
         )
+
+    def __len__(self) -> int:
+        return len(self.line_errors)
+
+    def __repr__(self) -> str:
+        return f"TranscriptionEvaluator(len={len(self)})"
+
+    __str__ = __repr__
