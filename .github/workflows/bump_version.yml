@@ -30,4 +30,4 @@ jobs:
         run: pipx run bump-my-version bump ${{ inputs.bump-type }}
 
       - name: Push to github
-        run: git push --tags
+        run: git push && git push --tags
