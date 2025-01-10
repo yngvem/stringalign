@@ -37,9 +37,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           export TAG=$(pipx run toml-cli get --toml-path Cargo.toml package.version)
-          gh release create "$TAG" \
+          gh release create "v$TAG" \
               --repo="$GITHUB_REPOSITORY" \
-              --title="${GITHUB_REPOSITORY#*/} ${TAG#v}" \
+              --title="Stringalign ${TAG}" \
               --generate-notes
 
   build_wheels:
