@@ -32,20 +32,14 @@ jobs:
       - name: Push to github
         run: git push && git push --tags
 
-  release:
-    needs: [bump_version]
-    environment: pypi
-    name: Release pushed tag
-    runs-on: ubuntu-latest
-    steps:
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref_name }}
         run: |
-          gh release create "$tag" \
+          export TAG=$(pipx run toml-cli get --toml-path Cargo.toml package.version)
+          gh release create "$TAG" \
               --repo="$GITHUB_REPOSITORY" \
-              --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+              --title="${GITHUB_REPOSITORY#*/} ${TAG#v}" \
               --generate-notes
 
   build_wheels:
