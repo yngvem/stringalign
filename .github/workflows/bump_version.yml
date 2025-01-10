@@ -14,23 +14,22 @@ on:
         - patch
 
 jobs:
-  build:
+  bump_version:
     environment: pypi
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
 
-      - name: Bump version
-        id: bump
-        uses: callowayproject/bump-my-version@master
-        env:
-          BUMPVERSION_TAG: "true"
-        with:
-          args: ${{ inputs.bump-type }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set git config
+        run:
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Check
-        if: steps.bump.outputs.bumped == 'true'
-        run: |
-          echo "Version was bumped from ${{ steps.bump.outputs.previous-version }} to ${{ steps.bump.outputs.current-version }}!"
+      - name: Bump version
+        run:
+          pipx run bump-my-version ${{ inputs.bump-type }}
+
+      - name: Push to github
+        run:
+          git push --tags
