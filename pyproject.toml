@@ -45,3 +45,20 @@ select = ["I", "TCH"]
 
 [tool.mypy]
 ignore_missing_imports = true
+
+[tool.bumpversion]
+current_version = "0.0.1"
+filename = "Cargo.toml"
+
+parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
+serialize = ["{major}.{minor}.{patch}"]
+
+search = "{current_version}"
+replace = "{new_version}"
+
+commit = true
+message = "Bump version: {current_version} → {new_version}"
+
+tag = true
+tag_name = "v{new_version}"
+tag_message = "Bump version: {current_version} → {new_version}"
