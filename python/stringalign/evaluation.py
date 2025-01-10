@@ -93,7 +93,7 @@ class FrozenDict(Mapping[Hashable, Hashable]):
         return hash(tuple(self.items()))
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=False)
 class LineError:
     reference: str
     predicted: str
@@ -202,7 +202,7 @@ class LineError:
     __str__ = __repr__
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=False)
 class TranscriptionEvaluator:
     references: tuple[str, ...]
     predictions: tuple[str, ...]
@@ -223,7 +223,7 @@ class TranscriptionEvaluator:
     def removed_duplicate_character_errors(self) -> Generator[LineError, None, None]:
         return (err for err in self.line_errors if err.removed_duplicate_character_errors)
 
-    @property
+    @cached_property
     def case_errors(self) -> Generator[LineError, None, None]:
         return (err for err in self.line_errors if err.case_errors)
 
@@ -239,7 +239,7 @@ class TranscriptionEvaluator:
     def confusion_matrix(self) -> StringConfusionMatrix:
         return sum((le.confusion_matrix for le in self.line_errors), start=StringConfusionMatrix.get_empty())
 
-    @property
+    @cached_property
     def line_error_raw_lookup(self) -> dict[AlignmentOperation, frozenset[LineError]]:
         out = defaultdict(set)
         for line_error in self.line_errors:
@@ -248,7 +248,7 @@ class TranscriptionEvaluator:
 
         return {k: frozenset(v) for k, v in out.items()}
 
-    @property
+    @cached_property
     def line_error_aggregated_lookup(self) -> dict[AlignmentOperation, frozenset[LineError]]:
         out = defaultdict(set)
         for line_error in self.line_errors:
