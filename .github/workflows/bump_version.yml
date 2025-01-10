@@ -27,7 +27,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Bump version
-        run: pipx run bump-my-version ${{ inputs.bump-type }}
+        run: pipx run bump-my-version bump ${{ inputs.bump-type }}
 
       - name: Push to github
         run: git push --tags
