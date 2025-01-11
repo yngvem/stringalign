@@ -1,6 +1,6 @@
 # Stringalign (experimental)
 
-<img src="assets/logo_flat.svg" width="600px" alt="Two cute caterpillars dancing under bunting with the letters 'STRING ALIGN'" role="img"/>
+<img src="https://raw.githubusercontent.com/yngvem/stringalign/refs/heads/main/assets/logo_flat.svg" width="600px" alt="Two cute caterpillars dancing under bunting with the letters 'STRING ALIGN'" role="img"/>
 
 **A string comparison library that adhers to the quirks of Unicode.**
 
