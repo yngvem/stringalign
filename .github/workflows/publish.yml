@@ -17,6 +17,8 @@ jobs:
   bump_version:
     environment: pypi
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.update_git.outputs.version }}
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
@@ -33,13 +35,15 @@ jobs:
         run: git push && git push --tags
 
       - name: Create release
+        id: update_git
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          export TAG=$(pipx run toml-cli get --toml-path Cargo.toml package.version)
-          gh release create "v$TAG" \
+          export VERSION=$(pipx run toml-cli get --toml-path Cargo.toml package.version)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          gh release create "v$VERSION" \
               --repo="$GITHUB_REPOSITORY" \
-              --title="Stringalign ${TAG}" \
+              --title="Stringalign ${VERSION}" \
               --generate-notes
 
   build_wheels:
@@ -51,6 +55,8 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: 'v${{ needs.bump_version.outputs.version }}'
 
       - uses: pypa/cibuildwheel@v2.22.0
         env:
@@ -72,6 +78,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: 'v${{ needs.bump_version.outputs.version }}'
 
       - name: Build sdist
         run: pipx run build --sdist
