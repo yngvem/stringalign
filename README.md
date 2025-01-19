@@ -113,5 +113,5 @@ If you want to install a specific commit of stringalign, then you can run `pip i
 If you use Stringalign for your research, then please cite this repo. For example:
 
 ```
-Moe, Y. M., & Roald, M. (2014). Stringalign [Computer software]. https://github.com/yngvem/stringalign
+Moe, Y. M., & Roald, M. (2024). Stringalign [Computer software]. https://github.com/yngvem/stringalign
 ```
