@@ -6,7 +6,7 @@ jobs:
   run-tests:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python: ['3.11', '3.12', '3.13']
     runs-on: ${{ matrix.os }}
     steps:
@@ -33,5 +33,18 @@ jobs:
           CIBW_BEFORE_BUILD: rustup show
           CIBW_BEFORE_BUILD_LINUX: >
             curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain=stable --profile=minimal -y &&
+            rustup show
+          CIBW_ENVIRONMENT: 'PATH="$HOME/.cargo/bin:$PATH" CARGO_TERM_COLOR="always"'
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.22.0
+        if: ${{ matrix.python == '3.12' && matrix.os == 'ubuntu-latest'}}
+        env:
+          CIBW_PLATFORM: pyodide
+          CIBW_SKIP: '*-musllinux_i686'
+          CIBW_BEFORE_BUILD: >
+            curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain=nightly --profile=minimal -y &&
+            rustup target add wasm32-unknown-emscripten &&
+            cargo build -Zbuild-std &&
+            rustup default nightly &&
             rustup show
           CIBW_ENVIRONMENT: 'PATH="$HOME/.cargo/bin:$PATH" CARGO_TERM_COLOR="always"'
