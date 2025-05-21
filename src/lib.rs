@@ -70,7 +70,7 @@ fn create_cost_matrix(
         }
     }
 
-    Ok(cost.into_pyarray_bound(py))
+    Ok(cost.into_pyarray(py))
 }
 
 #[pymodule]
