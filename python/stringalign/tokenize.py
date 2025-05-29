@@ -44,8 +44,10 @@ class StringNormalizer:
         self.remove_non_word_characters = remove_non_word_characters
 
     def __call__(self, text: str) -> str:
+        # According to Unicode, we should normalize strings before casefolding them.
         if self.normalization is not None:
             text = unicodedata.normalize(self.normalization, text)
+
         if self.case_insensitive:
             text = text.casefold()
         if self.normalize_whitespace:
@@ -54,6 +56,11 @@ class StringNormalizer:
             text = re.sub(r"\s", "", text)
         if self.remove_non_word_characters:
             text = re.sub(r"[^\w\s]|_", "", text)
+
+        # Some of these operations, like casefolding, can make normalized text unnormalized.
+        # So we normalize again to ensure the text is in the correct form.
+        if self.normalization is not None:
+            text = unicodedata.normalize(self.normalization, text)
 
         return text
 
