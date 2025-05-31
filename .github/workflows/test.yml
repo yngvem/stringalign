@@ -48,17 +48,17 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
-    name: windows (${{ matrix.platform.target }})
+    name: windows (${{ matrix.target }})
     strategy:
       matrix:
-        platform: [x64, x86]
+        target: [x64, x86]
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
-          target: ${{ matrix.platform.target }}
+          target: ${{ matrix.target }}
           args: --release --out dist -i "${{ env.PYTHON_TARGETS }}"
 
   build-linux:
