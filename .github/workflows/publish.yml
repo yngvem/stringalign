@@ -13,6 +13,10 @@ on:
         - minor
         - patch
 
+env:
+  PYTHON_TARGETS: '3.11 3.12 3.13'
+  SDIST_BUILD_PLATFORM: 'x86_64'
+
 jobs:
   bump_version:
     environment: pypi
@@ -46,51 +50,99 @@ jobs:
               --title="Stringalign ${VERSION}" \
               --generate-notes
 
-  build_wheels:
+
+  build-linux:
     needs: [bump_version]
-    name: Build wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
+    name: Build wheels linux (${{ matrix.target }})
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        target:
+          - x86_64
+          - i686
+          - aarch64
+          - armv7
+          - s390x
+          - ppc64le
+          - x86_64-unknown-linux-musl
+          - i686-unknown-linux-musl
     steps:
       - uses: actions/checkout@v4
         with:
           ref: 'v${{ needs.bump_version.outputs.version }}'
-
-      - uses: pypa/cibuildwheel@v2.22.0
-        env:
-          CIBW_SKIP: '*-musllinux_i686'
-          CIBW_BEFORE_BUILD: rustup show
-          CIBW_BEFORE_BUILD_LINUX: >
-            curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain=stable --profile=minimal -y &&
-            rustup show
-          CIBW_ENVIRONMENT: 'PATH="$HOME/.cargo/bin:$PATH" CARGO_TERM_COLOR="always"'
-
+      - name: Build wheels
+        if: ${{ matrix.target != '${{ env.SDIST_BUILD_PLATFORM }}' }}
+        uses: PyO3/maturin-action@v1
+        with:
+          rust-toolchain: stable
+          target: ${{ matrix.target }}
+          manylinux: auto
+          args: --release --out dist -i "${{ env.PYTHON_TARGETS }}"
+      - name: Build wheels and sdist
+        if: ${{ matrix.target == '${{ env.SDIST_BUILD_PLATFORM }}' }}
+        uses: PyO3/maturin-action@v1
+        with:
+          rust-toolchain: stable
+          target: ${{ matrix.target }}
+          manylinux: auto
+          args: --release --out dist --sdist -i "${{ env.PYTHON_TARGETS }}"
       - uses: actions/upload-artifact@v4
         with:
-          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
-          path: ./wheelhouse/*.whl
-
-  build_sdist:
-    needs: [bump_version]
-    name: Build source distribution
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: 'v${{ needs.bump_version.outputs.version }}'
-
-      - name: Build sdist
-        run: pipx run build --sdist
-
+          name: maturin-wheels-linux-${{ matrix.target }}
+          path: dist/*.whl
       - uses: actions/upload-artifact@v4
+        if: ${{ matrix.target == '${{ env.SDIST_BUILD_PLATFORM }}' }}
         with:
-          name: cibw-sdist
+          name: maturin-sdist
           path: dist/*.tar.gz
 
+  build-macos:
+    needs: [bump_version]
+    runs-on: macos-latest
+    name: Build wheels macOS (${{ matrix.target }})
+    strategy:
+      matrix:
+        target: [universal2-apple-darwin, x86_64]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: 'v${{ needs.bump_version.outputs.version }}'
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build wheels - x86_64
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --out dist -i "${{ env.PYTHON_TARGETS }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: maturin-wheels-macos-${{ matrix.target }}
+          path: dist/*.whl
+
+  build-windows:
+    needs: [bump_version]
+    runs-on: windows-latest
+    name: Build wheels Windows (${{ matrix.target }})
+    strategy:
+      matrix:
+        target: [x64, x86]
+    steps:
+      - uses: actions/checkout@4
+        with:
+          ref: 'v${{ needs.bump_version.outputs.version }}'
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --out dist -i "${{ env.PYTHON_TARGETS }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: maturin-wheels-windows-${{ matrix.target }}
+          path: dist/*.whl
+
   upload_pypi:
-    needs: [build_wheels, build_sdist]
+    needs: [build-linux, build-macos, build-windows]
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
