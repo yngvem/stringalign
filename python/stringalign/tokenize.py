@@ -1,7 +1,8 @@
 import re
 import unicodedata
 from collections.abc import Iterable
-from typing import Literal, Protocol
+from functools import wraps
+from typing import Callable, Literal, Protocol
 
 import stringalign._stringutils
 
@@ -10,6 +11,57 @@ class Tokenizer(Protocol):
     def __call__(self, text: str) -> list[str]: ...
 
     def join(self, text: Iterable[str]) -> str: ...
+
+
+def _add_join(tokenizer: Callable[[str], list[str]], sep: str = " ") -> Tokenizer:
+    """Function that `join` method to a tokenizer function.
+    This allows the tokenizer to be used with the Tokenizer protocol.
+
+    Arguments
+    ---------
+    tokenizer:
+        A tokenizer function that takes a string and returns a list of tokens.
+    sep (optional):
+        The separator to use when joining tokens. Defaults to a single space.
+
+    Returns
+    -------
+    Tokenizer:
+        A wrapped tokenizer that has a `join` method.
+    """
+
+    @wraps(tokenizer)
+    class WrappedTokenizer:
+        def __call__(self, text: str) -> list[str]:
+            return tokenizer(text)
+
+        def join(self, tokens: Iterable[str]) -> str:
+            return sep.join(tokens)
+
+    return WrappedTokenizer()
+
+
+def add_join(sep: str = " ") -> Callable[[Callable[[str], list[str]]], Tokenizer]:
+    """Decorator that `join` method to a tokenizer function.
+    This allows the tokenizer to be used with the Tokenizer protocol.
+
+    Arguments
+    ---------
+    tokenizer:
+        A tokenizer function that takes a string and returns a list of tokens.
+    sep (optional):
+        The separator to use when joining tokens. Defaults to a single space.
+
+    Returns
+    -------
+    Tokenizer:
+        A wrapped tokenizer that has a `join` method.
+    """
+
+    def decorator(tokenizer: Callable[[str], list[str]]) -> Tokenizer:
+        return _add_join(tokenizer, sep=sep)
+
+    return decorator
 
 
 class StringNormalizer:
