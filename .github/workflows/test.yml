@@ -65,7 +65,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: [x86_64, i686]
+        target:
+          - x86_64
+          - i686
+          - aarch64
+          - armv7
+          - s390x
+          - ppc64le
+          - x86_64-unknown-linux-musl
+          - i686-unknown-linux-musl
     steps:
     - uses: actions/checkout@v3
     - name: Build wheels
