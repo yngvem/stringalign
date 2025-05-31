@@ -1,7 +1,6 @@
 import re
 import unicodedata
 from collections.abc import Iterable
-from functools import wraps
 from typing import Callable, Literal, Protocol
 
 import stringalign._stringutils
@@ -30,13 +29,21 @@ def _add_join(tokenizer: Callable[[str], list[str]], sep: str = " ") -> Tokenize
         A wrapped tokenizer that has a `join` method.
     """
 
-    @wraps(tokenizer)
     class WrappedTokenizer:
+        """Tokenizer that wraps a provided tokenizer function. See the docstrings of the __call__ and join methods."""
+
         def __call__(self, text: str) -> list[str]:
+            """Function wrapping a provided tokenizer."""
             return tokenizer(text)
 
         def join(self, tokens: Iterable[str]) -> str:
             return sep.join(tokens)
+
+        # Dynamically update docstrings for the methods. This must happen this way since Python docstrings
+        # cannot be f-strings (they must be string literals).
+        join.__doc__ = f"Join tokens with the specified separator ({sep!r})."
+        if tokenizer.__doc__ and __call__.__doc__:  # (__call__.__doc__ is there for the type checker)
+            __call__.__doc__ += f"See the tokenizer docstring below.\n\n{tokenizer.__doc__}"
 
     return WrappedTokenizer()
 
