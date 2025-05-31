@@ -25,26 +25,20 @@ jobs:
         run: pdm install
       - name: Run unit tests
         run: pdm run pytest --cov python
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.22.0
-        if: ${{ matrix.python == '3.13' }}
-        env:
-          CIBW_SKIP: '*-musllinux_i686'
-          CIBW_BEFORE_BUILD: rustup show
-          CIBW_BEFORE_BUILD_LINUX: >
-            curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain=stable --profile=minimal -y &&
-            rustup show
-          CIBW_ENVIRONMENT: 'PATH="$HOME/.cargo/bin:$PATH" CARGO_TERM_COLOR="always"'
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.22.0
-        if: ${{ matrix.python == '3.12' && matrix.os == 'ubuntu-latest'}}
-        env:
-          CIBW_PLATFORM: pyodide
-          CIBW_SKIP: '*-musllinux_i686'
-          CIBW_BEFORE_BUILD: >
-            curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain=nightly --profile=minimal -y &&
-            rustup target add wasm32-unknown-emscripten --toolchain stable &&
-            cargo build -Zbuild-std &&
-            rustup default nightly &&
-            rustup show
-          CIBW_ENVIRONMENT: 'PATH="$HOME/.cargo/bin:$PATH" CARGO_TERM_COLOR="always"'
+  build-macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        python: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build wheels - x86_64
+        uses: PyO3/maturin-action@v1
+        with:
+          target: x86_64
+          args: --release --out dist --sdist -i 3.11 3.12 3.13
+      - name: Build wheels - universal2
+        uses: PyO3/maturin-action@v1
+        with:
+          target: universal2-apple-darwin
+          args: --release --out dist -i 3.11 3.12 3.13
