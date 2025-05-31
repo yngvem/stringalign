@@ -31,6 +31,8 @@ jobs:
       matrix:
         python: ['3.11', '3.12', '3.13']
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - name: Build wheels - x86_64
         uses: PyO3/maturin-action@v1
