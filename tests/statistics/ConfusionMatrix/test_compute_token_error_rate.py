@@ -24,6 +24,20 @@ def test_different_than_jiwer_on_decomposed_diacritic() -> None:
     assert ter > jiwer.cer(truth, predicted) - 1e-8
 
 
+def test_empty_reference_string_and_empty_predicted_string() -> None:
+    """The token error rate is zero for empty strings."""
+    cm = StringConfusionMatrix.from_strings("", "")
+    ter = cm.compute_token_error_rate()
+    assert ter == 0.0
+
+
+def test_empty_reference_string_and_non_empty_predicted_string() -> None:
+    """The token error rate is one for an empty reference string and a non-empty predicted string."""
+    cm = StringConfusionMatrix.from_strings("", "not empty")
+    ter = cm.compute_token_error_rate()
+    assert ter == float("inf")
+
+
 @hypothesis.given(
     predicted=st.text(alphabet=st.characters(max_codepoint=127)),  # ASCII characters only
     reference=st.text(alphabet=st.characters(max_codepoint=127), min_size=1),  # ASCII characters only
