@@ -151,6 +151,20 @@ class StringConfusionMatrix:
 
     compute_dice = compute_f1_score
 
+    def compute_token_error_rate(self) -> float:
+        """The number of token edits divided by the total number of tokens.
+
+        If the tokenizer tokenizes the string into characters, this is equivalent to
+        the character error rate (CER).
+        """
+        total_tokens = sum(self.true_positives.values()) + sum(self.false_negatives.values())
+        total_edit_counts = sum(self.edit_counts.values())
+        if total_edit_counts == 0 and total_tokens == 0:
+            return 0.0
+        elif total_tokens == 0:
+            return float("inf")
+        return total_edit_counts / total_tokens
+
     def __add__(self, other: Self) -> Self:
         if not isinstance(other, self.__class__):
             return NotImplemented
