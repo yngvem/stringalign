@@ -2,6 +2,9 @@ name: Run test
 
 on: [push, pull_request]
 
+env:
+  PYTHON_TARGETS: '3.11 3.12 3.13'
+
 jobs:
   run-tests:
     strategy:
@@ -25,11 +28,9 @@ jobs:
         run: pdm install
       - name: Run unit tests
         run: pdm run pytest --cov python
+
   build-macos:
     runs-on: macos-latest
-    strategy:
-      matrix:
-        python: ['3.11', '3.12', '3.13']
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,9 +39,40 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: x86_64
-          args: --release --out dist --sdist -i 3.11 3.12 3.13
+          args: --release --out dist -i "${{ env.PYTHON_TARGETS }}"
       - name: Build wheels - universal2
         uses: PyO3/maturin-action@v1
         with:
           target: universal2-apple-darwin
-          args: --release --out dist -i 3.11 3.12 3.13
+          args: --release --out dist -i "${{ env.PYTHON_TARGETS }}"
+
+  build-windows:
+    runs-on: windows-latest
+    name: windows (${{ matrix.platform.target }})
+    strategy:
+      matrix:
+        platform:
+          - target: ['x64', 'x86']
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.platform.target }}
+          args: --release --out dist -i "${{ env.PYTHON_TARGETS }}"
+
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [x86_64, i686]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build wheels
+      uses: PyO3/maturin-action@v1
+      with:
+        rust-toolchain: stable
+        target: ${{ matrix.target }}
+        manylinux: auto
+        args: --release --out dist -i "${{ env.PYTHON_TARGETS }}"
