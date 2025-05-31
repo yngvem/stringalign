@@ -29,40 +29,9 @@ jobs:
       - name: Run unit tests
         run: pdm run pytest --cov python
 
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Build wheels - x86_64
-        uses: PyO3/maturin-action@v1
-        with:
-          target: x86_64
-          args: --release --out dist -i "${{ env.PYTHON_TARGETS }}"
-      - name: Build wheels - universal2
-        uses: PyO3/maturin-action@v1
-        with:
-          target: universal2-apple-darwin
-          args: --release --out dist -i "${{ env.PYTHON_TARGETS }}"
-
-  build-windows:
-    runs-on: windows-latest
-    name: windows (${{ matrix.target }})
-    strategy:
-      matrix:
-        target: [x64, x86]
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Build wheels
-        uses: PyO3/maturin-action@v1
-        with:
-          target: ${{ matrix.target }}
-          args: --release --out dist -i "${{ env.PYTHON_TARGETS }}"
-
   build-linux:
     runs-on: ubuntu-latest
+    name: Build wheels linux (${{ matrix.target }})
     strategy:
       matrix:
         target:
@@ -77,9 +46,49 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build wheels
+      if: ${{ matrix.target != 'x86_64' }}
       uses: PyO3/maturin-action@v1
       with:
         rust-toolchain: stable
         target: ${{ matrix.target }}
         manylinux: auto
         args: --release --out dist -i "${{ env.PYTHON_TARGETS }}"
+    - name: Build wheels and sdist
+      if: ${{ matrix.target == 'x86_64' }}
+      uses: PyO3/maturin-action@v1
+      with:
+        rust-toolchain: stable
+        target: ${{ matrix.target }}
+        manylinux: auto
+        args: --release --out dist --sdist -i "${{ env.PYTHON_TARGETS }}"
+
+  build-macos:
+    runs-on: macos-latest
+    name: Build wheels macOS (${{ matrix.target }})
+    strategy:
+      matrix:
+        target: [universal2-apple-darwin, x86_64]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build wheels - x86_64
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --out dist -i "${{ env.PYTHON_TARGETS }}"
+
+  build-windows:
+    runs-on: windows-latest
+    name: Build wheels Windows (${{ matrix.target }})
+    strategy:
+      matrix:
+        target: [x64, x86]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --out dist -i "${{ env.PYTHON_TARGETS }}"
