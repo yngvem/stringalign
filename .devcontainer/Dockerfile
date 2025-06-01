@@ -1,6 +1,6 @@
 FROM python:3.13-alpine3.20
 
-RUN apk add curl gcc bash git musl-dev vim tmux ripgrep fzf htop bat jq tree && \
+RUN apk add curl gcc bash git musl-dev vim tmux ripgrep fzf htop bat jq tree libffi-dev && \
     curl -sS https://starship.rs/install.sh | sh -s - -y && \
     echo 'eval "$(starship init bash)"' >> $HOME/.bashrc && \
     curl -proto '=https' -tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \

@@ -1,3 +1,4 @@
+import typing
 import unicodedata
 
 import hypothesis
@@ -21,7 +22,7 @@ def test_different_than_jiwer_on_decomposed_diacritic() -> None:
     predicted = "a"
     cm = StringConfusionMatrix.from_strings(truth, predicted)
     ter = cm.compute_token_error_rate()
-    assert ter > jiwer.cer(truth, predicted) - 1e-8
+    assert ter > typing.cast(float, jiwer.cer(truth, predicted)) - 1e-8
 
 
 def test_empty_reference_string_and_empty_predicted_string() -> None:

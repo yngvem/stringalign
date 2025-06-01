@@ -1,4 +1,4 @@
-from stringalign.align import Replace, align_strings
+from stringalign.align import Replaced, align_strings
 from stringalign.statistics import StringConfusionMatrix
 from stringalign.tokenize import SplitAtWordBoundaryTokenizer, UnicodeWordTokenizer
 
@@ -11,7 +11,7 @@ def test_from_strings() -> None:
     assert result.false_positives["Python"] == 1
     assert result.false_negatives["world"] == 1
     assert result.true_positives["hello"] == 1
-    assert result.edit_counts[Replace("Python", "world")] == 1
+    assert result.edit_counts[Replaced("Python", "world")] == 1
 
 
 def test_from_strings_and_alignment() -> None:
@@ -24,4 +24,4 @@ def test_from_strings_and_alignment() -> None:
     assert result.false_positives["Python"] == 1
     assert result.false_negatives["world"] == 1
     assert result.true_positives["hello"] == 1
-    assert result.edit_counts[Replace("Python", "world")] == 1
+    assert result.edit_counts[Replaced("Python", "world")] == 1

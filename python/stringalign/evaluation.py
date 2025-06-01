@@ -7,8 +7,8 @@ from typing import Any, Iterable, Literal, Self, TypeVar
 
 from stringalign.align import (
     AlignmentOperation,
-    Keep,
-    Replace,
+    Kept,
+    Replaced,
     aggregate_alignment,
     align_strings,
 )
@@ -20,9 +20,7 @@ from stringalign.tokenize import Tokenizer
 T = TypeVar("T")
 
 
-def join_windows(
-    center_string: str, previous_operation: AlignmentOperation | None, next_operation: AlignmentOperation | None
-) -> str:
+def join_windows(center_string: str, previous_operation: Kept | None, next_operation: Kept | None) -> str:
     window_text = ""
     if previous_operation is not None:
         window_text += previous_operation.substring
@@ -37,11 +35,11 @@ def check_operation_for_case_error(
     current_operation: AlignmentOperation,
     next_operation: AlignmentOperation | None,
 ) -> int:
-    if not isinstance(current_operation, Replace):
+    if not isinstance(current_operation, Replaced):
         return False
     current_operation = current_operation.generalize()
-    assert isinstance(current_operation, Replace)
-    return count_case_errors(current_operation.replacement, current_operation.substring)
+    assert isinstance(current_operation, Replaced)
+    return count_case_errors(current_operation.reference, current_operation.predicted)
 
 
 def check_operation_for_horizontal_segmentation_error(
@@ -50,7 +48,7 @@ def check_operation_for_horizontal_segmentation_error(
     next_operation: AlignmentOperation | None,
 ) -> bool:
     is_boundary = (previous_operation is None) or (next_operation is None)
-    return is_boundary and not isinstance(current_operation, Keep)
+    return is_boundary and not isinstance(current_operation, Kept)
 
 
 def check_operation_for_ngram_duplication_error(
@@ -59,16 +57,18 @@ def check_operation_for_ngram_duplication_error(
     next_operation: AlignmentOperation | None,
     *,
     n: int,
-    type: Literal["insert", "delete"] = "insert",
+    error_type: Literal["insert", "delete"] = "insert",
 ) -> bool:
-    if isinstance(current_operation, Keep):
+    if isinstance(current_operation, Kept):
         return False
     current_operation = current_operation.generalize()
-    assert isinstance(current_operation, Replace)
+    assert isinstance(current_operation, Replaced)
+    assert isinstance(next_operation, (Kept, type(None)))
+    assert isinstance(previous_operation, (Kept, type(None)))
 
-    window_text_reference = join_windows(current_operation.replacement, previous_operation, next_operation)
-    window_text_prediction = join_windows(current_operation.substring, previous_operation, next_operation)
-    return check_ngram_duplication_errors(window_text_reference, window_text_prediction, n=n, type=type)
+    window_text_reference = join_windows(current_operation.reference, previous_operation, next_operation)
+    window_text_prediction = join_windows(current_operation.predicted, previous_operation, next_operation)
+    return check_ngram_duplication_errors(window_text_reference, window_text_prediction, n=n, error_type=error_type)
 
 
 class FrozenDict(Mapping[Hashable, Hashable]):
@@ -175,9 +175,9 @@ class LineError:
 
             if check_operation_for_horizontal_segmentation_error(window[0], window[1], window[2]):
                 horisontal_segmentation_errors.append(window[1])
-            if check_operation_for_ngram_duplication_error(window[0], window[1], window[2], n=1, type="insert"):
+            if check_operation_for_ngram_duplication_error(window[0], window[1], window[2], n=1, error_type="insert"):
                 character_duplication_errors.append(window[1])
-            if check_operation_for_ngram_duplication_error(window[0], window[1], window[2], n=1, type="delete"):
+            if check_operation_for_ngram_duplication_error(window[0], window[1], window[2], n=1, error_type="delete"):
                 removed_duplicate_character_errors.append(window[1])
             if check_operation_for_case_error(window[0], window[1], window[2]):
                 case_errors.append(window[1])
