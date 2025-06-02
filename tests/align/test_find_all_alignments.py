@@ -22,7 +22,7 @@ from stringalign.align import (
             "ab",
             "ba",
             (
-                (Replaced("b", "a"), Replaced("a", "b")),
+                (Replaced(reference="a", predicted="b"), Replaced(reference="b", predicted="a")),
                 (Deleted("a"), Kept("b"), Inserted("a")),
                 (Inserted("b"), Kept("a"), Deleted("b")),
             ),

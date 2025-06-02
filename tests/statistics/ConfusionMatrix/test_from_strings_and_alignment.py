@@ -17,8 +17,8 @@ def test_from_strings_and_alignment() -> None:
     assert result.edit_counts == Counter(
         {
             Deleted("b"): 1,
-            Replaced("d", "b"): 1,
-            Replaced("e", "a"): 1,
+            Replaced("b", "d"): 1,
+            Replaced("a", "e"): 1,
             Inserted("i"): 1,
         }
     )

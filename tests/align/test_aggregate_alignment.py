@@ -50,18 +50,18 @@ def test_aggregate_alignment_with_example():
         Deleted("a"),
         Deleted("b"),
         Kept("a"),
-        Replaced("a", "b"),
+        Replaced(reference="b", predicted="a"),
         Deleted("a"),
-        Replaced("b", "c"),
+        Replaced(reference="c", predicted="b"),
         Inserted("a"),
         Kept("b"),
         Kept("c"),
-        Replaced("a", "e"),
+        Replaced(reference="e", predicted="a"),
     ]
     assert list(aggregate_alignment(alignment)) == [
         Deleted("ab"),
         Kept("a"),
-        Replaced("aba", "bac"),
+        Replaced(reference="bac", predicted="aba"),
         Kept("bc"),
-        Replaced("a", "e"),
+        Replaced(reference="e", predicted="a"),
     ]

@@ -26,7 +26,7 @@ def test_inserted_replaces_with_empty_string(substring: str) -> None:
     """An Inserted object turns into a Replaced object with an empty string"""
     inserted = Inserted(substring=substring)
     replaced_inserted = inserted.generalize()
-    assert replaced_inserted == Replaced(substring, "")
+    assert replaced_inserted == Replaced(reference="", predicted=substring)
 
 
 @given(substring=st.text())

@@ -26,7 +26,7 @@ def test_deleted_replaces_with_empty_string(substring: str) -> None:
     """A Deleted object turns into a Replaced object with an itself as the replace string"""
     deleted = Deleted(substring=substring)
     replace_deleted = deleted.generalize()
-    assert replace_deleted == Replaced("", substring)
+    assert replace_deleted == Replaced(reference=substring, predicted="")
 
 
 @given(substring=st.text())

@@ -33,7 +33,7 @@ class Deleted:
     substring: str
 
     def generalize(self) -> Replaced:
-        return Replaced("", self.substring)
+        return Replaced(reference=self.substring, predicted="")
 
     def simplify(self) -> Self:
         return self
@@ -50,7 +50,7 @@ class Inserted:
     substring: str
 
     def generalize(self) -> Replaced:
-        return Replaced(self.substring, "")
+        return Replaced(reference="", predicted=self.substring)
 
     def simplify(self) -> Self:
         return self
@@ -64,8 +64,8 @@ class Inserted:
 
 @dataclass(frozen=True, slots=True)
 class Replaced:
-    predicted: str  # TODO: Switch order of these two fields
     reference: str
+    predicted: str
 
     def generalize(self) -> Self:
         return self
@@ -148,7 +148,7 @@ def _backtrack(
     if col > 0 and (row == 0 or cost_matrix[row, col] == cost_matrix[row, col - 1] + 1):
         yield Inserted(predicted_clusters[col - 1])
     if row > 0 and col > 0 and cost_matrix[row, col] == cost_matrix[row - 1, col - 1] + 1:
-        yield Replaced(predicted_clusters[col - 1], reference_clusters[row - 1])
+        yield Replaced(reference_clusters[row - 1], predicted_clusters[col - 1])
 
 
 def align_strings(

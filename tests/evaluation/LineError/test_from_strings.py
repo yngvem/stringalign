@@ -47,16 +47,16 @@ from stringalign.tokenize import UnicodeWordTokenizer
             LineError(
                 reference="Hello, world!",
                 predicted="hello, world",
-                alignment=(Replaced("h", "H"), Kept("ello, world"), Deleted("!")),
+                alignment=(Replaced("H", "h"), Kept("ello, world"), Deleted("!")),
                 raw_alignment=tuple(align_strings("Hello, world!", "hello, world")[0]),
                 unique_alignment=True,
                 horisontal_segmentation_errors=(
-                    Replaced("h", "H"),
+                    Replaced("H", "h"),
                     Deleted("!"),
                 ),
                 character_duplication_errors=(),
                 removed_duplicate_character_errors=(),
-                case_errors=(Replaced("h", "H"),),
+                case_errors=(Replaced("H", "h"),),
                 metadata=None,
                 tokenizer=None,
             ),
@@ -101,14 +101,14 @@ from stringalign.tokenize import UnicodeWordTokenizer
             LineError(
                 reference="Hello, world!",
                 predicted="Helo, world!",
-                alignment=(Replaced("Helo", "Hello"), Kept("world")),
+                alignment=(Replaced(reference="Hello", predicted="Helo"), Kept("world")),
                 raw_alignment=tuple(
                     align_strings("Hello, world!", "Helo, world!", tokenizer=UnicodeWordTokenizer())[0]
                 ),
                 unique_alignment=True,
-                horisontal_segmentation_errors=(Replaced("Helo", "Hello"),),
+                horisontal_segmentation_errors=(Replaced(reference="Hello", predicted="Helo"),),
                 character_duplication_errors=(),
-                removed_duplicate_character_errors=(Replaced("Helo", "Hello"),),
+                removed_duplicate_character_errors=(Replaced(reference="Hello", predicted="Helo"),),
                 case_errors=(),
                 metadata=None,
                 tokenizer=UnicodeWordTokenizer(),
