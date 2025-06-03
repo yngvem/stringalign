@@ -54,8 +54,8 @@ def test_character_tokenizer_gives_same_cer_as_jiwer_for_ascii(
     assumption of the string confusion matrix.
     """
     # Jiwer strips strings before tokenizing, stringalign does not, so let's strip them first.
-    reference = reference.strip()
-    predicted = predicted.strip()
+    reference = reference.strip().replace("\r", "")  # Jiwer doesn't handle newlines well
+    predicted = predicted.strip().replace("\r", "")  # Jiwer doesn't handle newlines well
     hypothesis.assume(reference)
     cm = StringConfusionMatrix.from_strings(reference, predicted)
     cer = cm.compute_token_error_rate()
@@ -71,8 +71,8 @@ def test_word_tokeniser_gives_same_wer_as_jiwer_for_simple_words(
     predicted: str,
 ) -> None:
     """Calculating error rate with the jiwer word tokeniser gives the same result as jiwer wer for simple words."""
-    predicted = predicted.strip()
-    reference = reference.strip()
+    predicted = predicted.strip().replace("\r", "")  # Jiwer doesn't handle newlines well
+    reference = reference.strip().replace("\r", "")  # Jiwer doesn't handle newlines well
     hypothesis.assume(reference)
 
     def tokenizer(s: str) -> list[str]:
