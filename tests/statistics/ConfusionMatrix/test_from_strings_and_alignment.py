@@ -1,6 +1,6 @@
 from collections import Counter
 
-from stringalign.align import Delete, Insert, Replace, align_strings
+from stringalign.align import Deleted, Inserted, Replaced, align_strings
 from stringalign.statistics import StringConfusionMatrix
 
 
@@ -16,10 +16,10 @@ def test_from_strings_and_alignment() -> None:
     assert result.false_negatives == Counter({"b": 2, "a": 1})
     assert result.edit_counts == Counter(
         {
-            Insert("b"): 1,
-            Replace("d", "b"): 1,
-            Replace("e", "a"): 1,
-            Delete("i"): 1,
+            Deleted("b"): 1,
+            Replaced("b", "d"): 1,
+            Replaced("a", "e"): 1,
+            Inserted("i"): 1,
         }
     )
 

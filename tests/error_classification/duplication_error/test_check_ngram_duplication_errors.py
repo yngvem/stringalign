@@ -34,9 +34,9 @@ from stringalign.error_classification.duplication_error import check_ngram_dupli
 def test_check_ngram_duplication_errors_with_examples(
     reference: str, predicted: str, n: int, type: Literal["insert", "delete"], expected: bool
 ) -> None:
-    assert check_ngram_duplication_errors(reference, predicted, n=n, type=type) == expected
+    assert check_ngram_duplication_errors(reference, predicted, n=n, error_type=type) == expected
 
 
 def test_check_ngram_duplication_errors_with_invalid_type() -> None:
     with pytest.raises(ValueError):
-        check_ngram_duplication_errors("banana", "bananana", n=2, type="invalid")  # type: ignore
+        check_ngram_duplication_errors("banana", "bananana", n=2, error_type="invalid")  # type: ignore

@@ -1,3 +1,4 @@
+import typing
 import unicodedata
 
 import hypothesis
@@ -21,7 +22,7 @@ def test_different_than_jiwer_on_decomposed_diacritic() -> None:
     predicted = "a"
     cm = StringConfusionMatrix.from_strings(truth, predicted)
     ter = cm.compute_token_error_rate()
-    assert ter > jiwer.cer(truth, predicted) - 1e-8
+    assert ter > typing.cast(float, jiwer.cer(truth, predicted)) - 1e-8
 
 
 def test_empty_reference_string_and_empty_predicted_string() -> None:
@@ -53,8 +54,8 @@ def test_character_tokenizer_gives_same_cer_as_jiwer_for_ascii(
     assumption of the string confusion matrix.
     """
     # Jiwer strips strings before tokenizing, stringalign does not, so let's strip them first.
-    reference = reference.strip()
-    predicted = predicted.strip()
+    reference = reference.strip().replace("\r", "")  # Jiwer doesn't handle newlines well
+    predicted = predicted.strip().replace("\r", "")  # Jiwer doesn't handle newlines well
     hypothesis.assume(reference)
     cm = StringConfusionMatrix.from_strings(reference, predicted)
     cer = cm.compute_token_error_rate()
@@ -70,8 +71,8 @@ def test_word_tokeniser_gives_same_wer_as_jiwer_for_simple_words(
     predicted: str,
 ) -> None:
     """Calculating error rate with the jiwer word tokeniser gives the same result as jiwer wer for simple words."""
-    predicted = predicted.strip()
-    reference = reference.strip()
+    predicted = predicted.strip().replace("\r", "")  # Jiwer doesn't handle newlines well
+    reference = reference.strip().replace("\r", "")  # Jiwer doesn't handle newlines well
     hypothesis.assume(reference)
 
     def tokenizer(s: str) -> list[str]:

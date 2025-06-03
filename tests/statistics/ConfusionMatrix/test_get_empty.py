@@ -1,6 +1,5 @@
 from collections import Counter
 
-from stringalign.align import Delete, Insert, Keep, Replace, align_strings
 from stringalign.statistics import StringConfusionMatrix
 
 

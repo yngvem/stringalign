@@ -5,10 +5,10 @@ import pytest
 from hypothesis import given, settings
 from stringalign.align import (
     AlignmentOperation,
-    Delete,
-    Insert,
-    Keep,
-    Replace,
+    Deleted,
+    Inserted,
+    Kept,
+    Replaced,
     align_strings,
     compute_levenshtein_distance_from_alignment,
     find_all_alignments,
@@ -22,9 +22,9 @@ from stringalign.align import (
             "ab",
             "ba",
             (
-                (Replace("b", "a"), Replace("a", "b")),
-                (Insert("a"), Keep("b"), Delete("a")),
-                (Delete("b"), Keep("a"), Insert("b")),
+                (Replaced(reference="a", predicted="b"), Replaced(reference="b", predicted="a")),
+                (Deleted("a"), Kept("b"), Inserted("a")),
+                (Inserted("b"), Kept("a"), Deleted("b")),
             ),
         )
     ],

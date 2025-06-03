@@ -18,101 +18,91 @@ __all__ = [
     "MergableAlignmentOperation",
     "AlignmentTuple",
     "StringType",
-    "Insert",
-    "Delete",
-    "Replace",
-    "Keep",
+    "Inserted",
+    "Deleted",
+    "Replaced",
+    "Kept",
     "align_strings",
     "aggregate_alignment",
     "create_cost_matrix",
 ]
 
 
-@runtime_checkable
-class AlignmentOperation(Protocol):
-    @property
-    def substring(self) -> str: ...
-
-    def generalize(self) -> MergableAlignmentOperation: ...
-    def simplify(self) -> AlignmentOperation: ...
-
-
-@runtime_checkable
-class MergableAlignmentOperation(AlignmentOperation, Protocol):
-    def merge(self, other: Self) -> Self: ...
-
-
-AlignmentTuple = tuple[AlignmentOperation, ...]
-AlignmentList = list[AlignmentOperation]
-
-
 @dataclass(frozen=True, slots=True)
-class Insert:
+class Deleted:
     substring: str
 
-    def generalize(self) -> Replace:
-        return Replace("", self.substring)
+    def generalize(self) -> Replaced:
+        return Replaced(reference=self.substring, predicted="")
 
     def simplify(self) -> Self:
         return self
 
     def to_html(self) -> tuple[str, str]:
         return (
-            f'<span class="insert reference">{self.substring}</span>',
-            f'<span class="insert predicted"></span>',
+            f'<span class="deleted reference">{self.substring}</span>',
+            f'<span class="deleted predicted"></span>',
         )
 
 
 @dataclass(frozen=True, slots=True)
-class Delete:
+class Inserted:
     substring: str
 
-    def generalize(self) -> Replace:
-        return Replace(self.substring, "")
+    def generalize(self) -> Replaced:
+        return Replaced(reference="", predicted=self.substring)
 
     def simplify(self) -> Self:
         return self
 
     def to_html(self) -> tuple[str, str]:
         return (
-            f'<span class="delete reference"></span>',
-            f'<span class="delete predicted">{self.substring}</span>',
+            f'<span class="inserted reference"></span>',
+            f'<span class="inserted predicted">{self.substring}</span>',
         )
 
 
 @dataclass(frozen=True, slots=True)
-class Replace:
-    substring: str
-    replacement: str
+class Replaced:
+    reference: str
+    predicted: str
 
     def generalize(self) -> Self:
         return self
 
     def simplify(self) -> AlignmentOperation:
-        if not self.substring:
-            return Insert(self.replacement)
-        if not self.replacement:
-            return Delete(self.substring)
+        if not self.predicted:
+            return Deleted(self.reference)
+        if not self.reference:
+            return Inserted(self.predicted)
         return self
 
-    def merge(self, other: Replace) -> Replace:
+    def merge(self, other: Replaced) -> Replaced:
         if not isinstance(other, self.__class__):
             raise TypeError(f"Can only merge Replace instance with other Replace instances, not {type(other)}")
-        return Replace(
-            substring=self.substring + other.substring,
-            replacement=self.replacement + other.replacement,
+        return Replaced(
+            predicted=self.predicted + other.predicted,  # TODO: Tokenizer.join here, not just string concatenation
+            reference=self.reference + other.reference,
         )
 
     def to_html(self) -> tuple[str, str]:
         return (
-            f'<span class="replace reference">{self.replacement}</span>',
-            f'<span class="replace predicted">{self.substring}</span>',
+            f'<span class="replace reference">{self.reference}</span>',
+            f'<span class="replace predicted">{self.predicted}</span>',
         )
 
 
 @dataclass(frozen=True, slots=True)
-class Keep:
+class Kept:
     substring: str
+
+    @property
+    def reference(self) -> str:
+        return self.substring
+
+    @property
+    def predicted(self) -> str:
+        return self.substring
 
     def generalize(self) -> Self:
         return self
@@ -120,10 +110,10 @@ class Keep:
     def simplify(self) -> Self:
         return self
 
-    def merge(self, other: Keep) -> Keep:
+    def merge(self, other: Kept) -> Kept:
         if not isinstance(other, self.__class__):
             raise TypeError(f"Can only merge Keep instance with other Keep instances, not {type(other)}")
-        return Keep(substring=self.substring + other.substring)
+        return Kept(substring=self.substring + other.substring)
 
     def to_html(self) -> tuple[str, str]:
         return (
@@ -132,11 +122,19 @@ class Keep:
         )
 
 
+AlignmentOperation = Deleted | Inserted | Replaced | Kept
+MergableAlignmentOperation = Replaced | Kept
+
+
+AlignmentTuple = tuple[AlignmentOperation, ...]
+AlignmentList = list[AlignmentOperation]
+
+
 def create_cost_matrix(reference_tokens: Iterable[str], predicted_tokens: Iterable[str]) -> np.ndarray:
     return _create_cost_matrix(list(reference_tokens), list(predicted_tokens))
 
 
-_ALIGNMENT_DIRECTIONS = {Keep: (1, 1), Replace: (1, 1), Insert: (1, 0), Delete: (0, 1)}
+_ALIGNMENT_DIRECTIONS = {Kept: (1, 1), Replaced: (1, 1), Deleted: (1, 0), Inserted: (0, 1)}
 
 
 def _backtrack(
@@ -144,13 +142,13 @@ def _backtrack(
 ) -> Generator[AlignmentOperation, None, None]:
     """Generator that yields all optimal alignment operations at the current position in the cost matrix."""
     if row > 0 and col > 0 and reference_clusters[row - 1] == predicted_clusters[col - 1]:
-        yield Keep(reference_clusters[row - 1])
+        yield Kept(reference_clusters[row - 1])
     if row > 0 and (col == 0 or cost_matrix[row, col] == cost_matrix[row - 1, col] + 1):
-        yield Insert(reference_clusters[row - 1])
+        yield Deleted(reference_clusters[row - 1])
     if col > 0 and (row == 0 or cost_matrix[row, col] == cost_matrix[row, col - 1] + 1):
-        yield Delete(predicted_clusters[col - 1])
+        yield Inserted(predicted_clusters[col - 1])
     if row > 0 and col > 0 and cost_matrix[row, col] == cost_matrix[row - 1, col - 1] + 1:
-        yield Replace(predicted_clusters[col - 1], reference_clusters[row - 1])
+        yield Replaced(reference_clusters[row - 1], predicted_clusters[col - 1])
 
 
 def align_strings(
@@ -220,7 +218,7 @@ def find_all_alignments(
 
 
 def compute_levenshtein_distance_from_alignment(alignment: AlignmentTuple) -> int:
-    return len(tuple(op for op in alignment if not isinstance(op, Keep)))
+    return len(tuple(op for op in alignment if not isinstance(op, Kept)))
 
 
 def levenshtein_distance(
@@ -256,18 +254,21 @@ def aggregate_alignment(
         return
 
     # Iterate over the rest alignment operations, merging Keep blocks with other Keep blocks and
-    # Replace/Delete/Insert blocks with other Replace/Delete/Insert blocks
+    # Replaced/Deleted/Inserted blocks with other Replaced/Deleted/Inserted blocks
     for operation in alignment_iter:
+        operation = operation.generalize()
+
         # We cannot aggregate Keep-blocks with non-Keep blocks, so if either the current_operation
         # or the operation variable is a Keep block, and the other is not, then we yield our current
         # alignment operation and continue.
-        if (not isinstance(current_operation, Keep) and isinstance(operation, Keep)) or (
-            isinstance(current_operation, Keep) and not isinstance(operation, Keep)
+        if (isinstance(current_operation, Replaced) and isinstance(operation, Kept)) or (
+            isinstance(current_operation, Kept) and isinstance(operation, Replaced)
         ):
             yield current_operation.simplify()
             current_operation = operation.generalize()
             continue
 
-        current_operation = current_operation.merge(operation.generalize())
+        # We ignore type issues here since we know that operation must be of the same type as current_operation
+        current_operation = current_operation.merge(operation)  # type: ignore[arg-type]
 
     yield current_operation.simplify()

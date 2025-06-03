@@ -1,5 +1,5 @@
 import pytest
-from stringalign.align import Delete, Insert, Keep, Replace, align_strings
+from stringalign.align import Deleted, Inserted, Kept, Replaced, align_strings
 from stringalign.evaluation import FrozenDict, LineError
 from stringalign.tokenize import UnicodeWordTokenizer
 
@@ -13,7 +13,7 @@ from stringalign.tokenize import UnicodeWordTokenizer
             LineError(
                 reference="Hello, world!",
                 predicted="Hello, world!",
-                alignment=(Keep("Hello, world!"),),
+                alignment=(Kept("Hello, world!"),),
                 raw_alignment=tuple(align_strings("Hello, world!", "Hello, world!")[0]),
                 unique_alignment=True,
                 horisontal_segmentation_errors=(),
@@ -30,10 +30,10 @@ from stringalign.tokenize import UnicodeWordTokenizer
             LineError(
                 reference="Hello, world!",
                 predicted="Hello, world",
-                alignment=(Keep("Hello, world"), Insert("!")),
+                alignment=(Kept("Hello, world"), Deleted("!")),
                 raw_alignment=tuple(align_strings("Hello, world!", "Hello, world")[0]),
                 unique_alignment=True,
-                horisontal_segmentation_errors=(Insert("!"),),
+                horisontal_segmentation_errors=(Deleted("!"),),
                 character_duplication_errors=(),
                 removed_duplicate_character_errors=(),
                 case_errors=(),
@@ -47,16 +47,16 @@ from stringalign.tokenize import UnicodeWordTokenizer
             LineError(
                 reference="Hello, world!",
                 predicted="hello, world",
-                alignment=(Replace("h", "H"), Keep("ello, world"), Insert("!")),
+                alignment=(Replaced("H", "h"), Kept("ello, world"), Deleted("!")),
                 raw_alignment=tuple(align_strings("Hello, world!", "hello, world")[0]),
                 unique_alignment=True,
                 horisontal_segmentation_errors=(
-                    Replace("h", "H"),
-                    Insert("!"),
+                    Replaced("H", "h"),
+                    Deleted("!"),
                 ),
                 character_duplication_errors=(),
                 removed_duplicate_character_errors=(),
-                case_errors=(Replace("h", "H"),),
+                case_errors=(Replaced("H", "h"),),
                 metadata=None,
                 tokenizer=None,
             ),
@@ -67,11 +67,11 @@ from stringalign.tokenize import UnicodeWordTokenizer
             LineError(
                 reference="Hello, world!",
                 predicted="Helllo, world!",
-                alignment=(Keep("He"), Delete("l"), Keep("llo, world!")),
+                alignment=(Kept("He"), Inserted("l"), Kept("llo, world!")),
                 raw_alignment=tuple(align_strings("Hello, world!", "Helllo, world!")[0]),
                 unique_alignment=False,
                 horisontal_segmentation_errors=(),
-                character_duplication_errors=(Delete("l"),),
+                character_duplication_errors=(Inserted("l"),),
                 removed_duplicate_character_errors=(),
                 case_errors=(),
                 metadata=None,
@@ -84,12 +84,12 @@ from stringalign.tokenize import UnicodeWordTokenizer
             LineError(
                 reference="Hello, world!",
                 predicted="Helo, world!",
-                alignment=(Keep("He"), Insert("l"), Keep("lo, world!")),
+                alignment=(Kept("He"), Deleted("l"), Kept("lo, world!")),
                 raw_alignment=tuple(align_strings("Hello, world!", "Helo, world!")[0]),
                 unique_alignment=False,
                 horisontal_segmentation_errors=(),
                 character_duplication_errors=(),
-                removed_duplicate_character_errors=(Insert("l"),),
+                removed_duplicate_character_errors=(Deleted("l"),),
                 case_errors=(),
                 metadata=None,
                 tokenizer=None,
@@ -101,14 +101,14 @@ from stringalign.tokenize import UnicodeWordTokenizer
             LineError(
                 reference="Hello, world!",
                 predicted="Helo, world!",
-                alignment=(Replace("Helo", "Hello"), Keep("world")),
+                alignment=(Replaced(reference="Hello", predicted="Helo"), Kept("world")),
                 raw_alignment=tuple(
                     align_strings("Hello, world!", "Helo, world!", tokenizer=UnicodeWordTokenizer())[0]
                 ),
                 unique_alignment=True,
-                horisontal_segmentation_errors=(Replace("Helo", "Hello"),),
+                horisontal_segmentation_errors=(Replaced(reference="Hello", predicted="Helo"),),
                 character_duplication_errors=(),
-                removed_duplicate_character_errors=(Replace("Helo", "Hello"),),
+                removed_duplicate_character_errors=(Replaced(reference="Hello", predicted="Helo"),),
                 case_errors=(),
                 metadata=None,
                 tokenizer=UnicodeWordTokenizer(),
@@ -127,12 +127,12 @@ def test_from_strings_with_metadata():
     line_error = LineError(
         reference="Hello, world!",
         predicted="Helo, world!",
-        alignment=(Keep("He"), Insert("l"), Keep("lo, world!")),
+        alignment=(Kept("He"), Deleted("l"), Kept("lo, world!")),
         raw_alignment=tuple(align_strings("Hello, world!", "Helo, world!")[0]),
         unique_alignment=False,
         horisontal_segmentation_errors=(),
         character_duplication_errors=(),
-        removed_duplicate_character_errors=(Insert("l"),),
+        removed_duplicate_character_errors=(Deleted("l"),),
         case_errors=(),
         metadata=FrozenDict({"a": 3}),
         tokenizer=None,

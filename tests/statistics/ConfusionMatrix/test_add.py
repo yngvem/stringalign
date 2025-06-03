@@ -1,6 +1,6 @@
 from collections import Counter
 
-from stringalign.align import Delete, Insert, Keep, Replace
+from stringalign.align import Deleted, Inserted, Kept, Replaced
 from stringalign.statistics import StringConfusionMatrix
 
 
@@ -11,14 +11,14 @@ def test__add__() -> None:
         false_negatives=Counter({"a": 1, "c": 1, "e": 1}),
         edit_counts=Counter(
             {
-                Keep("a"): 3,
-                Keep("b"): 2,
-                Keep("c"): 1,
-                Delete("a"): 1,
-                Delete("b"): 1,
-                Insert("a"): 1,
-                Insert("c"): 1,
-                Replace("d", "e"): 1,
+                Kept("a"): 3,
+                Kept("b"): 2,
+                Kept("c"): 1,
+                Inserted("a"): 1,
+                Inserted("b"): 1,
+                Deleted("a"): 1,
+                Deleted("c"): 1,
+                Replaced("d", "e"): 1,
             }
         ),
     )
@@ -28,14 +28,14 @@ def test__add__() -> None:
         false_negatives=Counter({"a": 1, "c": 1, "g": 1}),
         edit_counts=Counter(
             {
-                Keep("a"): 3,
-                Keep("b"): 2,
-                Keep("d"): 1,
-                Delete("a"): 1,
-                Delete("b"): 1,
-                Insert("a"): 1,
-                Insert("c"): 1,
-                Replace("f", "g"): 1,
+                Kept("a"): 3,
+                Kept("b"): 2,
+                Kept("d"): 1,
+                Inserted("a"): 1,
+                Inserted("b"): 1,
+                Deleted("a"): 1,
+                Deleted("c"): 1,
+                Replaced("f", "g"): 1,
             }
         ),
     )

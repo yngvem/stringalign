@@ -1,19 +1,19 @@
 import pytest
-from stringalign.align import AlignmentOperation, Delete, Insert, Keep, Replace
+from stringalign.align import AlignmentOperation, Deleted, Inserted, Kept, Replaced
 from stringalign.evaluation import check_operation_for_case_error
 
 
-@pytest.mark.parametrize("previous_operation", [None, Keep("a"), Delete("a"), Insert("a"), Replace("a", "b")])
-@pytest.mark.parametrize("next_operation", [None, Keep("a"), Delete("a"), Insert("a"), Replace("a", "b")])
+@pytest.mark.parametrize("previous_operation", [None, Kept("a"), Inserted("a"), Deleted("a"), Replaced("a", "b")])
+@pytest.mark.parametrize("next_operation", [None, Kept("a"), Inserted("a"), Deleted("a"), Replaced("a", "b")])
 @pytest.mark.parametrize(
     "current_operation, num_case_errors",
     [
-        (Replace("String", "String"), 0),
-        (Replace("String", "sTRING"), 6),
-        (Replace("String", "Align"), 0),
-        (Replace("hELL", "Hello"), 4),
-        (Replace("h", "Hello"), 1),
-        (Replace("h", "Hello"), 1),
+        (Replaced("String", "String"), 0),
+        (Replaced("String", "sTRING"), 6),
+        (Replaced("String", "Align"), 0),
+        (Replaced("hELL", "Hello"), 4),
+        (Replaced("h", "Hello"), 1),
+        (Replaced("h", "Hello"), 1),
     ],
 )
 def test_case_error(

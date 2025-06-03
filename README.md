@@ -15,20 +15,20 @@ Based on this alignment, we can then compute many interesting performance metric
 For example, if the `reference` string is `Banana pancakes` and the `predicted` string is `bananana pancake`, then string align will align it
 
 ```raw
-B--anana pancakes
-bananana pancake-
+ Reference: B--anana pancakes
+Prediction: bananana pancake-
 ```
 
-This alignment is stored as a collection of *replacement-*, *insertion-*, *deletion-* and *keep-blocks*, that describe what we need to do with the predicted string to make it equal to the reference string. For the string above, we get
+This alignment is stored as a collection of *replacements*, *insertions*, *deletions* and *keeps*, that describe what we need to do with the predicted string to make it equal to the reference string. For the string above, we get
 
 ```raw
-[Replace('b', 'B'), Delete('a'), Delete('n'), Keep('a'), Keep('n'), Keep('a'), Keep('n'), Keep('a'), Keep(' '), Keep('p'), Keep('a'), Keep('n'), Keep('c'), Keep('a'), Keep('k'), Keep('e'), Insert('s')]
+[Replaced('B', 'b'), Inserted('a'), Inserted('n'), Keep('a'), Keep('n'), Keep('a'), Keep('n'), Keep('a'), Keep(' '), Keep('p'), Keep('a'), Keep('n'), Keep('c'), Keep('a'), Keep('k'), Keep('e'), Deleted('s')]
 ```
 
-or, if we join consequtive the `Delete`, `Insert` and `Replace`:
+or, if we join consequtive the `Deleted`, `Inserted` and `Replaced`:
 
 ```raw
-[Replace('ban', 'B'), Keep('anana pancake'), Insert('s')]
+[Replaced('B', 'ban'), Keep('anana pancake'), Deleted('s')]
 ```
 
 Based on these alignments, we can compute standard string comparison metrics such as the *Levenshtein distance* and *character error rate*.

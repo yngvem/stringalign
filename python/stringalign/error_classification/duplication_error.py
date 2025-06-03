@@ -67,10 +67,10 @@ def get_all_n_run_length_encodings(string: str, n: int) -> Generator[tuple[tuple
 
 
 def check_ngram_duplication_errors(
-    reference: str, predicted: str, *, n: int, type: Literal["insert", "delete"]
+    reference: str, predicted: str, *, n: int, error_type: Literal["insert", "delete"]
 ) -> bool:
-    if not (type := type.lower()) in ("insert", "delete"):  # type: ignore
-        raise ValueError(f"Invalid duplication error type: {type}, must be either 'insert' or 'delete'")
+    if not (error_type := error_type.lower()) in ("insert", "delete"):  # type: ignore
+        raise ValueError(f"Invalid duplication error type: {error_type}, must be either 'insert' or 'delete'")
     run_length_encodings_reference = get_all_n_run_length_encodings(reference, n)
     run_length_encodings_prediction = get_all_n_run_length_encodings(predicted, n)
 
@@ -82,9 +82,9 @@ def check_ngram_duplication_errors(
         for encoding1, encoding2 in zip(encoding_n1, encoding_n2):
             if encoding1[0] != encoding2[0]:
                 return False
-            elif encoding1[1] < encoding2[1] and type == "insert":
+            elif encoding1[1] < encoding2[1] and error_type == "insert":
                 out = True
-            elif encoding1[1] > encoding2[1] and type == "delete":
+            elif encoding1[1] > encoding2[1] and error_type == "delete":
                 out = True
 
     return out

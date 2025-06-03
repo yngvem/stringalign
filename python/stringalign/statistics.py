@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from numbers import Number
 from typing import Self, cast
 
-from stringalign.align import AlignmentOperation, Keep, Replace, aggregate_alignment, align_strings
+from stringalign.align import AlignmentOperation, Kept, Replaced, aggregate_alignment, align_strings
 from stringalign.tokenize import GraphemeClusterTokenizer, Tokenizer
 
 
@@ -36,7 +36,7 @@ class StringConfusionMatrix:
         false_negatives: Counter[str] = Counter()
         edit_counts: Counter[AlignmentOperation] = Counter()
         for op in alignment:
-            if isinstance(op, Keep):
+            if isinstance(op, Kept):
                 for char in tokenizer(op.substring):
                     true_positives[next(ref_iter)] += 1
                     next(pred_iter)
@@ -44,12 +44,12 @@ class StringConfusionMatrix:
 
             edit_counts[op] += 1
 
-            op = cast(Replace, op.generalize())
-            for char in tokenizer(op.substring):
+            op = cast(Replaced, op.generalize())
+            for char in tokenizer(op.predicted):
                 false_positives[char] += 1
                 next(pred_iter)
 
-            for char in tokenizer(op.replacement):
+            for char in tokenizer(op.reference):
                 false_negatives[char] += 1
                 next(ref_iter)
         return cls(
