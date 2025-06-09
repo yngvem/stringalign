@@ -132,14 +132,16 @@ class GraphemeClusterTokenizer:
 
     Arguments
     ---------
-    normalization:
-        Which unicode normalization to use
-    case_insensitive:
-        If true, run `str.casefold` to make all letters lowercase
-    normalize_whitespace:
-        Turn any occurance of one or more whitespaces into exactly one regular space
-    remove_non_word_characters:
-        Remove any character that isn't a Unicode word character as well as underscores.
+    pre_clustering_normalizer:
+        An optional :py:class:`StringNormalizer` to apply before splitting into extended grapheme clusters.
+    post_clustering_normalizer:
+        An optional :py:class:`StringNormalizer` to apply to each token after splitting.
+
+    Examples
+    --------
+    >>> tokenizer = GraphemeClusterTokenizer()
+    >>> tokenizer("abc🏳️‍🌈🏳️‍⚧️❤️‍🔥")
+    ['a', 'b', 'c', '🏳️‍🌈', '🏳️‍⚧️', '❤️‍🔥']
 
     .. _``unicode_segmentation``: https://docs.rs/unicode-segmentation/latest/unicode_segmentation/index.html
     """
@@ -170,14 +172,18 @@ class UnicodeWordTokenizer:
 
     Arguments
     ---------
-    normalization:
-        Which unicode normalization to use
-    case_insensitive:
-        If true, run `str.casefold` to make all letters lowercase
-    normalize_whitespace:
-        Turn any occurance of one or more whitespaces into exactly one regular space
-    remove_non_word_characters:
-        Remove any character that isn't a Unicode word character as well as underscores.
+    pre_clustering_normalizer:
+        An optional :py:class:`StringNormalizer` to apply before splitting into words.
+    post_clustering_normalizer:
+        An optional :py:class:`StringNormalizer` to apply to each token after splitting.
+
+    Examples
+    --------
+    >>> tokenizer = UnicodeWordTokenizer()
+    >>> tokenizer("Hello World")
+    ['Hello', 'World']
+    >>> tokenizer("'Hello', (World)!")
+    ['Hello', 'World']
 
     .. _``unicode_segmentation``: https://docs.rs/unicode-segmentation/latest/unicode_segmentation/index.html
     """
@@ -201,23 +207,83 @@ class UnicodeWordTokenizer:
 
 
 class SplitAtWordBoundaryTokenizer:
-    """Turn a text string into a list of words by splitting at word boundaries as described in :cite:p:`unicode-annex-29`.
+    """Turn a text string into a list of tokens by splitting at word boundaries as described in :cite:p:`unicode-annex-29`.
 
-    This code uses the ```unicode_segmentation```_ Rust crate to do split the text string into
-    words.
+    This code uses the ```unicode_segmentation```_ Rust crate to split the text string at word boundaries.
 
     Arguments
     ---------
-    normalization:
-        Which unicode normalization to use
-    case_insensitive:
-        If true, run `str.casefold` to make all letters lowercase
-    normalize_whitespace:
-        Turn any occurance of one or more whitespaces into exactly one regular space
-    remove_non_word_characters:
-        Remove any character that isn't a Unicode word character as well as underscores.
+    pre_clustering_normalizer:
+        An optional :py:class:`StringNormalizer` to apply before splitting at word boundaries.
+    post_clustering_normalizer:
+        An optional :py:class:`StringNormalizer` to apply to each token after splitting.
+    remove_whitespace:
+        If True, remove tokens that are only whitespace after splitting.
+
+    Examples
+    --------
+    >>> tokenizer = SplitAtWordBoundaryTokenizer()
+    >>> tokenizer("Hello World")
+    ['Hello', ' ', 'World']
+    >>> tokenizer("'Hello', (World)!")
+    ["'", 'Hello', "'", ',', ' ', '(', 'World', ')', '!']
+    >>> tokenizer("Hello  World!")
+    ['Hello', '  ', 'World', '!']
+    >>> tokenizer = SplitAtWordBoundaryTokenizer(remove_whitespace=True)
+    >>> tokenizer("Hello  World!")
+    ['Hello', 'World', '!']
 
     .. _``unicode_segmentation``: https://docs.rs/unicode-segmentation/latest/unicode_segmentation/index.html
+    """
+
+    def __init__(
+        self,
+        pre_clustering_normalizer: StringNormalizer | None = None,
+        post_clustering_normalizer: StringNormalizer | None = None,
+        remove_whitespace: bool = False,
+    ) -> None:
+        self.pre_clustering_normalizer = pre_clustering_normalizer or StringNormalizer()
+        self.post_clustering_normalizer = post_clustering_normalizer or StringNormalizer()
+        self.remove_whitespace = remove_whitespace
+
+    def __call__(self, text: str) -> list[str]:
+        text = self.pre_clustering_normalizer(text)
+        clusters: Iterable[str] = stringalign._stringutils.split_at_word_boundaries(text)
+        clusters = (self.post_clustering_normalizer(cluster) for cluster in clusters)
+
+        if self.remove_whitespace:
+            clusters = (cluster for cluster in clusters if cluster.strip())
+
+        return list(clusters)
+
+    def join(self, tokens: Iterable[str]) -> str:
+        return "".join(tokens)
+
+
+class SplitAtWhitespaceTokenizer:
+    """Turn a text string into a list of words by splitting at whitespace characters.
+
+    This tokenizer will split at any whitespace character, including spaces, tabs, newlines and
+    any other unicode whitespace character and some other characters also. See the Python documentation
+    for ```str.isspace```_ for more information.
+
+    Arguments
+    ---------
+    pre_clustering_normalizer:
+        An optional :py:class:`StringNormalizer` to apply before splitting at whitespace.
+    post_clustering_normalizer:
+        An optional :py:class:`StringNormalizer` to apply to each token after splitting.
+
+
+    Examples
+    --------
+    >>> tokenizer = SplitAtWhitespaceTokenizer()
+    >>> tokenizer("Hello World")
+    ['Hello', 'World']
+    >>> tokenizer("'Hello', (World)!")
+    ["'Hello',", '(World)!']
+
+    .. _``str.isspace``: https://docs.python.org/3/library/stdtypes.html#str.isspace
     """
 
     def __init__(
@@ -230,7 +296,7 @@ class SplitAtWordBoundaryTokenizer:
 
     def __call__(self, text: str) -> list[str]:
         text = self.pre_clustering_normalizer(text)
-        clusters = stringalign._stringutils.split_at_word_boundaries(text)
+        clusters = text.split()
         clusters = [self.post_clustering_normalizer(cluster) for cluster in clusters]
         return clusters
 
