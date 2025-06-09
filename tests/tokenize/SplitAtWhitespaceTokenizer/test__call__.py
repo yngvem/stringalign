@@ -30,7 +30,7 @@ def test_join_roundtrip(words):
     assert tokenizer.join(tokens) == text
 
 
-@hypothesis.given(text=st.text(alphabet=st.characters()))
+@hypothesis.given(text=st.text())
 def test_tokens_are_atomic(text):
     """Tokenizing a token should not change the token"""
     tokenizer = SplitAtWhitespaceTokenizer()

@@ -11,7 +11,7 @@ def test_simple_example_with_punctuation() -> None:
     assert SplitAtWordBoundaryTokenizer()("'Hello', (World)!") == ["'", "Hello", "'", ",", " ", "(", "World", ")", "!"]
 
 
-@hypothesis.given(text=st.text(alphabet=st.characters()))
+@hypothesis.given(text=st.text())
 def test_tokens_are_atomic(text):
     """Tokenizing a token should not change the token"""
     tokenizer = SplitAtWordBoundaryTokenizer()

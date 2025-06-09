@@ -32,7 +32,7 @@ def test_nonspace_whitespace(separator) -> None:
     assert UnicodeWordTokenizer()(hello_world) == ["Hello", "World"]
 
 
-@hypothesis.given(text=st.text(alphabet=st.characters()))
+@hypothesis.given(text=st.text())
 def test_tokens_are_atomic(text):
     """Tokenizing a token should not change the token"""
     tokenizer = UnicodeWordTokenizer()
