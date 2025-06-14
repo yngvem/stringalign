@@ -57,9 +57,9 @@ def get_all_n_run_length_encodings(string: str, n: int) -> Generator[tuple[tuple
 
     Examples:
     ---------
-    >>> tuple(get_all_n_run_length_ecodings("Hello", 1))
+    >>> tuple(get_all_n_run_length_encodings("Hello", 1))
     ((('H', 1), ('e', 1), ('l', 2), ('o', 1)),)
-    >>> tuple(get_all_n_run_length_ecodings("bananas", 2))
+    >>> tuple(get_all_n_run_length_encodings("bananas", 2))
     ((('ba', 1), ('na', 2), ('s', 1)), (('b', 1), ('an', 2), ('as', 1)))
     """
 
