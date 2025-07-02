@@ -198,6 +198,7 @@ def test_remove_non_word_characters_length(string: str) -> None:
 
 @given(string=st.text(), confusable_character=st.characters(codec="utf-8"), target=st.characters(codec="utf-8"))
 def test_all_confusable_characters_are_resolved(string: str, confusable_character: str, target: str) -> None:
+    """Confusable characters are resolved to the target character."""
     confusable_map = {confusable_character: target}
     normalizer = StringNormalizer(resolve_confusables=confusable_map)
     assert normalizer(string) == string.replace(confusable_character, target)
