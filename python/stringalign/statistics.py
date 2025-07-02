@@ -1,15 +1,37 @@
+import warnings
 from collections import Counter, defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
 from numbers import Number
 from typing import Self, cast
 
-from stringalign.align import AlignmentOperation, Kept, Replaced, aggregate_alignment, align_strings
+from stringalign.align import AlignmentOperation, Kept, Replaced, align_strings
 from stringalign.tokenize import GraphemeClusterTokenizer, Tokenizer
 
 
 def sort_by_values(d: dict[str, float], reverse=False) -> dict[str, float]:
     return dict(sorted(d.items(), key=lambda x: x[1], reverse=reverse))
+
+
+def _check_aggregated_alignment(alignment: Iterable[AlignmentOperation], tokenizer: Tokenizer) -> bool:
+    """Check if the alignment is aggregated, i.e., no adjacent operations can be merged."""
+    for op in alignment:
+        if isinstance(op, Kept) and next(iter(tokenizer(op.substring)), None) != op.substring:
+            return False
+        elif isinstance(op, Kept):
+            continue
+
+        op = op.generalize()
+        if next(iter(tokenizer(op.reference)), "") != op.reference:
+            return False
+        if next(iter(tokenizer(op.predicted)), "") != op.predicted:
+            return False
+
+    return True
+
+
+class AggregatedAlignmentWarning(UserWarning):
+    """Used to warn when passing potentially aggregated alignments to the confusion matrix."""
 
 
 @dataclass(eq=True)
@@ -35,6 +57,19 @@ class StringConfusionMatrix:
         false_positives: Counter[str] = Counter()
         false_negatives: Counter[str] = Counter()
         edit_counts: Counter[AlignmentOperation] = Counter()
+
+        if _check_aggregated_alignment(alignment, tokenizer):
+            warnings.warn(
+                "The substrings of the alignment operation do not contain single tokens. This indicates that the"
+                " alignments have either been aggregated, which means that the string confusion matrix is ill defined,"
+                " and some metrics might be confusing or wrong. Alternatively, the your tokenizer might not provide"
+                " atomic tokens, (i.e. the tokens can be tokenized again:"
+                " `tokenize(tokenize(s)[0])[0] != tokenize(s)[0]`). If that is the case, then you may ignore this"
+                " warning.",
+                AggregatedAlignmentWarning,
+                stacklevel=2,
+            )
+
         for op in alignment:
             if isinstance(op, Kept):
                 for char in tokenizer(op.substring):
@@ -60,15 +95,11 @@ class StringConfusionMatrix:
         )
 
     @classmethod
-    def from_strings(
-        cls, reference: str, predicted: str, tokenizer: Tokenizer | None = None, aggregate: bool = False
-    ) -> Self:
+    def from_strings(cls, reference: str, predicted: str, tokenizer: Tokenizer | None = None) -> Self:
         if tokenizer is None:
             tokenizer = GraphemeClusterTokenizer()
 
         alignment = align_strings(reference, predicted, tokenizer=tokenizer)[0]
-        if aggregate:
-            alignment = tuple(aggregate_alignment(alignment))
         return cls.from_strings_and_alignment(reference, predicted, alignment, tokenizer=tokenizer)
 
     @classmethod
