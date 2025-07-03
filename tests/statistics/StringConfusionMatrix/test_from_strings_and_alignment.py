@@ -1,7 +1,35 @@
 from collections import Counter
 
-from stringalign.align import Deleted, Inserted, Replaced, align_strings
-from stringalign.statistics import StringConfusionMatrix
+import pytest
+from stringalign.align import (
+    Deleted,
+    Inserted,
+    Replaced,
+    aggregate_alignment,
+    align_strings,
+)
+from stringalign.statistics import AggregatedAlignmentWarning, StringConfusionMatrix
+from stringalign.tokenize import UnicodeWordTokenizer
+
+
+def test_warning_raised_on_aggregated_alignment_default_tokenizer() -> None:
+    reference = "abc"
+    predicted = "xyz"
+    alignment, _unique = align_strings(reference=reference, predicted=predicted, tokenizer=None)
+    aggregated_alignment = list(aggregate_alignment(alignment))
+
+    with pytest.warns(AggregatedAlignmentWarning):
+        StringConfusionMatrix.from_strings_and_alignment(reference, predicted, aggregated_alignment)
+
+
+def test_warning_raised_on_aggregated_alignment_unicode_word_tokenizer() -> None:
+    reference = "abc def"
+    predicted = "uvw xyz"
+    alignment, _unique = align_strings(reference=reference, predicted=predicted, tokenizer=UnicodeWordTokenizer())
+    aggregated_alignment = list(aggregate_alignment(alignment))
+
+    with pytest.warns(AggregatedAlignmentWarning):
+        StringConfusionMatrix.from_strings_and_alignment(reference, predicted, aggregated_alignment)
 
 
 def test_from_strings_and_alignment() -> None:

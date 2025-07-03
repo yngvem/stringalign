@@ -13,21 +13,21 @@ def sort_by_values(d: dict[str, float], reverse=False) -> dict[str, float]:
     return dict(sorted(d.items(), key=lambda x: x[1], reverse=reverse))
 
 
-def _check_aggregated_alignment(alignment: Iterable[AlignmentOperation], tokenizer: Tokenizer) -> bool:
+def _is_aggregated_alignment(alignment: Iterable[AlignmentOperation], tokenizer: Tokenizer) -> bool:
     """Check if the alignment is aggregated, i.e., no adjacent operations can be merged."""
     for op in alignment:
         if isinstance(op, Kept) and next(iter(tokenizer(op.substring)), None) != op.substring:
-            return False
+            return True
         elif isinstance(op, Kept):
             continue
 
         op = op.generalize()
         if next(iter(tokenizer(op.reference)), "") != op.reference:
-            return False
+            return True
         if next(iter(tokenizer(op.predicted)), "") != op.predicted:
-            return False
+            return True
 
-    return True
+    return False
 
 
 class AggregatedAlignmentWarning(UserWarning):
@@ -58,7 +58,7 @@ class StringConfusionMatrix:
         false_negatives: Counter[str] = Counter()
         edit_counts: Counter[AlignmentOperation] = Counter()
 
-        if _check_aggregated_alignment(alignment, tokenizer):
+        if _is_aggregated_alignment(alignment, tokenizer):
             warnings.warn(
                 "The substrings of the alignment operation do not contain single tokens. This indicates that the"
                 " alignments have either been aggregated, which means that the string confusion matrix is ill defined,"
