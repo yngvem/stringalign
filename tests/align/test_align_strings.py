@@ -4,7 +4,8 @@ import hypothesis.strategies as st
 import pytest
 from hypothesis import given
 from stringalign.align import AlignmentOperation, Deleted, Inserted, Kept, Replaced, align_strings
-from stringalign.tokenize import GraphemeClusterTokenizer, StringNormalizer
+from stringalign.normalize import StringNormalizer
+from stringalign.tokenize import GraphemeClusterTokenizer
 
 
 @given(reference=st.text(), predicted=st.text())
