@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import html
 from collections import deque
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Final, Protocol, runtime_checkable
+from typing import TYPE_CHECKING
 
 import stringalign.tokenize
 from stringalign._stringutils import create_cost_matrix as _create_cost_matrix
@@ -40,7 +41,7 @@ class Deleted:
 
     def to_html(self) -> tuple[str, str]:
         return (
-            f'<span class="deleted reference">{self.substring}</span>',
+            f'<span class="deleted reference">{html.escape(self.substring)}</span>',
             f'<span class="deleted predicted"></span>',
         )
 
@@ -58,7 +59,7 @@ class Inserted:
     def to_html(self) -> tuple[str, str]:
         return (
             f'<span class="inserted reference"></span>',
-            f'<span class="inserted predicted">{self.substring}</span>',
+            f'<span class="inserted predicted">{html.escape(self.substring)}</span>',
         )
 
 
@@ -87,8 +88,8 @@ class Replaced:
 
     def to_html(self) -> tuple[str, str]:
         return (
-            f'<span class="replace reference">{self.reference}</span>',
-            f'<span class="replace predicted">{self.predicted}</span>',
+            f'<span class="replaced reference">{html.escape(self.reference)}</span>',
+            f'<span class="replaced predicted">{html.escape(self.predicted)}</span>',
         )
 
 
@@ -117,8 +118,8 @@ class Kept:
 
     def to_html(self) -> tuple[str, str]:
         return (
-            f'<span class="keep reference">{self.substring}</span>',
-            f'<span class="keep predicted">{self.substring}</span>',
+            f'<span class="kept reference">{html.escape(self.substring)}</span>',
+            f'<span class="kept predicted">{html.escape(self.substring)}</span>',
         )
 
 
