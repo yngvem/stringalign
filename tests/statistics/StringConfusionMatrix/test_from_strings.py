@@ -16,6 +16,7 @@ def test_from_strings() -> None:
 
 
 def test_from_strings_empty() -> None:
+    """The confusion matrix should be empty when both strings are empty."""
     result = StringConfusionMatrix.from_strings("", "")
 
     assert result.true_positives == Counter()
