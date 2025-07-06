@@ -11,4 +11,5 @@ __all__ = [
     "normalize",
     "statistics",
     "tokenize",
+    "visualize",
 ]
