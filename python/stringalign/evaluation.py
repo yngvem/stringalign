@@ -257,6 +257,24 @@ class TranscriptionEvaluator:
 
         return {k: frozenset(v) for k, v in out.items()}
 
+    @cached_property
+    def false_positive_lookup(self) -> dict[str, frozenset[LineError]]:
+        out = defaultdict(set)
+        for line_error in self.line_errors:
+            for token in line_error.confusion_matrix.false_positives:
+                out[token].add(line_error)
+
+        return {k: frozenset(v) for k, v in out.items()}
+
+    @cached_property
+    def false_negative_lookup(self) -> dict[str, frozenset[LineError]]:
+        out = defaultdict(set)
+        for line_error in self.line_errors:
+            for token in line_error.confusion_matrix.false_negatives:
+                out[token].add(line_error)
+
+        return {k: frozenset(v) for k, v in out.items()}
+
     @classmethod
     def from_strings(
         cls,
