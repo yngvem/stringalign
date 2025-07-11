@@ -13,5 +13,4 @@ RUN apt-get update && \
     git config --global --add safe.directory '*'
 
 ENV SHELL=bash
-ENV PDM_LOCK_FORMAT=pylock
 CMD ["/bin/bash"]
