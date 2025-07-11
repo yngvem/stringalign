@@ -92,6 +92,9 @@ class FrozenDict(Mapping[Hashable, Hashable]):
     def __hash__(self) -> int:
         return hash(tuple(self.items()))
 
+    def __repr__(self):
+        return f"{type(self).__name__}({self._data!r})"
+
 
 @dataclass(frozen=True, slots=False)
 class LineError:
