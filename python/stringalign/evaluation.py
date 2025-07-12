@@ -1,5 +1,6 @@
 from collections import Counter, defaultdict, deque
 from collections.abc import Generator, Hashable, Iterator, Mapping
+from copy import deepcopy
 from dataclasses import dataclass
 from functools import cached_property
 from itertools import chain
@@ -71,13 +72,23 @@ def check_operation_for_ngram_duplication_error(
     return check_ngram_duplication_errors(window_text_reference, window_text_prediction, n=n, error_type=error_type)
 
 
-class FrozenDict(Mapping[Hashable, Hashable]):
-    def __init__(self, data: Mapping[Hashable, Hashable] | None = None):
+def _safe_hash(value: Any) -> int:
+    try:
+        return hash(value)
+    except TypeError:
+        import pickle
+
+        return hash(pickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL))
+
+
+class FrozenDict(Mapping[Hashable, Any]):
+    def __init__(self, data: Mapping[Hashable, Any] | None = None):
         if not data:
             data = {}
-        self._data = data
+        self._data = deepcopy(data)  # TODO: Deepcopy
+        self._hash: int | None = None
 
-    def __getitem__(self, key: Hashable) -> Hashable:
+    def __getitem__(self, key: Hashable) -> Any:
         return self._data[key]
 
     def __iter__(self) -> Iterator[Hashable]:
@@ -90,7 +101,13 @@ class FrozenDict(Mapping[Hashable, Hashable]):
         return len(self._data)
 
     def __hash__(self) -> int:
-        return hash(tuple(self.items()))
+        if self._hash is not None:
+            return self._hash
+
+        keys = tuple(self.keys())
+        values = tuple(_safe_hash(v) for v in self.values())
+        self._hash = hash((keys, values))
+        return self._hash
 
     def __repr__(self):
         return f"{type(self).__name__}({self._data!r})"
