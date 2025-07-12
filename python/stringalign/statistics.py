@@ -103,6 +103,23 @@ class StringConfusionMatrix:
         return cls.from_strings_and_alignment(reference, predicted, alignment, tokenizer=tokenizer)
 
     @classmethod
+    def from_string_collections(
+        cls,
+        references: Iterable[str],
+        predictions: Iterable[str],
+        tokenizer: Tokenizer | None = None,
+    ) -> Self:
+        """Create confusion matrix for many strings, summing statistics across pairs of references and predictions."""
+        if tokenizer is None:
+            tokenizer = GraphemeClusterTokenizer()
+
+        confusion_matrices = (
+            cls.from_strings(reference, predicted, tokenizer=tokenizer)
+            for reference, predicted in zip(references, predictions, strict=True)
+        )
+        return sum(confusion_matrices, start=cls.get_empty())
+
+    @classmethod
     def get_empty(cls) -> Self:
         return cls(
             true_positives=Counter(),

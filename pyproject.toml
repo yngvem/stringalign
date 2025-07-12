@@ -31,7 +31,8 @@ distribution = true
 line-length = 120
 
 [tool.ruff.lint]
-select = ["I", "TCH"]
+select = ["I", "TC"]
+ignore = ["TC006"]
 
 [tool.mypy]
 ignore_missing_imports = true

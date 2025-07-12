@@ -57,9 +57,9 @@ def load_confusable_map(confusable_type: Literal["confusables", "intentional"]) 
         raise ValueError(f"Invalid confusable type: {confusable_type}. Must be 'confusables' or 'intentional'.")
 
     confusable_data = Path(__file__).with_name("unicode_data") / f"{confusable_type}.json"
-    assert (
-        confusable_data.exists()
-    ), f"Confusable data file not found: {confusable_data}. This is a bug and should be reported."
+    assert confusable_data.exists(), (
+        f"Confusable data file not found: {confusable_data}. This is a bug and should be reported."
+    )
 
     with confusable_data.open(encoding="utf-8") as f:
         return json.load(f)
