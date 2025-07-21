@@ -1,6 +1,14 @@
-from pathlib import Path
+from __future__ import annotations
 
-from stringalign.align import AlignmentTuple
+import base64
+import io
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import PIL.Image
+
+    from stringalign.align import AlignmentTuple
 
 
 def compress_css(css):
@@ -75,3 +83,21 @@ def create_alignment_html(
         predicted_label=predicted_label,
     )
     return style + alignment_html
+
+
+def base64_encode_image(image: PIL.Image.Image) -> bytes:
+    """Convert a PIL image into a base64-encoded JPEG image."""
+    buffered = io.BytesIO()
+    image.save(buffered, format="JPEG")
+    return base64.b64encode(buffered.getvalue())
+
+
+def create_html_image(image: PIL.Image.Image, width=500, alt=None) -> str:
+    """Convert a PIL image into a HTML image tag with a base64-encoded JPEG image to e.g. embed in Jupyter notebooks."""
+    if alt is None:
+        alt = ""
+    else:
+        alt = f'alt="{alt}"'
+    b64_img = base64_encode_image(image).decode("ascii")
+
+    return f'<img src="data:image/jpeg;base64, {b64_img}" width="{width}px" {alt}/>'
