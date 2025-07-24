@@ -78,12 +78,12 @@ class Replaced:
             return Inserted(self.predicted)
         return self
 
-    def merge(self, other: Replaced) -> Replaced:
+    def merge(self, other: Replaced, tokenizer: stringalign.tokenize.Tokenizer) -> Replaced:
         if not isinstance(other, self.__class__):
             raise TypeError(f"Can only merge Replace instance with other Replace instances, not {type(other)}")
         return Replaced(
-            predicted=self.predicted + other.predicted,  # TODO: Tokenizer.join here, not just string concatenation
-            reference=self.reference + other.reference,
+            predicted=tokenizer.join((self.predicted, other.predicted)),
+            reference=tokenizer.join((self.reference, other.reference)),
         )
 
     def to_html(self) -> tuple[str, str]:
@@ -111,10 +111,10 @@ class Kept:
     def simplify(self) -> Self:
         return self
 
-    def merge(self, other: Kept) -> Kept:
+    def merge(self, other: Kept, tokenizer: stringalign.tokenize.Tokenizer) -> Kept:
         if not isinstance(other, self.__class__):
             raise TypeError(f"Can only merge Keep instance with other Keep instances, not {type(other)}")
-        return Kept(substring=self.substring + other.substring)
+        return Kept(substring=tokenizer.join((self.substring, other.substring)))
 
     def to_html(self) -> tuple[str, str]:
         return (
@@ -245,8 +245,10 @@ _EMPTY_ALIGNMENT = _EmptyAlignment()
 
 
 def combine_alignment_ops(
-    alignment: Iterable[AlignmentOperation],
+    alignment: Iterable[AlignmentOperation], tokenizer: stringalign.tokenize.Tokenizer | None = None
 ) -> Generator[AlignmentOperation, None, None]:
+    if tokenizer is None:
+        tokenizer = stringalign.tokenize.GraphemeClusterTokenizer()
     alignment_iter = iter(alignment)
 
     # Get first operation and return if there alignment iterable is empty
@@ -270,6 +272,6 @@ def combine_alignment_ops(
             continue
 
         # We ignore type issues here since we know that operation must be of the same type as current_operation
-        current_operation = current_operation.merge(operation)  # type: ignore[arg-type]
+        current_operation = current_operation.merge(operation, tokenizer=tokenizer)  # type: ignore[arg-type]
 
     yield current_operation.simplify()

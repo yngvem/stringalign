@@ -158,7 +158,7 @@ class LineError:
         metadata: Mapping[Hashable, Hashable] | None = None,
     ) -> Self:
         raw_alignment, unique_alignment = align_strings(reference, predicted, tokenizer=tokenizer)
-        alignment = tuple(combine_alignment_ops(raw_alignment))
+        alignment = tuple(combine_alignment_ops(raw_alignment, tokenizer=tokenizer))
         window: deque[AlignmentOperation | None] = deque(maxlen=3)
         if metadata is not None:
             frozen_metadata = FrozenDict(metadata)
