@@ -16,6 +16,7 @@ from stringalign.align import (
 from stringalign.error_classification.case_error import count_case_errors
 from stringalign.error_classification.diacritic_error import check_diacritic_errors
 from stringalign.error_classification.duplication_error import check_ngram_duplication_errors
+from stringalign.normalize import StringNormalizer
 from stringalign.statistics import StringConfusionMatrix
 from stringalign.tokenize import Tokenizer
 from stringalign.visualize import HtmlString, create_alignment_html
@@ -55,6 +56,19 @@ def check_operation_for_diacritic_error(
         return False
 
     return check_diacritic_errors(current_operation.reference, current_operation.predicted)
+
+
+def check_operation_for_confusable_error(
+    previous_operation: AlignmentOperation | None,
+    current_operation: AlignmentOperation,
+    next_operation: AlignmentOperation | None,
+) -> bool:
+    current_operation = current_operation.generalize()
+    if isinstance(current_operation, Kept):
+        return False
+
+    normalizer = StringNormalizer(resolve_confusables="confusables")
+    return normalizer(current_operation.reference) == normalizer(current_operation.predicted)
 
 
 def check_operation_for_horizontal_segmentation_error(
@@ -138,6 +152,7 @@ class LineError:
     character_duplication_errors: tuple[AlignmentOperation, ...]
     removed_duplicate_character_errors: tuple[AlignmentOperation, ...]
     diacritic_errors: tuple[AlignmentOperation, ...]
+    confusable_errors: tuple[AlignmentOperation, ...]
     case_errors: tuple[AlignmentOperation, ...]
     metadata: FrozenDict | None
     tokenizer: Tokenizer | None
@@ -153,6 +168,8 @@ class LineError:
             "horisontal_segmentation_error": bool(self.horisontal_segmentation_errors),
             "character_duplication_error": bool(self.character_duplication_errors),
             "removed_duplicate_character_error": bool(self.removed_duplicate_character_errors),
+            "diacritic_error": bool(self.diacritic_errors),
+            "confusable_error": bool(self.confusable_errors),
             "case_error": bool(self.case_errors),
             **metadata,
         }
@@ -189,6 +206,7 @@ class LineError:
                 character_duplication_errors=tuple(),
                 removed_duplicate_character_errors=tuple(),
                 diacritic_errors=tuple(),
+                confusable_errors=tuple(),
                 case_errors=tuple(),
                 metadata=frozen_metadata,
                 tokenizer=tokenizer,
@@ -203,6 +221,7 @@ class LineError:
         character_duplication_errors = []
         removed_duplicate_character_errors = []
         diacritic_errors = []
+        confusable_errors = []
         case_errors = []
         op: AlignmentOperation | None
         for op in chain(alignment_iterator, (None, None)):
@@ -218,6 +237,8 @@ class LineError:
                 removed_duplicate_character_errors.append(window[1])
             if check_operation_for_diacritic_error(window[0], window[1], window[2]):
                 diacritic_errors.append(window[1])
+            if check_operation_for_confusable_error(window[0], window[1], window[2]):
+                confusable_errors.append(window[1])
             if check_operation_for_case_error(window[0], window[1], window[2]):
                 case_errors.append(window[1])
 
@@ -231,6 +252,7 @@ class LineError:
             character_duplication_errors=tuple(character_duplication_errors),
             removed_duplicate_character_errors=tuple(removed_duplicate_character_errors),
             diacritic_errors=tuple(diacritic_errors),
+            confusable_errors=tuple(confusable_errors),
             case_errors=tuple(case_errors),
             metadata=frozen_metadata,
             tokenizer=tokenizer,
@@ -274,6 +296,10 @@ class TranscriptionEvaluator:
     @property
     def diacritic_errors(self) -> Generator[LineError, None, None]:
         return (err for err in self.line_errors if err.diacritic_errors)
+
+    @property
+    def confusable_errors(self) -> Generator[LineError, None, None]:
+        return (err for err in self.line_errors if err.confusable_errors)
 
     @property
     def case_errors(self) -> Generator[LineError, None, None]:
