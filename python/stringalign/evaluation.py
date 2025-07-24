@@ -17,6 +17,7 @@ from stringalign.error_classification.case_error import count_case_errors
 from stringalign.error_classification.duplication_error import check_ngram_duplication_errors
 from stringalign.statistics import StringConfusionMatrix
 from stringalign.tokenize import Tokenizer
+from stringalign.visualize import HtmlString, create_alignment_html
 
 T = TypeVar("T")
 
@@ -215,6 +216,14 @@ class LineError:
             metadata=frozen_metadata,
             tokenizer=tokenizer,
         )
+
+    def visualize(self, which: Literal["raw", "aggregated"] = "raw", space_tokens: bool = False) -> HtmlString:
+        if which == "raw":
+            alignment = self.raw_alignment
+        else:
+            alignment = self.alignment
+
+        return create_alignment_html(alignment=alignment, space_tokens=space_tokens)
 
     def __repr__(self) -> str:
         return f"LineError('{self.reference}', '{self.predicted}', metadata={self.metadata})"
