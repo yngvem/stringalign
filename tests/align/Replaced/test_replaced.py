@@ -1,5 +1,6 @@
 import hypothesis.strategies as st
 import pytest
+import stringalign
 from hypothesis import given
 from stringalign.align import Deleted, Inserted, Kept, Replaced
 
@@ -105,4 +106,4 @@ def test_replace_cannot_merge_with_different_type(predicted: str, reference: str
     """Merging Replaced instance with not Replaced instance raises TypeError"""
     replaced = Replaced(reference=reference, predicted=predicted)
     with pytest.raises(TypeError):
-        replaced.merge(OtherType("NOT A REPLACE INSTANCE"))
+        replaced.merge(OtherType("NOT A REPLACE INSTANCE"), tokenizer=stringalign.tokenize.GraphemeClusterTokenizer())

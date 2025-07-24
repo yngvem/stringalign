@@ -1,5 +1,6 @@
 import hypothesis.strategies as st
 import pytest
+import stringalign
 from hypothesis import given
 from stringalign.align import Deleted, Inserted, Kept, Replaced
 
@@ -68,7 +69,7 @@ def test_keep_merge(substring1, substring2) -> None:
     keep1 = Kept(substring1)
     keep2 = Kept(substring2)
 
-    merged_keep = keep1.merge(keep2)
+    merged_keep = keep1.merge(keep2, tokenizer=stringalign.tokenize.GraphemeClusterTokenizer())
     assert merged_keep == Kept(substring1 + substring2)
 
 
@@ -78,4 +79,4 @@ def test_keep_cannot_merge_with_different_type(substring: str, OtherType: type) 
     """Merging Keep instance with not Keep instance raises TypeError"""
     keep = Kept(substring)
     with pytest.raises(TypeError):
-        keep.merge(OtherType("NOT A KEPT INSTANCE"))
+        keep.merge(OtherType("NOT A KEPT INSTANCE"), tokenizer=stringalign.tokenize.GraphemeClusterTokenizer())
