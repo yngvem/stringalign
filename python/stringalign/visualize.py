@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import html
 import io
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -9,6 +10,14 @@ if TYPE_CHECKING:  # pragma: no cover
     import PIL.Image
 
     from stringalign.align import AlignmentTuple
+
+
+class HtmlString(str):
+    def __repr__(self) -> str:
+        return f"HtmlString({super().__repr__()})"
+
+    def _repr_html_(self) -> str:
+        return self
 
 
 def compress_css(css):
@@ -21,28 +30,35 @@ def compress_css(css):
 
 
 def create_alignment_stylesheet() -> str:
-    return compress_css((Path(__file__).with_name("assets") / "stylesheet.css").read_text())
+    stylesheet = compress_css((Path(__file__).with_name("assets") / "stylesheet.css").read_text())
+
+    return stylesheet
 
 
 def _create_alignment_html(
-    alignment: AlignmentTuple, reference_label: str = "Reference:", predicted_label: str = "Predicted:"
+    alignment: AlignmentTuple, reference_label: str, predicted_label: str, space_tokens: bool
 ) -> str:
-    alignment_html = '<div class="alignment">'
+    alignment_html = ['<div class="alignment">']
 
-    reference_html = f"<div>{reference_label} "
-    predicted_html = f"<div>{predicted_label} "
-
+    alignment_html.append('<div class="alignment-labels">')
+    alignment_html.append(f'<span class="reference label">{html.escape(reference_label)}</span>')
+    alignment_html.append(f'<span class="predicted label">{html.escape(predicted_label)}</span>')
+    alignment_html.append("</div>")
+    if space_tokens:
+        extra_class = " spaced"
+    else:
+        extra_class = ""
     for operation in alignment:
         reference, predicted = operation.to_html()
-        reference_html += reference
-        predicted_html += predicted
 
-    reference_html += "</div>"
-    predicted_html += "</div>"
+        alignment_chunk_html = f"<div class='alignment-chunk{extra_class}'>"
+        alignment_chunk_html += f"{reference} {predicted}"
+        alignment_chunk_html += "</div>"
 
-    alignment_html += reference_html
-    alignment_html += predicted_html
-    return alignment_html
+        alignment_html.append(alignment_chunk_html)
+
+    alignment_html.append("</div>")
+    return "".join(alignment_html)
 
 
 def create_alignment_html(
@@ -50,7 +66,8 @@ def create_alignment_html(
     reference_label: str = "Reference:",
     predicted_label: str = "Predicted:",
     stylesheet: str | None = None,
-) -> str:
+    space_tokens: bool = False,
+) -> HtmlString:
     """Create an HTML representation of the alignment with embedded CSS styles.
 
     Arguments:
@@ -81,8 +98,9 @@ def create_alignment_html(
         alignment=alignment,
         reference_label=reference_label,
         predicted_label=predicted_label,
+        space_tokens=space_tokens,
     )
-    return style + alignment_html
+    return HtmlString(style + alignment_html)
 
 
 def base64_encode_image(image: PIL.Image.Image) -> bytes:

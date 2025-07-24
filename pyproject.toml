@@ -57,7 +57,7 @@ tag_message = "Bump version: {current_version} → {new_version}"
 filename = "Cargo.toml"
 
 [tool.pytest.ini_options]
-addopts = "--doctest-modules"
+addopts = "--doctest-modules --import-mode=importlib"
 
 [dependency-groups]
 dev = [

@@ -8,8 +8,18 @@
     --neutral: "#fff";
     font-size: 16px;
 }
+
+.alignment-chunk, .alignment-labels {
+    display: inline-block;
+}
+.alignment-chunk.spaced {
+    margin-left: 0.5em;
+}
+
 span.reference, span.predicted {
     white-space: pre;
+    display: block;
+    text-align: center;
 }
 .kept.reference, .kept.predicted {
     background-color: var(--kept);

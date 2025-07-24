@@ -31,7 +31,7 @@ def test_correct_number_of_span_tags():
     """The correct number of span tags should be present in the HTML."""
     alignment, _unique = align_strings("Hei på deg", "Hade på badet")
     html = create_alignment_html(alignment)
-    assert html.count("<span") == 2 * len(alignment)
+    assert html.count("<span") == 2 * len(alignment) + 2  # Two labels + two spans per operation
 
 
 def test_correct_number_of_kept_tags():
