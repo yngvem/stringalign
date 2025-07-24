@@ -156,7 +156,7 @@ def align_strings(
     reference: str, predicted: str, tokenizer: stringalign.tokenize.Tokenizer | None = None
 ) -> tuple[AlignmentTuple, bool]:
     if tokenizer is None:
-        tokenizer = stringalign.tokenize.GraphemeClusterTokenizer()
+        tokenizer = stringalign.tokenize.DEFAULT_TOKENIZER
 
     reference_clusters, predicted_clusters = tokenizer(reference), tokenizer(predicted)
     cost_matrix = create_cost_matrix(reference_clusters, predicted_clusters)
@@ -191,7 +191,7 @@ def find_all_alignments(
     subpaths might be traversed multiple times).
     """
     if tokenizer is None:
-        tokenizer = stringalign.tokenize.GraphemeClusterTokenizer()
+        tokenizer = stringalign.tokenize.DEFAULT_TOKENIZER
 
     reference_clusters, predicted_clusters = tokenizer(reference), tokenizer(predicted)
     cost_matrix = create_cost_matrix(reference_clusters, predicted_clusters)
@@ -248,7 +248,7 @@ def combine_alignment_ops(
     alignment: Iterable[AlignmentOperation], tokenizer: stringalign.tokenize.Tokenizer | None = None
 ) -> Generator[AlignmentOperation, None, None]:
     if tokenizer is None:
-        tokenizer = stringalign.tokenize.GraphemeClusterTokenizer()
+        tokenizer = stringalign.tokenize.DEFAULT_TOKENIZER
     alignment_iter = iter(alignment)
 
     # Get first operation and return if there alignment iterable is empty

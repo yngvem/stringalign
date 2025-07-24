@@ -5,8 +5,9 @@ from dataclasses import dataclass
 from numbers import Number
 from typing import Self, cast
 
+import stringalign
 from stringalign.align import AlignmentOperation, Kept, Replaced, align_strings
-from stringalign.tokenize import GraphemeClusterTokenizer, Tokenizer
+from stringalign.tokenize import Tokenizer
 
 
 def sort_by_values(d: dict[str, float], reverse=False) -> dict[str, float]:
@@ -48,7 +49,7 @@ class StringConfusionMatrix:
         cls, reference: str, predicted: str, alignment: Iterable[AlignmentOperation], tokenizer: Tokenizer | None = None
     ) -> Self:
         if tokenizer is None:
-            tokenizer = GraphemeClusterTokenizer()
+            tokenizer = stringalign.tokenize.DEFAULT_TOKENIZER
 
         ref_iter = iter(tokenizer(reference))
         pred_iter = iter(tokenizer(predicted))
@@ -97,7 +98,7 @@ class StringConfusionMatrix:
     @classmethod
     def from_strings(cls, reference: str, predicted: str, tokenizer: Tokenizer | None = None) -> Self:
         if tokenizer is None:
-            tokenizer = GraphemeClusterTokenizer()
+            tokenizer = stringalign.tokenize.DEFAULT_TOKENIZER
 
         alignment = align_strings(reference, predicted, tokenizer=tokenizer)[0]
         return cls.from_strings_and_alignment(reference, predicted, alignment, tokenizer=tokenizer)
@@ -111,7 +112,7 @@ class StringConfusionMatrix:
     ) -> Self:
         """Create confusion matrix for many strings, summing statistics across pairs of references and predictions."""
         if tokenizer is None:
-            tokenizer = GraphemeClusterTokenizer()
+            tokenizer = stringalign.tokenize.DEFAULT_TOKENIZER
 
         confusion_matrices = (
             cls.from_strings(reference, predicted, tokenizer=tokenizer)
