@@ -8,7 +8,7 @@ from stringalign.align import (
     Inserted,
     Kept,
     Replaced,
-    aggregate_alignment,
+    combine_alignment_ops,
 )
 
 
@@ -24,20 +24,20 @@ def alignment_strategy():
 
 
 @given(alignment=alignment_strategy())
-def test_aggregate_alignment_length(alignment):
-    aggregated = list(aggregate_alignment(alignment))
-    assert len(aggregated) <= len(alignment)
+def test_length(alignment):
+    combined = list(combine_alignment_ops(alignment))
+    assert len(combined) <= len(alignment)
 
 
 @given(alignment=alignment_strategy())
-def test_aggregate_alignment_types(alignment):
-    for op in aggregate_alignment(alignment):
+def test_types(alignment):
+    for op in combine_alignment_ops(alignment):
         assert isinstance(op, AlignmentOperation)
 
 
 @given(alignment=alignment_strategy())
-def test_aggregate_alignment_consecutive_not_nones(alignment):
-    for op1, op2 in pairwise(aggregate_alignment(alignment)):
+def test_consecutive_not_nones(alignment):
+    for op1, op2 in pairwise(combine_alignment_ops(alignment)):
         if not isinstance(op1, Kept):
             assert isinstance(op2, Kept), (op1, op2)
 
@@ -45,7 +45,7 @@ def test_aggregate_alignment_consecutive_not_nones(alignment):
             assert isinstance(op1, Kept), (op1, op2)
 
 
-def test_aggregate_alignment_with_example():
+def test_with_example():
     alignment = [
         Deleted("a"),
         Deleted("b"),
@@ -58,7 +58,7 @@ def test_aggregate_alignment_with_example():
         Kept("c"),
         Replaced(reference="e", predicted="a"),
     ]
-    assert list(aggregate_alignment(alignment)) == [
+    assert list(combine_alignment_ops(alignment)) == [
         Deleted("ab"),
         Kept("a"),
         Replaced(reference="bac", predicted="aba"),

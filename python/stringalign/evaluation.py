@@ -10,8 +10,8 @@ from stringalign.align import (
     AlignmentOperation,
     Kept,
     Replaced,
-    aggregate_alignment,
     align_strings,
+    combine_alignment_ops,
 )
 from stringalign.error_classification.case_error import count_case_errors
 from stringalign.error_classification.duplication_error import check_ngram_duplication_errors
@@ -158,7 +158,7 @@ class LineError:
         metadata: Mapping[Hashable, Hashable] | None = None,
     ) -> Self:
         raw_alignment, unique_alignment = align_strings(reference, predicted, tokenizer=tokenizer)
-        alignment = tuple(aggregate_alignment(raw_alignment))
+        alignment = tuple(combine_alignment_ops(raw_alignment))
         window: deque[AlignmentOperation | None] = deque(maxlen=3)
         if metadata is not None:
             frozen_metadata = FrozenDict(metadata)
@@ -217,7 +217,7 @@ class LineError:
             tokenizer=tokenizer,
         )
 
-    def visualize(self, which: Literal["raw", "aggregated"] = "raw", space_tokens: bool = False) -> HtmlString:
+    def visualize(self, which: Literal["raw", "combined"] = "raw", space_tokens: bool = False) -> HtmlString:
         if which == "raw":
             alignment = self.raw_alignment
         else:
@@ -278,7 +278,7 @@ class TranscriptionEvaluator:
         return {k: frozenset(v) for k, v in out.items()}
 
     @cached_property
-    def line_error_aggregated_lookup(self) -> dict[AlignmentOperation, frozenset[LineError]]:
+    def line_error_combined_lookup(self) -> dict[AlignmentOperation, frozenset[LineError]]:
         out = defaultdict(set)
         for line_error in self.line_errors:
             for alignment_op in line_error.alignment:
