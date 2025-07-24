@@ -85,7 +85,7 @@ class FrozenDict(Mapping[Hashable, Any]):
     def __init__(self, data: Mapping[Hashable, Any] | None = None):
         if not data:
             data = {}
-        self._data = deepcopy(data)  # TODO: Deepcopy
+        self._data = deepcopy(data)
         self._hash: int | None = None
 
     def __getitem__(self, key: Hashable) -> Any:
