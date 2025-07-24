@@ -248,3 +248,6 @@ class SplitAtWhitespaceTokenizer:
 
     def join(self, tokens: Iterable[str]) -> str:
         return " ".join(tokens)
+
+
+DEFAULT_TOKENIZER = GraphemeClusterTokenizer()
