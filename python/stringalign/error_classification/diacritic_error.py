@@ -1,10 +1,11 @@
 import unicodedata
 
+from stringalign.align import levenshtein_distance
 from stringalign.normalize import StringNormalizer
 
 
-def check_diacritic_errors(reference: str, predicted: str) -> bool:
-    """Check if the only difference between the reference and predicted text is due to diacritic errors.
+def count_diacritic_errors(reference: str, predicted: str) -> int:
+    """Count the number of errors that are solely due to mispredicted (missing, inserted or replaced) diacritics.
 
     The function resolves confusables and normalizes the string to normalized decomposed form.
     Then it removes all nonspacing marks and checks if the resulting strings are equal.
@@ -32,15 +33,17 @@ def check_diacritic_errors(reference: str, predicted: str) -> bool:
 
     Returns:
     --------
-    bool
-        True if the only difference is due to diacritic errors, False otherwise.
+    int
+        The number of diacritic errors.
     """
     normalizer = StringNormalizer(normalization="NFD", resolve_confusables="confusables")
 
     reference_normalized = normalizer(reference)
     predicted_normalized = normalizer(predicted)
+    normalised_distance = levenshtein_distance(reference_normalized, predicted_normalized)
 
     reference_no_marks = "".join(char for char in reference_normalized if unicodedata.category(char) != "Mn")
     predicted_no_marks = "".join(char for char in predicted_normalized if unicodedata.category(char) != "Mn")
+    no_marks_distance = levenshtein_distance(reference_no_marks, predicted_no_marks)
 
-    return reference_no_marks == predicted_no_marks and reference_normalized != predicted_normalized
+    return normalised_distance - no_marks_distance

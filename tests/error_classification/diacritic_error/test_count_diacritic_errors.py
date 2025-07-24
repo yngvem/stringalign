@@ -1,5 +1,5 @@
 import pytest
-from stringalign.error_classification.diacritic_error import check_diacritic_errors
+from stringalign.error_classification.diacritic_error import count_diacritic_errors
 
 
 @pytest.mark.parametrize(
@@ -14,12 +14,12 @@ from stringalign.error_classification.diacritic_error import check_diacritic_err
         ("a", "á", True),
         ("a", "à", True),
         ("i", "i", False),  # Confusable, should give no diacritic error
-        ("ø", "◌̸o", False),  # Confusable, should give no diacritic error
+        ("ø", "o̸", False),  # Confusable, should give no diacritic error
         ("Ð", "Đ", False),  # Confusable, should give no diacritic error
         ("a", "b", False),
     ],
 )
 def test_diacritic_error(reference: str, predicted: str, expected: bool) -> None:
     """Diacritic errors should be detected correctly"""
-    result = check_diacritic_errors(reference, predicted)
+    result = count_diacritic_errors(reference, predicted)
     assert result == expected

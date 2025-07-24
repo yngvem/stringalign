@@ -6,6 +6,7 @@ from functools import cached_property
 from itertools import chain
 from typing import Any, Iterable, Literal, Self, TypeVar
 
+import stringalign
 from stringalign.align import (
     AlignmentOperation,
     Kept,
@@ -14,7 +15,8 @@ from stringalign.align import (
     combine_alignment_ops,
 )
 from stringalign.error_classification.case_error import count_case_errors
-from stringalign.error_classification.diacritic_error import check_diacritic_errors
+from stringalign.error_classification.confusable_error import count_confusable_errors
+from stringalign.error_classification.diacritic_error import count_diacritic_errors
 from stringalign.error_classification.duplication_error import check_ngram_duplication_errors
 from stringalign.normalize import StringNormalizer
 from stringalign.statistics import StringConfusionMatrix
@@ -50,25 +52,30 @@ def check_operation_for_diacritic_error(
     previous_operation: AlignmentOperation | None,
     current_operation: AlignmentOperation,
     next_operation: AlignmentOperation | None,
-) -> bool:
+) -> int:
     current_operation = current_operation.generalize()
     if isinstance(current_operation, Kept):
         return False
 
-    return check_diacritic_errors(current_operation.reference, current_operation.predicted)
+    return count_diacritic_errors(current_operation.reference, current_operation.predicted)
 
 
 def check_operation_for_confusable_error(
     previous_operation: AlignmentOperation | None,
     current_operation: AlignmentOperation,
     next_operation: AlignmentOperation | None,
-) -> bool:
+    *,
+    tokenizer: Tokenizer,
+) -> int:
     current_operation = current_operation.generalize()
     if isinstance(current_operation, Kept):
         return False
-
-    normalizer = StringNormalizer(resolve_confusables="confusables")
-    return normalizer(current_operation.reference) == normalizer(current_operation.predicted)
+    return count_confusable_errors(
+        current_operation.reference,
+        current_operation.predicted,
+        tokenizer=tokenizer,
+        consider_confusables="confusables",
+    )
 
 
 def check_operation_for_horizontal_segmentation_error(
@@ -188,6 +195,9 @@ class LineError:
         tokenizer: Tokenizer | None,
         metadata: Mapping[Hashable, Hashable] | None = None,
     ) -> Self:
+        if tokenizer is None:
+            tokenizer = stringalign.tokenize.DEFAULT_TOKENIZER
+
         raw_alignment, unique_alignment = align_strings(reference, predicted, tokenizer=tokenizer)
         alignment = tuple(combine_alignment_ops(raw_alignment, tokenizer=tokenizer))
         if metadata is not None:
@@ -237,7 +247,7 @@ class LineError:
                 removed_duplicate_character_errors.append(window[1])
             if check_operation_for_diacritic_error(window[0], window[1], window[2]):
                 diacritic_errors.append(window[1])
-            if check_operation_for_confusable_error(window[0], window[1], window[2]):
+            if check_operation_for_confusable_error(window[0], window[1], window[2], tokenizer=tokenizer):
                 confusable_errors.append(window[1])
             if check_operation_for_case_error(window[0], window[1], window[2]):
                 case_errors.append(window[1])
