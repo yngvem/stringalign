@@ -1,6 +1,14 @@
-from pathlib import Path
+from __future__ import annotations
 
-from stringalign.align import AlignmentTuple
+import base64
+import io
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:  # pragma: no cover
+    import PIL.Image
+
+    from stringalign.align import AlignmentTuple
 
 
 def compress_css(css):
@@ -75,3 +83,37 @@ def create_alignment_html(
         predicted_label=predicted_label,
     )
     return style + alignment_html
+
+
+def base64_encode_image(image: PIL.Image.Image) -> bytes:
+    """Convert a PIL image into a base64-encoded JPEG image."""
+    buffered = io.BytesIO()
+    image.save(buffered, format="JPEG")
+    return base64.b64encode(buffered.getvalue())
+
+
+def create_html_image(image: PIL.Image.Image | Path | str, width=500, alt=None) -> str:
+    """Convert a PIL image into a HTML image tag with a base64-encoded JPEG image to e.g. embed in Jupyter notebooks."""
+    if alt is None:
+        alt = ""
+    else:
+        alt = f'alt="{alt}"'
+
+    if isinstance(image, Path | str):
+        file_type = Path(image).suffix.removeprefix(".")
+        with open(image, "rb") as file:
+            bytes_img = file.read()
+            b64_img = base64.b64encode(bytes_img)
+    else:
+        try:
+            b64_img = base64_encode_image(image)
+        except Exception as e:
+            raise TypeError(f"Image must be PIL.Image.Image, Path or string, not {type(image)}") from e
+        else:
+            file_type = "jpeg"
+
+    # JPG is not a valid MIME type, so if the file type is .jpg, we need to convert it to .jpeg
+    if file_type == "jpg":
+        file_type = "jpeg"
+
+    return f'<img src="data:image/{file_type};base64, {b64_img.decode("ascii")}" width="{width}px" {alt}/>'
