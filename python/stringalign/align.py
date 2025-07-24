@@ -24,7 +24,7 @@ __all__ = [
     "Replaced",
     "Kept",
     "align_strings",
-    "aggregate_alignment",
+    "combine_alignment_ops",
     "create_cost_matrix",
 ]
 
@@ -244,7 +244,7 @@ class _EmptyAlignment:
 _EMPTY_ALIGNMENT = _EmptyAlignment()
 
 
-def aggregate_alignment(
+def combine_alignment_ops(
     alignment: Iterable[AlignmentOperation],
 ) -> Generator[AlignmentOperation, None, None]:
     alignment_iter = iter(alignment)
@@ -259,7 +259,7 @@ def aggregate_alignment(
     for operation in alignment_iter:
         operation = operation.generalize()
 
-        # We cannot aggregate Keep-blocks with non-Keep blocks, so if either the current_operation
+        # We cannot combine Keep-blocks with non-Keep blocks, so if either the current_operation
         # or the operation variable is a Keep block, and the other is not, then we yield our current
         # alignment operation and continue.
         if (isinstance(current_operation, Replaced) and isinstance(operation, Kept)) or (
