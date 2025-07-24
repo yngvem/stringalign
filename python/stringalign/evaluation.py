@@ -14,6 +14,7 @@ from stringalign.align import (
     combine_alignment_ops,
 )
 from stringalign.error_classification.case_error import count_case_errors
+from stringalign.error_classification.diacritic_error import check_diacritic_errors
 from stringalign.error_classification.duplication_error import check_ngram_duplication_errors
 from stringalign.statistics import StringConfusionMatrix
 from stringalign.tokenize import Tokenizer
@@ -42,6 +43,18 @@ def check_operation_for_case_error(
     current_operation = current_operation.generalize()
     assert isinstance(current_operation, Replaced)
     return count_case_errors(current_operation.reference, current_operation.predicted)
+
+
+def check_operation_for_diacritic_error(
+    previous_operation: AlignmentOperation | None,
+    current_operation: AlignmentOperation,
+    next_operation: AlignmentOperation | None,
+) -> bool:
+    current_operation = current_operation.generalize()
+    if isinstance(current_operation, Kept):
+        return False
+
+    return check_diacritic_errors(current_operation.reference, current_operation.predicted)
 
 
 def check_operation_for_horizontal_segmentation_error(
@@ -124,6 +137,7 @@ class LineError:
     horisontal_segmentation_errors: tuple[AlignmentOperation, ...]
     character_duplication_errors: tuple[AlignmentOperation, ...]
     removed_duplicate_character_errors: tuple[AlignmentOperation, ...]
+    diacritic_errors: tuple[AlignmentOperation, ...]
     case_errors: tuple[AlignmentOperation, ...]
     metadata: FrozenDict | None
     tokenizer: Tokenizer | None
@@ -159,7 +173,6 @@ class LineError:
     ) -> Self:
         raw_alignment, unique_alignment = align_strings(reference, predicted, tokenizer=tokenizer)
         alignment = tuple(combine_alignment_ops(raw_alignment, tokenizer=tokenizer))
-        window: deque[AlignmentOperation | None] = deque(maxlen=3)
         if metadata is not None:
             frozen_metadata = FrozenDict(metadata)
         else:
@@ -175,18 +188,21 @@ class LineError:
                 horisontal_segmentation_errors=tuple(),
                 character_duplication_errors=tuple(),
                 removed_duplicate_character_errors=tuple(),
+                diacritic_errors=tuple(),
                 case_errors=tuple(),
                 metadata=frozen_metadata,
                 tokenizer=tokenizer,
             )
 
         alignment_iterator = iter(alignment)
+        window: deque[AlignmentOperation | None] = deque(maxlen=3)
         window.append(None)
         window.append(next(alignment_iterator))
 
         horisontal_segmentation_errors = []
         character_duplication_errors = []
         removed_duplicate_character_errors = []
+        diacritic_errors = []
         case_errors = []
         op: AlignmentOperation | None
         for op in chain(alignment_iterator, (None, None)):
@@ -200,6 +216,8 @@ class LineError:
                 character_duplication_errors.append(window[1])
             if check_operation_for_ngram_duplication_error(window[0], window[1], window[2], n=1, error_type="delete"):
                 removed_duplicate_character_errors.append(window[1])
+            if check_operation_for_diacritic_error(window[0], window[1], window[2]):
+                diacritic_errors.append(window[1])
             if check_operation_for_case_error(window[0], window[1], window[2]):
                 case_errors.append(window[1])
 
@@ -212,6 +230,7 @@ class LineError:
             horisontal_segmentation_errors=tuple(horisontal_segmentation_errors),
             character_duplication_errors=tuple(character_duplication_errors),
             removed_duplicate_character_errors=tuple(removed_duplicate_character_errors),
+            diacritic_errors=tuple(diacritic_errors),
             case_errors=tuple(case_errors),
             metadata=frozen_metadata,
             tokenizer=tokenizer,
@@ -240,23 +259,27 @@ class TranscriptionEvaluator:
     def dump(self) -> list[dict[Hashable, Hashable]]:
         return [le.summarise() for le in self.line_errors]
 
-    @cached_property
+    @property
     def horisontal_segmentation_errors(self) -> Generator[LineError, None, None]:
         return (err for err in self.line_errors if err.horisontal_segmentation_errors)
 
-    @cached_property
+    @property
     def character_duplication_errors(self) -> Generator[LineError, None, None]:
         return (err for err in self.line_errors if err.character_duplication_errors)
 
-    @cached_property
+    @property
     def removed_duplicate_character_errors(self) -> Generator[LineError, None, None]:
         return (err for err in self.line_errors if err.removed_duplicate_character_errors)
 
-    @cached_property
+    @property
+    def diacritic_errors(self) -> Generator[LineError, None, None]:
+        return (err for err in self.line_errors if err.diacritic_errors)
+
+    @property
     def case_errors(self) -> Generator[LineError, None, None]:
         return (err for err in self.line_errors if err.case_errors)
 
-    @cached_property
+    @property
     def not_unique_alignments(self) -> Generator[LineError]:
         return (err for err in self.line_errors if not err.unique_alignment)
 
