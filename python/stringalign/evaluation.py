@@ -259,27 +259,27 @@ class TranscriptionEvaluator:
     def dump(self) -> list[dict[Hashable, Hashable]]:
         return [le.summarise() for le in self.line_errors]
 
-    @cached_property
+    @property
     def horisontal_segmentation_errors(self) -> Generator[LineError, None, None]:
         return (err for err in self.line_errors if err.horisontal_segmentation_errors)
 
-    @cached_property
+    @property
     def character_duplication_errors(self) -> Generator[LineError, None, None]:
         return (err for err in self.line_errors if err.character_duplication_errors)
 
-    @cached_property
+    @property
     def removed_duplicate_character_errors(self) -> Generator[LineError, None, None]:
         return (err for err in self.line_errors if err.removed_duplicate_character_errors)
 
-    @cached_property
+    @property
     def diacritic_errors(self) -> Generator[LineError, None, None]:
         return (err for err in self.line_errors if err.diacritic_errors)
 
-    @cached_property
+    @property
     def case_errors(self) -> Generator[LineError, None, None]:
         return (err for err in self.line_errors if err.case_errors)
 
-    @cached_property
+    @property
     def not_unique_alignments(self) -> Generator[LineError]:
         return (err for err in self.line_errors if not err.unique_alignment)
 
