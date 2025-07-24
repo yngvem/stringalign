@@ -12,6 +12,14 @@ if TYPE_CHECKING:  # pragma: no cover
     from stringalign.align import AlignmentTuple
 
 
+class HtmlString(str):
+    def __repr__(self) -> str:
+        return f"HtmlString({super().__repr__()})"
+
+    def _repr_html_(self) -> str:
+        return self
+
+
 def compress_css(css):
     """Simple compression of css that turns all whitespace into a single space.
 
@@ -21,16 +29,14 @@ def compress_css(css):
     return compressed_css
 
 
-def create_alignment_stylesheet(space_tokens: bool) -> str:
+def create_alignment_stylesheet() -> str:
     stylesheet = compress_css((Path(__file__).with_name("assets") / "stylesheet.css").read_text())
-    if space_tokens:
-        stylesheet += "\n.alignment-chunk { margin-left: 0.5em; }\n"
 
     return stylesheet
 
 
 def _create_alignment_html(
-    alignment: AlignmentTuple, reference_label: str = "Reference:", predicted_label: str = "Predicted:"
+    alignment: AlignmentTuple, reference_label: str, predicted_label: str, space_tokens: bool
 ) -> str:
     alignment_html = ['<div class="alignment">']
 
@@ -38,10 +44,14 @@ def _create_alignment_html(
     alignment_html.append(f'<span class="reference label">{html.escape(reference_label)}</span>')
     alignment_html.append(f'<span class="predicted label">{html.escape(predicted_label)}</span>')
     alignment_html.append("</div>")
+    if space_tokens:
+        extra_class = " spaced"
+    else:
+        extra_class = ""
     for operation in alignment:
         reference, predicted = operation.to_html()
 
-        alignment_chunk_html = "<div class='alignment-chunk'>"
+        alignment_chunk_html = f"<div class='alignment-chunk{extra_class}'>"
         alignment_chunk_html += f"{reference} {predicted}"
         alignment_chunk_html += "</div>"
 
@@ -57,7 +67,7 @@ def create_alignment_html(
     predicted_label: str = "Predicted:",
     stylesheet: str | None = None,
     space_tokens: bool = False,
-) -> str:
+) -> HtmlString:
     """Create an HTML representation of the alignment with embedded CSS styles.
 
     Arguments:
@@ -77,7 +87,7 @@ def create_alignment_html(
         An HTML string representing the alignment with embedded styles.
     """
     if stylesheet is None:
-        stylesheet = create_alignment_stylesheet(space_tokens=space_tokens)
+        stylesheet = create_alignment_stylesheet()
 
     if stylesheet:
         style = f"<style>{stylesheet}</style>"
@@ -88,8 +98,9 @@ def create_alignment_html(
         alignment=alignment,
         reference_label=reference_label,
         predicted_label=predicted_label,
+        space_tokens=space_tokens,
     )
-    return style + alignment_html
+    return HtmlString(style + alignment_html)
 
 
 def base64_encode_image(image: PIL.Image.Image) -> bytes:

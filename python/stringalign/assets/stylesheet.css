@@ -12,6 +12,9 @@
 .alignment-chunk, .alignment-labels {
     display: inline-block;
 }
+.alignment-chunk.spaced {
+    margin-left: 0.5em;
+}
 
 span.reference, span.predicted {
     white-space: pre;

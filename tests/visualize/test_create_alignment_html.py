@@ -13,7 +13,7 @@ def test_none_stylesheet_default_style_is_used():
     """If the stylesheet is None, the default style should be used."""
     alignment, _unique = align_strings("Hei på deg", "Hade på badet")
     html = create_alignment_html(alignment, stylesheet=None)
-    stylesheet = create_alignment_stylesheet(space_tokens=False)
+    stylesheet = create_alignment_stylesheet()
     assert "<style>" in html
     assert stylesheet in html
 
