@@ -68,7 +68,7 @@ def string_pair_with_known_levenshtein_distance(draw: st.DrawFn) -> tuple[str, s
     )
 
     inserted = draw(
-        st.text(alphabet=st.characters(categories=["L"], exclude_characters=set(text) | set(text.swapcase())))
+        st.text(alphabet=st.characters(categories=["Ll", "Lu"], exclude_characters=set(text) | set(text.swapcase())))
     )
 
     num_flipped = draw(st.integers(min_value=0, max_value=len(text)))
