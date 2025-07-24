@@ -1,7 +1,7 @@
 import pytest
 from stringalign.align import Deleted, Inserted, Kept, Replaced, align_strings
 from stringalign.evaluation import FrozenDict, LineError
-from stringalign.tokenize import UnicodeWordTokenizer
+from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
 
 
 @pytest.mark.parametrize(
@@ -23,7 +23,7 @@ from stringalign.tokenize import UnicodeWordTokenizer
                 confusable_errors=(),
                 case_errors=(),
                 metadata=None,
-                tokenizer=None,
+                tokenizer=DEFAULT_TOKENIZER,
             ),
         ),
         (
@@ -42,7 +42,7 @@ from stringalign.tokenize import UnicodeWordTokenizer
                 confusable_errors=(),
                 case_errors=(),
                 metadata=None,
-                tokenizer=None,
+                tokenizer=DEFAULT_TOKENIZER,
             ),
         ),
         (
@@ -64,7 +64,7 @@ from stringalign.tokenize import UnicodeWordTokenizer
                 case_errors=(Replaced("H", "h"),),
                 confusable_errors=(),
                 metadata=None,
-                tokenizer=None,
+                tokenizer=DEFAULT_TOKENIZER,
             ),
         ),
         (
@@ -83,7 +83,7 @@ from stringalign.tokenize import UnicodeWordTokenizer
                 confusable_errors=(),
                 case_errors=(),
                 metadata=None,
-                tokenizer=None,
+                tokenizer=DEFAULT_TOKENIZER,
             ),
         ),
         (
@@ -102,7 +102,7 @@ from stringalign.tokenize import UnicodeWordTokenizer
                 confusable_errors=(),
                 case_errors=(),
                 metadata=None,
-                tokenizer=None,
+                tokenizer=DEFAULT_TOKENIZER,
             ),
         ),
         (
@@ -121,7 +121,7 @@ from stringalign.tokenize import UnicodeWordTokenizer
                 confusable_errors=(),
                 case_errors=(),
                 metadata=None,
-                tokenizer=None,
+                tokenizer=DEFAULT_TOKENIZER,
             ),
         ),
         (
@@ -140,7 +140,7 @@ from stringalign.tokenize import UnicodeWordTokenizer
                 confusable_errors=(Replaced("l", "1"),),
                 case_errors=(),
                 metadata=None,
-                tokenizer=None,
+                tokenizer=DEFAULT_TOKENIZER,
             ),
         ),
         (  # With UnicodeWordTokenizer
@@ -187,7 +187,7 @@ def test_from_strings_with_metadata():
         confusable_errors=(),
         case_errors=(),
         metadata=FrozenDict({"a": 3}),
-        tokenizer=None,
+        tokenizer=DEFAULT_TOKENIZER,
     )
 
-    assert LineError.from_strings(reference, predicted, tokenizer=None, metadata=metadata) == line_error
+    assert LineError.from_strings(reference, predicted, tokenizer=DEFAULT_TOKENIZER, metadata=metadata) == line_error
