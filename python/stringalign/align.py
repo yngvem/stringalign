@@ -24,8 +24,11 @@ __all__ = [
     "Replaced",
     "Kept",
     "align_strings",
+    "find_all_alignments",
     "combine_alignment_ops",
     "create_cost_matrix",
+    "compute_levenshtein_distance_from_alignment",
+    "levenshtein_distance",
 ]
 
 

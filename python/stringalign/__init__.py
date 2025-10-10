@@ -1,3 +1,5 @@
+from importlib.metadata import version
+
 import stringalign.align as align
 import stringalign.evaluation as evaluation
 import stringalign.normalize as normalize
@@ -13,3 +15,5 @@ __all__ = [
     "tokenize",
     "visualize",
 ]
+
+__version__ = version(__name__)

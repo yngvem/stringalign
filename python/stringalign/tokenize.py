@@ -73,7 +73,7 @@ def add_join(sep: str = " ") -> Callable[[Callable[[str], list[str]]], Tokenizer
 class GraphemeClusterTokenizer:
     """Turn a text string into a list of extended grapheme clusters :cite:p:`unicode-annex-29`.
 
-    This code uses the ```unicode_segmentation```_ Rust crate to do split the text string into
+    This code uses the `unicode_segmentation`_ Rust crate to do split the text string into
     extended grapheme clusters.
 
     Arguments
@@ -89,7 +89,7 @@ class GraphemeClusterTokenizer:
     >>> tokenizer("abc🏳️‍🌈🏳️‍⚧️❤️‍🔥")
     ['a', 'b', 'c', '🏳️‍🌈', '🏳️‍⚧️', '❤️‍🔥']
 
-    .. _``unicode_segmentation``: https://docs.rs/unicode-segmentation/latest/unicode_segmentation/index.html
+    .. _unicode_segmentation: https://docs.rs/unicode-segmentation/latest/unicode_segmentation/index.html
     """
 
     def __init__(
@@ -113,7 +113,7 @@ class GraphemeClusterTokenizer:
 class UnicodeWordTokenizer:
     """Turn a text string into a list of extracted words as described in :cite:p:`unicode-annex-29`.
 
-    This code uses the ```unicode_segmentation```_ Rust crate to do split the text string into
+    This code uses the `unicode_segmentation`_ Rust crate to do split the text string into
     words. Note that all punctuation is removed.
 
     Arguments
@@ -131,7 +131,7 @@ class UnicodeWordTokenizer:
     >>> tokenizer("'Hello', (World)!")
     ['Hello', 'World']
 
-    .. _``unicode_segmentation``: https://docs.rs/unicode-segmentation/latest/unicode_segmentation/index.html
+    .. _unicode_segmentation: https://docs.rs/unicode-segmentation/latest/unicode_segmentation/index.html
     """
 
     def __init__(
@@ -155,7 +155,7 @@ class UnicodeWordTokenizer:
 class SplitAtWordBoundaryTokenizer:
     """Turn a text string into a list of tokens by splitting at word boundaries as described in :cite:p:`unicode-annex-29`.
 
-    This code uses the ```unicode_segmentation```_ Rust crate to split the text string at word boundaries.
+    This code uses the `unicode_segmentation`_ Rust crate to split the text string at word boundaries.
 
     Arguments
     ---------
@@ -179,7 +179,7 @@ class SplitAtWordBoundaryTokenizer:
     >>> tokenizer("Hello  World!")
     ['Hello', 'World', '!']
 
-    .. _``unicode_segmentation``: https://docs.rs/unicode-segmentation/latest/unicode_segmentation/index.html
+    .. _unicode_segmentation: https://docs.rs/unicode-segmentation/latest/unicode_segmentation/index.html
     """
 
     def __init__(
@@ -211,7 +211,7 @@ class SplitAtWhitespaceTokenizer:
 
     This tokenizer will split at any whitespace character, including spaces, tabs, newlines and
     any other unicode whitespace character and some other characters also. See the Python documentation
-    for ```str.isspace```_ for more information.
+    for :external+python:py:meth:`str.isspace` for more information.
 
     Arguments
     ---------
@@ -220,7 +220,6 @@ class SplitAtWhitespaceTokenizer:
     post_clustering_normalizer:
         An optional :py:class:`StringNormalizer` to apply to each token after splitting.
 
-
     Examples
     --------
     >>> tokenizer = SplitAtWhitespaceTokenizer()
@@ -228,8 +227,6 @@ class SplitAtWhitespaceTokenizer:
     ['Hello', 'World']
     >>> tokenizer("'Hello', (World)!")
     ["'Hello',", '(World)!']
-
-    .. _``str.isspace``: https://docs.python.org/3/library/stdtypes.html#str.isspace
     """
 
     def __init__(

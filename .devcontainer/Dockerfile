@@ -1,7 +1,7 @@
 FROM python:3.13-bookworm
 
 RUN apt-get update && \
-    apt-get install -y curl gcc bash git build-essential vim tmux ripgrep fzf htop bat jq tree && \
+    apt-get install -y curl gcc bash git build-essential vim tmux ripgrep fzf htop bat jq tree locales && \
     ln -s /usr/bin/batcat /usr/local/bin/bat && \
     curl -sS https://starship.rs/install.sh | sh -s - -y && \
     echo 'eval "$(starship init bash)"' >> $HOME/.bashrc && \

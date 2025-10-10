@@ -76,4 +76,8 @@ dev = [
 docs = [
     "jupyter>=1.1.1",
     "pandas>=2.2.3",
+    "sphinx>=8.2.3",
+    "sphinx-book-theme>=1.1.4",
+    "sphinxcontrib-bibtex>=2.6.5",
+    "sphinx-togglebutton>=0.3.2",
 ]
