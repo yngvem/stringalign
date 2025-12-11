@@ -3,7 +3,7 @@ from __future__ import annotations
 import html
 from collections import deque
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 import stringalign.tokenize
 from stringalign._stringutils import create_cost_matrix as _create_cost_matrix
@@ -126,8 +126,18 @@ class Kept:
         )
 
 
-AlignmentOperation = Deleted | Inserted | Replaced | Kept
-MergableAlignmentOperation = Replaced | Kept
+@runtime_checkable
+class AlignmentOperation(Protocol):
+    """This class class is used as a union of :class:`Deleted`, :class:`Inserted`, :class:`Replaced`, and :class:`Kept`.
+
+    We define it like this instead of using an explicit union type make the Sphinx documentation more readable.
+    """
+
+    def generalize(self) -> Kept | Replaced: ...
+
+    def simplify(self) -> AlignmentOperation: ...
+
+    def to_html(self) -> tuple[str, str]: ...
 
 
 AlignmentTuple = tuple[AlignmentOperation, ...]
@@ -231,22 +241,6 @@ def levenshtein_distance(
     return compute_levenshtein_distance_from_alignment(align_strings(reference, predicted, tokenizer)[0])
 
 
-class _EmptyAlignment:
-    """Used as a sentinel object that will make mypy happy."""
-
-    def generalize(self) -> Self:  # pragma: no cover
-        return self
-
-    def simplify(self) -> Self:  # pragma: no cover
-        return self
-
-    def merge(self) -> Self:  # pragma: no cover
-        return self
-
-
-_EMPTY_ALIGNMENT = _EmptyAlignment()
-
-
 def combine_alignment_ops(
     alignment: Iterable[AlignmentOperation], tokenizer: stringalign.tokenize.Tokenizer | None = None
 ) -> Generator[AlignmentOperation, None, None]:
@@ -255,9 +249,10 @@ def combine_alignment_ops(
     alignment_iter = iter(alignment)
 
     # Get first operation and return if there alignment iterable is empty
-    current_operation = next(alignment_iter, _EMPTY_ALIGNMENT).generalize()
-    if isinstance(current_operation, _EmptyAlignment):
+    current_operation = next(alignment_iter, None)
+    if current_operation is None:
         return
+    current_operation = current_operation.generalize()
 
     # Iterate over the rest alignment operations, merging Keep blocks with other Keep blocks and
     # Replaced/Deleted/Inserted blocks with other Replaced/Deleted/Inserted blocks

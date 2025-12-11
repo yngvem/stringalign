@@ -9,6 +9,7 @@ from typing import Any, Iterable, Literal, Self, TypeVar
 import stringalign
 from stringalign.align import (
     AlignmentOperation,
+    AlignmentTuple,
     Kept,
     Replaced,
     align_strings,
@@ -152,15 +153,15 @@ class FrozenDict(Mapping[Hashable, Any]):
 class LineError:
     reference: str
     predicted: str
-    alignment: tuple[AlignmentOperation, ...]
-    raw_alignment: tuple[AlignmentOperation, ...]
+    alignment: AlignmentTuple
+    raw_alignment: AlignmentTuple
     unique_alignment: bool
-    horisontal_segmentation_errors: tuple[AlignmentOperation, ...]
-    character_duplication_errors: tuple[AlignmentOperation, ...]
-    removed_duplicate_character_errors: tuple[AlignmentOperation, ...]
-    diacritic_errors: tuple[AlignmentOperation, ...]
-    confusable_errors: tuple[AlignmentOperation, ...]
-    case_errors: tuple[AlignmentOperation, ...]
+    horisontal_segmentation_errors: AlignmentTuple
+    character_duplication_errors: AlignmentTuple
+    removed_duplicate_character_errors: AlignmentTuple
+    diacritic_errors: AlignmentTuple
+    confusable_errors: AlignmentTuple
+    case_errors: AlignmentTuple
     metadata: FrozenDict | None
     tokenizer: Tokenizer | None
 
