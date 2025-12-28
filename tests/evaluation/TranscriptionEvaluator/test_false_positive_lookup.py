@@ -8,8 +8,10 @@ def test_simple_example() -> None:
         predictions=["bbc", "deg", "abb"],
     )
 
-    assert evaluator.false_positive_lookup["b"] == frozenset({evaluator.line_errors[0], evaluator.line_errors[2]})
-    assert evaluator.false_positive_lookup["g"] == frozenset({evaluator.line_errors[1]})
+    assert evaluator.false_positive_lookup["b"] == frozenset(
+        {evaluator.alignment_errors[0], evaluator.alignment_errors[2]}
+    )
+    assert evaluator.false_positive_lookup["g"] == frozenset({evaluator.alignment_errors[1]})
 
 
 def test_key_error_for_non_existent_false_positive() -> None:

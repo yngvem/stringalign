@@ -3,7 +3,7 @@
 Levenshtein distance
 ====================
 
-The Levenshtein distance :cite:p:`navarro_guided_2001`, also called edit distance, is a metric for measuring the difference between two strings.
+The Levenshtein distance :cite:p:`navarro_guided_2001`, also sometimes called edit distance, is a metric for measuring the difference between two strings.
 The Levenshtein distance between two strings is given by the minimum number of edits (insertions, deletions or replacements/substitutions) that you need to transform one string into the other.
 The higher the number, the more different the two strings are.
 

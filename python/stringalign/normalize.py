@@ -43,8 +43,8 @@ def load_confusable_map(confusable_type: Literal["confusables", "intentional"]) 
     For more information, see the Unicode Technical Standard #39 (UTS #39) about security consideration for unicode at
     https://www.unicode.org/reports/tr39/.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     confusable_type:
         The type of confusable characters to load. Can be either "confusables" or "intentional".
 
@@ -68,8 +68,8 @@ def load_confusable_map(confusable_type: Literal["confusables", "intentional"]) 
 class StringNormalizer:
     """Simple string normalizer, used to remove "irrelevant" differences when comparing strings.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     normalization:
         Which unicode normalization to use
     case_insensitive:

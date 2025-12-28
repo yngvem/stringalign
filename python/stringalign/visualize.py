@@ -13,6 +13,8 @@ if TYPE_CHECKING:  # pragma: no cover
 
 
 class HtmlString(str):
+    """A string that represents HTML content. It has the `_repr_html_` method for rendering in Jupyter notebooks."""
+
     def __repr__(self) -> str:
         return f"HtmlString({super().__repr__()})"
 
@@ -20,16 +22,33 @@ class HtmlString(str):
         return self
 
 
-def compress_css(css):
+def compress_css(css: str) -> str:
     """Simple compression of css that turns all whitespace into a single space.
 
     This will remove newlines, tabs, and multiple spaces, (somewhat similar to minification, but not as thorough)
+
+    Parameters
+    ----------
+    css
+        CSS-content to compress
+
+    Returns
+    -------
+    compressed_css : str
+        The compressed CSS.
     """
     compressed_css = " ".join(css.split())
     return compressed_css
 
 
 def create_alignment_stylesheet() -> str:
+    """Get the css used for styling the alignment operation visualisation.
+
+    Returns
+    -------
+    str
+        String containing the alignment operation visualisation CSS.
+    """
     stylesheet = compress_css((Path(__file__).with_name("assets") / "stylesheet.css").read_text())
 
     return stylesheet
@@ -66,7 +85,7 @@ def create_alignment_html(
     reference_label: str = "Reference:",
     predicted_label: str = "Predicted:",
     stylesheet: str | None = None,
-    space_tokens: bool = False,
+    space_alignment_ops: bool = False,
 ) -> HtmlString:
     """Create an HTML representation of the alignment with embedded CSS styles.
 
@@ -80,10 +99,12 @@ def create_alignment_html(
         The label for the predicted text.
     stylesheet:
         Optional CSS stylesheet to apply. If None, a default stylesheet is used. For no styling, pass an empty string.
+    space_alignment_ops
+        If this is True, then there will be a small space between each alignment operation.
 
     Returns:
     --------
-    str:
+    HtmlString:
         An HTML string representing the alignment with embedded styles.
     """
     if stylesheet is None:
@@ -98,20 +119,46 @@ def create_alignment_html(
         alignment=alignment,
         reference_label=reference_label,
         predicted_label=predicted_label,
-        space_tokens=space_tokens,
+        space_tokens=space_alignment_ops,
     )
     return HtmlString(style + alignment_html)
 
 
 def base64_encode_image(image: PIL.Image.Image) -> bytes:
-    """Convert a PIL image into a base64-encoded JPEG image."""
+    """Convert a PIL image into a base64-encoded JPEG image.
+
+    Paramters
+    ---------
+    image
+        Image to serialize
+
+    Returns
+    -------
+    bytes
+        Base64 encoded JPEG image
+    """
     buffered = io.BytesIO()
     image.save(buffered, format="JPEG")
     return base64.b64encode(buffered.getvalue())
 
 
-def create_html_image(image: PIL.Image.Image | Path | str, width=500, alt=None) -> str:
-    """Convert a PIL image into a HTML image tag with a base64-encoded JPEG image to e.g. embed in Jupyter notebooks."""
+def create_html_image(image: PIL.Image.Image | Path | str, width=500, alt=None) -> HtmlString:
+    """Convert a PIL image into a HTML image tag with a base64-encoded JPEG image to e.g. embed in Jupyter notebooks.
+
+    Parameters
+    ----------
+    image
+        The image to convert into an HTML image tag with base64 encoded data.
+    width
+        The width of the image tag
+    alt : optional
+        The alt text of the image tag
+
+    Returns
+    -------
+    HtmlString
+        A string with an image tag containing the base64-encoded image.
+    """
     if alt is None:
         alt = ""
     else:
@@ -134,4 +181,4 @@ def create_html_image(image: PIL.Image.Image | Path | str, width=500, alt=None) 
     if file_type == "jpg":
         file_type = "jpeg"
 
-    return f'<img src="data:image/{file_type};base64, {b64_img.decode("ascii")}" width="{width}px" {alt}/>'
+    return HtmlString(f'<img src="data:image/{file_type};base64, {b64_img.decode("ascii")}" width="{width}px" {alt}/>')

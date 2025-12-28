@@ -66,25 +66,67 @@ def get_all_n_run_length_encodings(string: str, n: int) -> Generator[tuple[tuple
     return (run_length_encode(batch) for batch in get_all_n_batches(string, n))
 
 
+# TODO: Change this so it uses a tokenizer instead
 def check_ngram_duplication_errors(
-    reference: str, predicted: str, *, n: int, error_type: Literal["insert", "delete"]
+    reference: str, predicted: str, *, n: int, error_type: Literal["inserted", "deleted"]
 ) -> bool:
-    if not (error_type := error_type.lower()) in ("insert", "delete"):  # type: ignore
-        raise ValueError(f"Invalid duplication error type: {error_type}, must be either 'insert' or 'delete'")
+    """Check if the only difference between the reference and the predicted string is from character duplication errors.
+
+    If the ``error_type`` is ``"inserted"``, then it checks if the only difference between the two strings is due to the
+    run length of one or more n-grams is larger in the predicted string compared to the reference string. Similarly, if
+    the error type is ``"deleted"``, it checks if the only difference between the two strings is that the run length one
+    or more n-grams of the predicted string is smaller than that of the reference string.
+
+    Parameters
+    ----------
+    reference
+        The reference string, also known as gold standard or ground truth
+    predicted
+        The predicted string to compare against the reference.
+    n
+        The length of the n-grams
+    error_type
+        ``"inserted"`` or ``"deleted"``, specifies if the function checks for increasing or decreasing n-gram run lengths.
+
+    Returns
+    -------
+    bool
+        True if the only reason the reference and predicted string is different is a change in token run lengths.
+
+    Examples
+    --------
+    >>> check_ngram_duplication_errors("hello", "helo", n=1, error_type="deleted")
+    True
+    >>> check_ngram_duplication_errors("hello", "helo", n=1, error_type="inserted")
+    False
+    >>> check_ngram_duplication_errors("hello", "helllo", n=1, error_type="deleted")
+    False
+    >>> check_ngram_duplication_errors("hello", "helllo", n=1, error_type="inserted")
+    True
+
+    We can also check for multi-token n-gram errors
+
+    >>> check_ngram_duplication_errors("hello", "hellolo", n=2, error_type="inserted")
+    True
+    >>> check_ngram_duplication_errors("hellolo", "hello", n=2, error_type="deleted")
+    True
+    """
+    if not (error_type := error_type.lower()) in ("inserted", "deleted"):  # type: ignore
+        raise ValueError(f"Invalid duplication error type: {error_type}, must be either 'inserted' or 'deleted'")
     run_length_encodings_reference = get_all_n_run_length_encodings(reference, n)
     run_length_encodings_prediction = get_all_n_run_length_encodings(predicted, n)
 
     out = False
     for encoding_n1, encoding_n2 in zip(run_length_encodings_reference, run_length_encodings_prediction):
         if len(encoding_n1) != len(encoding_n2):
-            return False
+            continue
 
         for encoding1, encoding2 in zip(encoding_n1, encoding_n2):
             if encoding1[0] != encoding2[0]:
-                return False
-            elif encoding1[1] < encoding2[1] and error_type == "insert":
+                break
+            elif encoding1[1] < encoding2[1] and error_type == "inserted":
                 out = True
-            elif encoding1[1] > encoding2[1] and error_type == "delete":
+            elif encoding1[1] > encoding2[1] and error_type == "deleted":
                 out = True
 
     return out

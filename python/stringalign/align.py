@@ -34,6 +34,12 @@ __all__ = [
 
 @dataclass(frozen=True, slots=True)
 class Deleted:
+    """Class representing tokens that are deleted from the reference.
+
+    For example, if the reference text is ``'hello'`` and the predicted text is ``'helo'``, then one ``'l'`` is deleted
+    (if we're using character tokens).
+    """
+
     substring: str
 
     def generalize(self) -> Replaced:
@@ -51,6 +57,12 @@ class Deleted:
 
 @dataclass(frozen=True, slots=True)
 class Inserted:
+    """Class representing tokens that are deleted from the reference.
+
+    For example, if the reference text is ``'hello'`` and the predicted text is ``'helloo'``, then one ``'o'`` is
+    inserted (if we're using character tokens).
+    """
+
     substring: str
 
     def generalize(self) -> Replaced:
@@ -68,6 +80,12 @@ class Inserted:
 
 @dataclass(frozen=True, slots=True)
 class Replaced:
+    """Class representing tokens that are  from the reference.
+
+    For example, if the reference text is ``'hello'`` and the predicted text is ``'hellø'``, then one ``'o'`` is
+    replaced with a ``'ø'`` (if we're using character tokens).
+    """
+
     reference: str
     predicted: str
 
@@ -98,6 +116,12 @@ class Replaced:
 
 @dataclass(frozen=True, slots=True)
 class Kept:
+    """Class representing tokens that are kept from the reference.
+
+    For example, if the reference text is ``'hi'`` and the predicted text is ``'h'``, then the ``'h'`` is
+    kept while the ``'i'`` is not (if we're using character tokens).
+    """
+
     substring: str
 
     @property
@@ -145,6 +169,26 @@ AlignmentList = list[AlignmentOperation]
 
 
 def create_cost_matrix(reference_tokens: Iterable[str], predicted_tokens: Iterable[str]) -> np.ndarray:
+    """Create the alignment cost matrix for the reference tokens and predicted tokens.
+
+    Element `(i, j)` of this matrix corresponds to the cost of aligning the token with index `i` in the reference
+    string with the token with index `j` in the predicted string. For more information, see e.g.
+    :cite:p:`navarro2001guided` or :cite:p:`needleman1970general`.
+
+    This is an internal function used by :func:`align_strings`, so you should probably not call this function directly.
+
+    Parameters
+    ----------
+    reference_tokens:
+        Iterable of tokens to align the predicted tokens against.
+    predicted_tokens:
+        Iterable of tokens to align against the reference tokens.
+
+    Returns
+    -------
+    cost_matrix : np.ndarray
+        Two dimensional numpy array of ints with shape `(len(reference_tokens), len(predicted_tokens))`.
+    """
     return _create_cost_matrix(list(reference_tokens), list(predicted_tokens))
 
 
@@ -168,6 +212,32 @@ def _backtrack(
 def align_strings(
     reference: str, predicted: str, tokenizer: stringalign.tokenize.Tokenizer | None = None
 ) -> tuple[AlignmentTuple, bool]:
+    """Find one optimal alignment for the two strings and whether the alignment is unique or not.
+
+    It uses the Needleman-Wunsch algorithm for optimal string alignment :cite:p:`needleman1970general`, which is a
+    dynamic programming algorithm with :math:`O(mn)` time and memory complexity, where :math:`m` and :math:`n` are the
+    length of the reference and predicted strings. This algorithm has been discovered many times, for a more thorough
+    description, see e.g. :cite:p:`navarro2001guided`.
+
+    Parameters
+    ----------
+    reference
+        The reference string, also known as gold standard or ground truth.
+    predicted
+        The string to align with the reference.
+    tokenizer : optional
+        A tokenizer that turns a string into an iterable of tokens. For this function, it is sufficient that it is a
+        callable that turns a string into an iterable of tokens. If not provided, then
+        ``stringalign.tokenize.DEFAULT_TOKENIZER`` is used instead, which by default is a grapheme cluster (character)
+        tokenizer.
+
+    Returns
+    -------
+    alignment : AlignmentTuple
+        A tuple of alignment operations.
+    unique : bool
+        A boolean flag that is True if alignment is unique and False otherwise.
+    """
     if tokenizer is None:
         tokenizer = stringalign.tokenize.DEFAULT_TOKENIZER
 
@@ -196,12 +266,32 @@ def find_all_alignments(
 ) -> Generator[AlignmentTuple, None, None]:
     """Works similarly to align_strings, but returns all possible alignments.
 
-    It's implemented as a generator that yields all possible alignments. It holds a que of alignments
+    It's implemented as a generator that yields all possible alignments. It holds a queue of alignments
     and every time the dynamic programming backtracking encounters a branching point, it creates adds
     the new branches to the queue.
 
     The backtracking is completed for one alignment before the next is started (with no caching, so the same
     subpaths might be traversed multiple times).
+
+    This function has exponential worst-time time-complexity since the number of possible string alignments
+    grows exponentially with the length of the strings.
+
+    Parameters
+    ----------
+    reference
+        The reference string, also known as gold standard or ground truth.
+    predicted
+        The string to align with the reference.
+    tokenizer : optional
+        A tokenizer that turns a string into an iterable of tokens. For this function, it is sufficient that it is a
+        callable that turns a string into an iterable of tokens. If not provided, then
+        ``stringalign.tokenize.DEFAULT_TOKENIZER`` is used instead, which by default is a grapheme cluster (character)
+        tokenizer.
+
+    Yields
+    ------
+    alignment : AlignmentTuple
+        A tuple of alignment operations.
     """
     if tokenizer is None:
         tokenizer = stringalign.tokenize.DEFAULT_TOKENIZER
@@ -231,19 +321,98 @@ def find_all_alignments(
         yield tuple(alignment[::-1])
 
 
-def compute_levenshtein_distance_from_alignment(alignment: AlignmentTuple) -> int:
+def compute_levenshtein_distance_from_alignment(alignment: Iterable[AlignmentOperation]) -> int:
+    """Compute the Levenshtein distance between two strings based on an optimal alignment between them.
+
+    See :ref:`levenshtein_distance` for more information about the Levenshtein distance.
+
+    Parameters
+    ----------
+    alignment
+        An iterable representing the optimal alignment of two strings. Typically a tuple returned by :func:`align_strings`.
+
+    Returns
+    -------
+    distance : int
+        The Levenshtein distance between the two strings.
+    """
     return len(tuple(op for op in alignment if not isinstance(op, Kept)))
 
 
 def levenshtein_distance(
     reference: str, predicted: str, tokenizer: stringalign.tokenize.Tokenizer | None = None
 ) -> int:
+    """Compute the Levenshtein distance between two strings given a tokenizer.
+
+    See :ref:`levenshtein_distance` for more information about the Levenshtein distance.
+
+    .. note::
+
+        This function will first align the strings and then compute the Levenshtein distance.
+        If you already have computed the alignment, you can use :func:`compute_levenshtein_distance_from_alignment`
+        instead.
+
+    Parameters
+    ----------
+    reference
+        The reference string, also known as gold standard or ground truth.
+    predicted
+        The string to align with the reference.
+    tokenizer
+        A tokenizer that turns a string into an iterable of tokens. For this function, it is sufficient that it is a
+        callable that turns a string into an iterable of tokens.
+
+    Returns
+    -------
+    distance : int
+        The Levenshtein distance between the two strings.
+    """
     return compute_levenshtein_distance_from_alignment(align_strings(reference, predicted, tokenizer)[0])
 
 
 def combine_alignment_ops(
     alignment: Iterable[AlignmentOperation], tokenizer: stringalign.tokenize.Tokenizer | None = None
 ) -> Generator[AlignmentOperation, None, None]:
+    """Combine alignment operations to cover multiple tokens where possible.
+
+    Sometimes, it can be useful to combine multiple alignment operations into single ones to e.g. find common
+    multi-token insertions, deletions or replacements. For example, in handwritten text recognition, the letters
+    ``'ll'`` might be replaced with a ``'u'`` or ``'rn'`` might be replaced with an ``'m'``. Such replacements are
+    easily missed if we just consider single-token replacements.
+
+    This generator will combine contiguous :class:`Kept` operations and contiguous "edit" operations (:class:`Deleted`,
+    :class:`Inserted` and :class:`Replaced`) into single operations instead.
+
+    Parameters
+    ----------
+    alignment
+        Iterable of single-token alignment operations to combine.
+    tokenizer : optional
+        A tokenizer. The :meth:`Tokenizer.join` method is used to combine tokens to create multi-token alignment
+        operations. If not provided, then
+        ``stringalign.tokenize.DEFAULT_TOKENIZER`` is used instead, which by default is a grapheme cluster (character)
+        tokenizer.
+
+    Yields
+    ------
+    alignment_operation : AlignmentOperation
+        Each alignment operation represents a contiguous block of either :class:`Kept` operations or "edit" operations.
+
+    Examples
+    --------
+
+    Contiguous :class:`Kept` and edit operations are combined into single operations:
+
+    >>> alignment = [Kept("h"), Kept("e"), Replaced("l", "u"), Deleted("l"), Kept("o")]
+    >>> tuple(combine_alignment_ops(alignment))
+    (Kept(substring='he'), Replaced(reference='ll', predicted='u'), Kept(substring='o'))
+
+    Contiguous :class:`Deleted` and :class:`Inserted` operations keep their semantics when merged.
+
+    >>> alignment = [Kept("h"), Kept("e"), Deleted("l"), Deleted("l"), Kept("o"), Inserted("!")]
+    >>> tuple(combine_alignment_ops(alignment))
+    (Kept(substring='he'), Deleted(substring='ll'), Kept(substring='o'), Inserted(substring='!'))
+    """
     if tokenizer is None:
         tokenizer = stringalign.tokenize.DEFAULT_TOKENIZER
     alignment_iter = iter(alignment)

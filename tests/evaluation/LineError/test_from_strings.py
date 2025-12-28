@@ -1,6 +1,6 @@
 import pytest
 from stringalign.align import Deleted, Inserted, Kept, Replaced, align_strings
-from stringalign.evaluation import FrozenDict, LineError
+from stringalign.evaluation import AlignmentError, FrozenDict
 from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
 
 
@@ -10,10 +10,10 @@ from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
         (
             "Hello, world!",
             "Hello, world!",
-            LineError(
+            AlignmentError(
                 reference="Hello, world!",
                 predicted="Hello, world!",
-                alignment=(Kept("Hello, world!"),),
+                combined_alignment=(Kept("Hello, world!"),),
                 raw_alignment=tuple(align_strings("Hello, world!", "Hello, world!")[0]),
                 unique_alignment=True,
                 horisontal_segmentation_errors=(),
@@ -29,10 +29,10 @@ from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
         (
             "Hello, world!",
             "Hello, world",
-            LineError(
+            AlignmentError(
                 reference="Hello, world!",
                 predicted="Hello, world",
-                alignment=(Kept("Hello, world"), Deleted("!")),
+                combined_alignment=(Kept("Hello, world"), Deleted("!")),
                 raw_alignment=tuple(align_strings("Hello, world!", "Hello, world")[0]),
                 unique_alignment=True,
                 horisontal_segmentation_errors=(Deleted("!"),),
@@ -48,10 +48,10 @@ from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
         (
             "Hello, world!",
             "hello, world",
-            LineError(
+            AlignmentError(
                 reference="Hello, world!",
                 predicted="hello, world",
-                alignment=(Replaced("H", "h"), Kept("ello, world"), Deleted("!")),
+                combined_alignment=(Replaced("H", "h"), Kept("ello, world"), Deleted("!")),
                 raw_alignment=tuple(align_strings("Hello, world!", "hello, world")[0]),
                 unique_alignment=True,
                 horisontal_segmentation_errors=(
@@ -70,10 +70,10 @@ from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
         (
             "Hello, world!",
             "Helllo, world!",
-            LineError(
+            AlignmentError(
                 reference="Hello, world!",
                 predicted="Helllo, world!",
-                alignment=(Kept("He"), Inserted("l"), Kept("llo, world!")),
+                combined_alignment=(Kept("He"), Inserted("l"), Kept("llo, world!")),
                 raw_alignment=tuple(align_strings("Hello, world!", "Helllo, world!")[0]),
                 unique_alignment=False,
                 horisontal_segmentation_errors=(),
@@ -89,10 +89,10 @@ from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
         (
             "Hello, world!",
             "Helo, world!",
-            LineError(
+            AlignmentError(
                 reference="Hello, world!",
                 predicted="Helo, world!",
-                alignment=(Kept("He"), Deleted("l"), Kept("lo, world!")),
+                combined_alignment=(Kept("He"), Deleted("l"), Kept("lo, world!")),
                 raw_alignment=tuple(align_strings("Hello, world!", "Helo, world!")[0]),
                 unique_alignment=False,
                 horisontal_segmentation_errors=(),
@@ -108,10 +108,10 @@ from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
         (
             "Hello, world!",
             "Helło, world!",
-            LineError(
+            AlignmentError(
                 reference="Hello, world!",
                 predicted="Helło, world!",
-                alignment=(Kept("Hel"), Replaced("l", "ł"), Kept("o, world!")),
+                combined_alignment=(Kept("Hel"), Replaced("l", "ł"), Kept("o, world!")),
                 raw_alignment=tuple(align_strings("Hello, world!", "Helło, world!")[0]),
                 unique_alignment=True,
                 horisontal_segmentation_errors=(),
@@ -127,10 +127,10 @@ from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
         (
             "Hello, world!",
             "Hel1o, world!",
-            LineError(
+            AlignmentError(
                 reference="Hello, world!",
                 predicted="Hel1o, world!",
-                alignment=(Kept("Hel"), Replaced("l", "1"), Kept("o, world!")),
+                combined_alignment=(Kept("Hel"), Replaced("l", "1"), Kept("o, world!")),
                 raw_alignment=tuple(align_strings("Hello, world!", "Hel1o, world!")[0]),
                 unique_alignment=True,
                 horisontal_segmentation_errors=(),
@@ -146,10 +146,10 @@ from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
         (  # With UnicodeWordTokenizer
             "Hello, world!",
             "Helo, world!",
-            LineError(
+            AlignmentError(
                 reference="Hello, world!",
                 predicted="Helo, world!",
-                alignment=(Replaced(reference="Hello", predicted="Helo"), Kept("world")),
+                combined_alignment=(Replaced(reference="Hello", predicted="Helo"), Kept("world")),
                 raw_alignment=tuple(
                     align_strings("Hello, world!", "Helo, world!", tokenizer=UnicodeWordTokenizer())[0]
                 ),
@@ -166,18 +166,18 @@ from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
         ),
     ],
 )
-def test_from_strings_with_example(reference: str, predicted: str, line_error: LineError) -> None:
-    assert LineError.from_strings(reference, predicted, tokenizer=line_error.tokenizer) == line_error
+def test_from_strings_with_example(reference: str, predicted: str, line_error: AlignmentError) -> None:
+    assert AlignmentError.from_strings(reference, predicted, tokenizer=line_error.tokenizer) == line_error
 
 
 def test_from_strings_with_metadata():
     reference = "Hello, world!"
     predicted = "Helo, world!"
     metadata = {"a": 3}
-    line_error = LineError(
+    line_error = AlignmentError(
         reference="Hello, world!",
         predicted="Helo, world!",
-        alignment=(Kept("He"), Deleted("l"), Kept("lo, world!")),
+        combined_alignment=(Kept("He"), Deleted("l"), Kept("lo, world!")),
         raw_alignment=tuple(align_strings("Hello, world!", "Helo, world!")[0]),
         unique_alignment=False,
         horisontal_segmentation_errors=(),
@@ -190,4 +190,6 @@ def test_from_strings_with_metadata():
         tokenizer=DEFAULT_TOKENIZER,
     )
 
-    assert LineError.from_strings(reference, predicted, tokenizer=DEFAULT_TOKENIZER, metadata=metadata) == line_error
+    assert (
+        AlignmentError.from_strings(reference, predicted, tokenizer=DEFAULT_TOKENIZER, metadata=metadata) == line_error
+    )

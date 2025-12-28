@@ -6,20 +6,28 @@ from stringalign.normalize import StringNormalizer
 
 
 class Tokenizer(Protocol):
-    def __call__(self, text: str) -> list[str]: ...
+    """Callable that converts a string into a list of tokens, represented by strings with a method to join tokens."""
 
-    def join(self, text: Iterable[str]) -> str: ...
+    def __call__(self, text: str) -> list[str]:
+        """Divide the string into tokens."""
+
+    def join(self, text: Iterable[str]) -> str:
+        """Join an iterable of tokens into a string. This is used to create combined alignment operations.
+
+        It is important that `tokenizer(tokenizer.join(tokenizer(text))) == tokenizer(text)`, otherwise other logic in
+        stringalign (namely error classification heuristics) may not work as expected.
+        """
 
 
 def _add_join(tokenizer: Callable[[str], list[str]], sep: str = " ") -> Tokenizer:
     """Function that `join` method to a tokenizer function.
     This allows the tokenizer to be used with the Tokenizer protocol.
 
-    Arguments
-    ---------
-    tokenizer:
+    Parameters
+    ----------
+    tokenizer
         A tokenizer function that takes a string and returns a list of tokens.
-    sep (optional):
+    sep : optional
         The separator to use when joining tokens. Defaults to a single space.
 
     Returns
@@ -51,11 +59,11 @@ def add_join(sep: str = " ") -> Callable[[Callable[[str], list[str]]], Tokenizer
     """Decorator that `join` method to a tokenizer function.
     This allows the tokenizer to be used with the Tokenizer protocol.
 
-    Arguments
-    ---------
-    tokenizer:
+    Parameters
+    ----------
+    tokenizer
         A tokenizer function that takes a string and returns a list of tokens.
-    sep (optional):
+    sep : optional
         The separator to use when joining tokens. Defaults to a single space.
 
     Returns
@@ -76,8 +84,8 @@ class GraphemeClusterTokenizer:
     This code uses the `unicode_segmentation`_ Rust crate to do split the text string into
     extended grapheme clusters.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     pre_clustering_normalizer:
         An optional :py:class:`StringNormalizer` to apply before splitting into extended grapheme clusters.
     post_clustering_normalizer:
@@ -116,8 +124,8 @@ class UnicodeWordTokenizer:
     This code uses the `unicode_segmentation`_ Rust crate to do split the text string into
     words. Note that all punctuation is removed.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     pre_clustering_normalizer:
         An optional :py:class:`StringNormalizer` to apply before splitting into words.
     post_clustering_normalizer:
@@ -157,8 +165,8 @@ class SplitAtWordBoundaryTokenizer:
 
     This code uses the `unicode_segmentation`_ Rust crate to split the text string at word boundaries.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     pre_clustering_normalizer:
         An optional :py:class:`StringNormalizer` to apply before splitting at word boundaries.
     post_clustering_normalizer:
@@ -213,8 +221,8 @@ class SplitAtWhitespaceTokenizer:
     any other unicode whitespace character and some other characters also. See the Python documentation
     for :external+python:py:meth:`str.isspace` for more information.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     pre_clustering_normalizer:
         An optional :py:class:`StringNormalizer` to apply before splitting at whitespace.
     post_clustering_normalizer:

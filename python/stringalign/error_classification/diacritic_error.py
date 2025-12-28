@@ -4,6 +4,7 @@ from stringalign.align import levenshtein_distance
 from stringalign.normalize import StringNormalizer
 
 
+# TODO: Make this function accept a tokenizer
 def count_diacritic_errors(reference: str, predicted: str) -> int:
     """Count the number of errors that are solely due to mispredicted (missing, inserted or replaced) diacritics.
 
