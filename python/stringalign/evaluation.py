@@ -218,7 +218,6 @@ def check_operation_for_horizontal_segmentation_error(
     return is_boundary and not isinstance(current_operation, Kept)
 
 
-# TODO: Change this so it is token duplication error instead
 def check_operation_for_ngram_duplication_error(
     previous_operation: AlignmentOperation | None,
     current_operation: AlignmentOperation,
@@ -226,6 +225,7 @@ def check_operation_for_ngram_duplication_error(
     *,
     n: int,
     error_type: Literal["inserted", "deleted"] = "inserted",
+    tokenizer: Tokenizer,
 ) -> bool:
     """Check if this alignment operation is an n-gram duplication error or missing duplicate n-gram error.
 
@@ -240,17 +240,19 @@ def check_operation_for_ngram_duplication_error(
     ----------
     previous_operation
         The previous alignment operation. If ``current_operation`` is the first alignment operation in an alignment,
-        this is ``None``
+        this is ``None``.
     current_operation
         The alignment operation to check for n-gram duplication errors.
     next_operation
         The next alignment operation. If ``current_operation`` is the last alignment operation in an alignment, this is
-        ``None``
+        ``None``.
     n
         The number of tokens in the n-grams we evaluate. For single token duplication errors, this should be 1.
     error_type
         ``"inserted"`` if we are checking for inserted duplicates and ``"deleted"`` if we are checking for deleted
         duplicates.
+    tokenizer
+        The tokenizer used for the original alignment.
 
     Returns
     -------
@@ -271,7 +273,9 @@ def check_operation_for_ngram_duplication_error(
 
     window_text_reference = join_windows(current_operation.reference, previous_operation, next_operation)
     window_text_prediction = join_windows(current_operation.predicted, previous_operation, next_operation)
-    return check_ngram_duplication_errors(window_text_reference, window_text_prediction, n=n, error_type=error_type)
+    return check_ngram_duplication_errors(
+        window_text_reference, window_text_prediction, n=n, error_type=error_type, tokenizer=tokenizer
+    )
 
 
 def _safe_hash(value: Any) -> int:
@@ -322,41 +326,67 @@ class FrozenDict(Mapping[Hashable, Any]):
 
 @dataclass(frozen=True, slots=False)
 class AlignmentError:
-    """Utility class that represents the errors for a single sample (reference/predicted pair)"""
+    """Utility data class that represents the errors for a single sample (reference/predicted pair)
 
-    # TODO: For some reason, this documentation is not included in sphinx, figure out why
+    Parameters
+    ----------
+    reference
+        The reference string, also known as gold standard and ground truth
 
-    reference: str  #: The reference string, also known as gold standard and ground truth
-    predicted: str  #: The predicted string
-    combined_alignment: AlignmentTuple  #: The combined alignment for the reference and predicted string
-    raw_alignment: AlignmentTuple  #: The uncombined alignment for the reference and predicted string
-    unique_alignment: bool  #: Boolean flag which is true if the alignment is unique.
+    predicted
+        The predicted string
 
-    #: The alignment operations that likely are wrong due to segmentation errors. Corresponds to edits in the start or
-    #: end of the string.
+    combined_alignment
+        The combined alignment for the reference and predicted string
+
+    raw_alignment
+        The uncombined alignment for the reference and predicted string
+
+    unique_alignment
+        Boolean flag which is true if the alignment is unique.
+
+    horisontal_segmentation_errors
+        The alignment operations that likely are wrong due to segmentation errors. Corresponds to edits in the start or
+        end of the string.
+
+    token_duplication_errors
+        Alignment operations that correspond to tokens that were repeated more times in the prediction than in the
+        reference.
+
+    removed_duplicate_token_errors
+        Alignment operations that correspond to tokens that were repeated fewer times in the prediction than in the
+        reference.
+
+    diacritic_errors
+        Alignment operations that correspond to diacritics being added or removed (e.g. ``"ë" -> "e"``).
+
+    confusable_errors
+        Alignment operations that correspond to confusable tplems being predicted.
+
+    case_errors
+        Alignment operations that correspond to case errors (i.e. errors that are resolved by casefolding the strings).
+
+    metadata
+        Optional metadata to include with the line error, useful if you e.g. want to include a text line ID.
+
+    tokenizer
+        The tokenizer used prior to alignment. Included for reproducibility purposes.
+    """
+
+    reference: str
+    predicted: str
+    combined_alignment: AlignmentTuple
+    raw_alignment: AlignmentTuple
+    unique_alignment: bool
+
     horisontal_segmentation_errors: AlignmentTuple
-
-    #: Alignment operations that correspond to characters that were repeated more times in the prediction than in the
-    #: reference.
-    character_duplication_errors: AlignmentTuple
-
-    #: Alignment operations that correspond to characters that were repeated fewer times in the prediction than in the
-    #: reference.
-    removed_duplicate_character_errors: AlignmentTuple
-
-    #: Alignment operations that correspond to diacritics being added or removed (e.g. ``"ë" -> "e"``).
+    token_duplication_errors: AlignmentTuple
+    removed_duplicate_token_errors: AlignmentTuple
     diacritic_errors: AlignmentTuple
-
-    #: Alignment operations that correspond to confusable characters being predicted.
     confusable_errors: AlignmentTuple
-
-    #: Alignment operations that correspond to case errors (i.e. errors that are resolved by casefolding the strings).
     case_errors: AlignmentTuple
 
-    #: Optional metadata to include with the line error, useful if you e.g. want to include a text line ID.
     metadata: FrozenDict | None
-
-    #: The tokenizer used prior to alignment. Included for reproducibility purposes.
     tokenizer: Tokenizer | None
 
     def summarise(self) -> dict[Hashable, Hashable]:
@@ -377,8 +407,8 @@ class AlignmentError:
             "reference": self.reference,
             "predicted": self.predicted,
             "horisontal_segmentation_error": bool(self.horisontal_segmentation_errors),
-            "character_duplication_error": bool(self.character_duplication_errors),
-            "removed_duplicate_character_error": bool(self.removed_duplicate_character_errors),
+            "token_duplication_error": bool(self.token_duplication_errors),
+            "removed_duplicate_token_error": bool(self.removed_duplicate_token_errors),
             "diacritic_error": bool(self.diacritic_errors),
             "confusable_error": bool(self.confusable_errors),
             "case_error": bool(self.case_errors),
@@ -448,8 +478,8 @@ class AlignmentError:
                 raw_alignment=tuple(),
                 unique_alignment=True,
                 horisontal_segmentation_errors=tuple(),
-                character_duplication_errors=tuple(),
-                removed_duplicate_character_errors=tuple(),
+                token_duplication_errors=tuple(),
+                removed_duplicate_token_errors=tuple(),
                 diacritic_errors=tuple(),
                 confusable_errors=tuple(),
                 case_errors=tuple(),
@@ -463,8 +493,8 @@ class AlignmentError:
         window.append(next(alignment_iterator))
 
         horisontal_segmentation_errors = []
-        character_duplication_errors = []
-        removed_duplicate_character_errors = []
+        token_duplication_errors = []
+        removed_duplicate_token_errors = []
         diacritic_errors = []
         confusable_errors = []
         case_errors = []
@@ -476,10 +506,14 @@ class AlignmentError:
 
             if check_operation_for_horizontal_segmentation_error(window[0], window[1], window[2]):
                 horisontal_segmentation_errors.append(window[1])
-            if check_operation_for_ngram_duplication_error(window[0], window[1], window[2], n=1, error_type="inserted"):
-                character_duplication_errors.append(window[1])
-            if check_operation_for_ngram_duplication_error(window[0], window[1], window[2], n=1, error_type="deleted"):
-                removed_duplicate_character_errors.append(window[1])
+            if check_operation_for_ngram_duplication_error(
+                window[0], window[1], window[2], n=1, error_type="inserted", tokenizer=tokenizer
+            ):
+                token_duplication_errors.append(window[1])
+            if check_operation_for_ngram_duplication_error(
+                window[0], window[1], window[2], n=1, error_type="deleted", tokenizer=tokenizer
+            ):
+                removed_duplicate_token_errors.append(window[1])
             if check_operation_for_diacritic_error(window[0], window[1], window[2]):
                 diacritic_errors.append(window[1])
             if check_operation_for_confusable_error(window[0], window[1], window[2], tokenizer=tokenizer):
@@ -494,8 +528,8 @@ class AlignmentError:
             raw_alignment=tuple(raw_alignment),
             unique_alignment=unique_alignment,
             horisontal_segmentation_errors=tuple(horisontal_segmentation_errors),
-            character_duplication_errors=tuple(character_duplication_errors),
-            removed_duplicate_character_errors=tuple(removed_duplicate_character_errors),
+            token_duplication_errors=tuple(token_duplication_errors),
+            removed_duplicate_token_errors=tuple(removed_duplicate_token_errors),
             diacritic_errors=tuple(diacritic_errors),
             confusable_errors=tuple(confusable_errors),
             case_errors=tuple(case_errors),
@@ -536,15 +570,25 @@ class AlignmentError:
     __str__ = __repr__
 
 
-# TODO: consider what we want to do with property docstrings
+# TODO: consider what we want to do with property docstrings versus attribute docstrings
 @dataclass(frozen=True, slots=False)
 class TranscriptionEvaluator:
     # TODO consider changing this name
-    """Utility class for evaluating all samples in a dataset."""
+    """Utility class for evaluating all samples in a dataset.
 
-    references: tuple[str, ...]  #: Reference strings
-    predictions: tuple[str, ...]  #: Strings to align with corresponding references.
-    alignment_errors: tuple[AlignmentError, ...]  #: Alignment errors, one per sample.
+    Parameters
+    ----------
+    references:
+        Reference strings
+    predictions:
+        Strings to align with corresponding references.
+    alignment_errors:
+        Alignment errors, one per sample.
+    """
+
+    references: tuple[str, ...]
+    predictions: tuple[str, ...]
+    alignment_errors: tuple[AlignmentError, ...]
 
     def dump(self) -> list[dict[Hashable, Hashable]]:
         """Convert the alignment errors to dictionaries, where the error classifications are converted to booleans.
@@ -573,7 +617,7 @@ class TranscriptionEvaluator:
         return (err for err in self.alignment_errors if err.horisontal_segmentation_errors)
 
     @property
-    def character_duplication_errors(self) -> Generator[AlignmentError, None, None]:
+    def token_duplication_errors(self) -> Generator[AlignmentError, None, None]:
         """:class:`AlignmentError` instances that contain at least one edit due to a duplication error.
 
         An alignment is said to contain a duplication error if at least one token is duplicated in the prediction
@@ -585,10 +629,10 @@ class TranscriptionEvaluator:
         ------
         AlignmentError
         """
-        return (err for err in self.alignment_errors if err.character_duplication_errors)
+        return (err for err in self.alignment_errors if err.token_duplication_errors)
 
     @property
-    def removed_duplicate_character_errors(self) -> Generator[AlignmentError, None, None]:
+    def removed_duplicate_token_errors(self) -> Generator[AlignmentError, None, None]:
         """:class:`AlignmentError` instances that contain at least one edit due to a missed duplicated token.
 
         An alignment is said to contain a removed duplicate token error if at least one token is duplicated in the
@@ -600,7 +644,7 @@ class TranscriptionEvaluator:
         ------
         AlignmentError
         """
-        return (err for err in self.alignment_errors if err.removed_duplicate_character_errors)
+        return (err for err in self.alignment_errors if err.removed_duplicate_token_errors)
 
     @property
     def diacritic_errors(self) -> Generator[AlignmentError, None, None]:
@@ -673,7 +717,7 @@ class TranscriptionEvaluator:
 
     @cached_property
     def alignment_error_raw_lookup(self) -> dict[AlignmentOperation, frozenset[AlignmentError]]:
-        """Mapping from alignment operations to sets of :class:`AlignmentError`s with that operation in the raw alignment.
+        """Mapping from alignment operations to sets of :class:`AlignmentError` with that operation in the raw alignment.
 
         This function is used to find all samples that contain specific alignment operations. It can, for example be
         used to identify all lines that contain a specific error a transcription model makes, which again can be useful
@@ -688,7 +732,7 @@ class TranscriptionEvaluator:
 
     @cached_property
     def alignment_error_combined_lookup(self) -> dict[AlignmentOperation, frozenset[AlignmentError]]:
-        """Mapping from alignment operations to sets of :class:`AlignmentError`s with that operation in the combined alignment.
+        """Mapping from alignment operations to sets of :class:`AlignmentError` with that operation in the combined alignment.
 
         This function is used to find all samples that contain specific alignment operations. It can, for example be
         used to identify all lines that contain a specific error a transcription model makes, which again can be useful

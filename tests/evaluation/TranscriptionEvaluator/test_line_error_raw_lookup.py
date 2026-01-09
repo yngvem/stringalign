@@ -7,10 +7,10 @@ def test_raw_lookup():
         references=["abc", "def", "aaa"],
         predictions=["bbc", "deg", "abb"],
     )
-    assert evaluator.line_error_raw_lookup[Replaced("a", "b")] == frozenset(
+    assert evaluator.alignment_error_raw_lookup[Replaced("a", "b")] == frozenset(
         {evaluator.alignment_errors[0], evaluator.alignment_errors[2]}
     )
-    assert evaluator.line_error_raw_lookup[Replaced("f", "g")] == frozenset(
+    assert evaluator.alignment_error_raw_lookup[Replaced("f", "g")] == frozenset(
         {
             evaluator.alignment_errors[1],
         }

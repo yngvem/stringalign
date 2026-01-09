@@ -17,6 +17,6 @@ def test_visualize_calls_create_html(monkeypatch: pytest.MonkeyPatch) -> None:
     out_html = line_error.visualize(which="raw", space_alignment_ops=True)
     mock_function.assert_called_once_with(
         alignment=line_error.raw_alignment,
-        space_tokens=True,
+        space_alignment_ops=True,
     )
     assert out_html == '<div class="alignment">Mocked HTML</div>'

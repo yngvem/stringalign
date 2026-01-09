@@ -4,9 +4,8 @@ from stringalign.align import levenshtein_distance
 from stringalign.normalize import StringNormalizer
 
 
-# TODO: Make this function accept a tokenizer
 def count_diacritic_errors(reference: str, predicted: str) -> int:
-    """Count the number of errors that are solely due to mispredicted (missing, inserted or replaced) diacritics.
+    """Count the number of character errors solely due to mispredicted (missing, inserted or replaced) diacritics.
 
     The function resolves confusables and normalizes the string to normalized decomposed form.
     Then it removes all nonspacing marks and checks if the resulting strings are equal.

@@ -2,9 +2,8 @@ import stringalign
 from stringalign.align import levenshtein_distance
 
 
-# TODO: Make this function accept a tokenizer
 def count_case_errors(reference: str, predicted: str) -> int:
-    """Count the number of errors that are solely due to mistaken casing.
+    """Count the number of character errors that are solely due to mistaken casing.
 
     This function counts the number of edits we can avoid if we make casefold the strings before aligning them.
 
