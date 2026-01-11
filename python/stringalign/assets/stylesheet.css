@@ -11,6 +11,7 @@
 
 .alignment-chunk, .alignment-labels {
     display: inline-block;
+    min-width: 1em;
 }
 .alignment-chunk.spaced {
     margin-left: 0.5em;

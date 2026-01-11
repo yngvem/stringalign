@@ -1,8 +1,11 @@
+import string
 from collections.abc import Iterable
+from inspect import cleandoc
 from typing import Callable, Protocol
 
 import stringalign._stringutils
 from stringalign.normalize import StringNormalizer
+from stringalign.utils import _indent
 
 
 class Tokenizer(Protocol):
@@ -78,7 +81,29 @@ def add_join(sep: str = " ") -> Callable[[Callable[[str], list[str]]], Tokenizer
     return decorator
 
 
-class GraphemeClusterTokenizer:
+# TODO: Change name of pre_clustering and post_clustering normalizers: Should be pre tokenizing maybe?
+
+
+class TokenizerReprMixin:
+    def __repr__(self) -> str:
+        # We include these assertions to stop mypy from complaining. This is a mixin class, and all classes that inherit
+        # from it has these attributes, so assertions are perfectly fine.
+        assert hasattr(self, "pre_tokenization_normalizer")
+        assert hasattr(self, "post_tokenization_normalizer")
+
+        template = string.Template(
+            cleandoc(f"""{type(self).__name__}(
+                            pre_tokenization_normalizer=$pre_tokenization_normalizer,
+                            post_tokenization_normalizer=$post_tokenization_normalizer
+                        )""")
+        )
+        return template.substitute(
+            pre_tokenization_normalizer=_indent(str(self.pre_tokenization_normalizer), 4, skip=1),
+            post_tokenization_normalizer=_indent(str(self.post_tokenization_normalizer), 4, skip=1),
+        )
+
+
+class GraphemeClusterTokenizer(TokenizerReprMixin):
     """Turn a text string into a list of extended grapheme clusters :cite:p:`unicode-annex-29`.
 
     This code uses the `unicode_segmentation`_ Rust crate to do split the text string into
@@ -86,9 +111,9 @@ class GraphemeClusterTokenizer:
 
     Parameters
     ----------
-    pre_clustering_normalizer:
+    pre_tokenization_normalizer:
         An optional :py:class:`StringNormalizer` to apply before splitting into extended grapheme clusters.
-    post_clustering_normalizer:
+    post_tokenization_normalizer:
         An optional :py:class:`StringNormalizer` to apply to each token after splitting.
 
     Examples
@@ -102,23 +127,23 @@ class GraphemeClusterTokenizer:
 
     def __init__(
         self,
-        pre_clustering_normalizer: StringNormalizer | None = None,
-        post_clustering_normalizer: StringNormalizer | None = None,
+        pre_tokenization_normalizer: StringNormalizer | None = None,
+        post_tokenization_normalizer: StringNormalizer | None = None,
     ) -> None:
-        self.pre_clustering_normalizer = pre_clustering_normalizer or StringNormalizer()
-        self.post_clustering_normalizer = post_clustering_normalizer or StringNormalizer()
+        self.pre_tokenization_normalizer = pre_tokenization_normalizer or StringNormalizer()
+        self.post_tokenization_normalizer = post_tokenization_normalizer or StringNormalizer()
 
     def __call__(self, text: str) -> list[str]:
-        text = self.pre_clustering_normalizer(text)
+        text = self.pre_tokenization_normalizer(text)
         clusters = stringalign._stringutils.grapheme_clusters(text)
-        clusters = [self.post_clustering_normalizer(cluster) for cluster in clusters]
+        clusters = [self.post_tokenization_normalizer(cluster) for cluster in clusters]
         return clusters
 
     def join(self, tokens: Iterable[str]) -> str:
         return "".join(tokens)
 
 
-class UnicodeWordTokenizer:
+class UnicodeWordTokenizer(TokenizerReprMixin):
     """Turn a text string into a list of extracted words as described in :cite:p:`unicode-annex-29`.
 
     This code uses the `unicode_segmentation`_ Rust crate to do split the text string into
@@ -126,9 +151,9 @@ class UnicodeWordTokenizer:
 
     Parameters
     ----------
-    pre_clustering_normalizer:
+    pre_tokenization_normalizer:
         An optional :py:class:`StringNormalizer` to apply before splitting into words.
-    post_clustering_normalizer:
+    post_tokenization_normalizer:
         An optional :py:class:`StringNormalizer` to apply to each token after splitting.
 
     Examples
@@ -144,32 +169,32 @@ class UnicodeWordTokenizer:
 
     def __init__(
         self,
-        pre_clustering_normalizer: StringNormalizer | None = None,
-        post_clustering_normalizer: StringNormalizer | None = None,
+        pre_tokenization_normalizer: StringNormalizer | None = None,
+        post_tokenization_normalizer: StringNormalizer | None = None,
     ) -> None:
-        self.pre_clustering_normalizer = pre_clustering_normalizer or StringNormalizer()
-        self.post_clustering_normalizer = post_clustering_normalizer or StringNormalizer()
+        self.pre_tokenization_normalizer = pre_tokenization_normalizer or StringNormalizer()
+        self.post_tokenization_normalizer = post_tokenization_normalizer or StringNormalizer()
 
     def __call__(self, text: str) -> list[str]:
-        text = self.pre_clustering_normalizer(text)
+        text = self.pre_tokenization_normalizer(text)
         clusters = stringalign._stringutils.unicode_words(text)
-        clusters = [self.post_clustering_normalizer(cluster) for cluster in clusters]
+        clusters = [self.post_tokenization_normalizer(cluster) for cluster in clusters]
         return clusters
 
     def join(self, tokens: Iterable[str]) -> str:
         return " ".join(tokens)
 
 
-class SplitAtWordBoundaryTokenizer:
+class SplitAtWordBoundaryTokenizer(TokenizerReprMixin):
     """Turn a text string into a list of tokens by splitting at word boundaries as described in :cite:p:`unicode-annex-29`.
 
     This code uses the `unicode_segmentation`_ Rust crate to split the text string at word boundaries.
 
     Parameters
     ----------
-    pre_clustering_normalizer:
+    pre_tokenization_normalizer:
         An optional :py:class:`StringNormalizer` to apply before splitting at word boundaries.
-    post_clustering_normalizer:
+    post_tokenization_normalizer:
         An optional :py:class:`StringNormalizer` to apply to each token after splitting.
     remove_whitespace:
         If True, remove tokens that are only whitespace after splitting.
@@ -192,18 +217,18 @@ class SplitAtWordBoundaryTokenizer:
 
     def __init__(
         self,
-        pre_clustering_normalizer: StringNormalizer | None = None,
-        post_clustering_normalizer: StringNormalizer | None = None,
+        pre_tokenization_normalizer: StringNormalizer | None = None,
+        post_tokenization_normalizer: StringNormalizer | None = None,
         remove_whitespace: bool = False,
     ) -> None:
-        self.pre_clustering_normalizer = pre_clustering_normalizer or StringNormalizer()
-        self.post_clustering_normalizer = post_clustering_normalizer or StringNormalizer()
+        self.pre_tokenization_normalizer = pre_tokenization_normalizer or StringNormalizer()
+        self.post_tokenization_normalizer = post_tokenization_normalizer or StringNormalizer()
         self.remove_whitespace = remove_whitespace
 
     def __call__(self, text: str) -> list[str]:
-        text = self.pre_clustering_normalizer(text)
+        text = self.pre_tokenization_normalizer(text)
         clusters: Iterable[str] = stringalign._stringutils.split_at_word_boundaries(text)
-        clusters = (self.post_clustering_normalizer(cluster) for cluster in clusters)
+        clusters = (self.post_tokenization_normalizer(cluster) for cluster in clusters)
 
         if self.remove_whitespace:
             clusters = (cluster for cluster in clusters if cluster.strip())
@@ -214,7 +239,7 @@ class SplitAtWordBoundaryTokenizer:
         return "".join(tokens)
 
 
-class SplitAtWhitespaceTokenizer:
+class SplitAtWhitespaceTokenizer(TokenizerReprMixin):
     """Turn a text string into a list of words by splitting at whitespace characters.
 
     This tokenizer will split at any whitespace character, including spaces, tabs, newlines and
@@ -223,9 +248,9 @@ class SplitAtWhitespaceTokenizer:
 
     Parameters
     ----------
-    pre_clustering_normalizer:
+    pre_tokenization_normalizer:
         An optional :py:class:`StringNormalizer` to apply before splitting at whitespace.
-    post_clustering_normalizer:
+    post_tokenization_normalizer:
         An optional :py:class:`StringNormalizer` to apply to each token after splitting.
 
     Examples
@@ -239,16 +264,16 @@ class SplitAtWhitespaceTokenizer:
 
     def __init__(
         self,
-        pre_clustering_normalizer: StringNormalizer | None = None,
-        post_clustering_normalizer: StringNormalizer | None = None,
+        pre_tokenization_normalizer: StringNormalizer | None = None,
+        post_tokenization_normalizer: StringNormalizer | None = None,
     ) -> None:
-        self.pre_clustering_normalizer = pre_clustering_normalizer or StringNormalizer()
-        self.post_clustering_normalizer = post_clustering_normalizer or StringNormalizer()
+        self.pre_tokenization_normalizer = pre_tokenization_normalizer or StringNormalizer()
+        self.post_tokenization_normalizer = post_tokenization_normalizer or StringNormalizer()
 
     def __call__(self, text: str) -> list[str]:
-        text = self.pre_clustering_normalizer(text)
+        text = self.pre_tokenization_normalizer(text)
         clusters = text.split()
-        clusters = [self.post_clustering_normalizer(cluster) for cluster in clusters]
+        clusters = [self.post_tokenization_normalizer(cluster) for cluster in clusters]
         return clusters
 
     def join(self, tokens: Iterable[str]) -> str:

@@ -24,7 +24,7 @@ def count_case_errors(reference: str, predicted: str) -> int:
         reference,
         predicted,
         tokenizer=stringalign.tokenize.GraphemeClusterTokenizer(
-            post_clustering_normalizer=stringalign.normalize.StringNormalizer(case_insensitive=True)
+            post_tokenization_normalizer=stringalign.normalize.StringNormalizer(case_insensitive=True)
         ),
     )
 

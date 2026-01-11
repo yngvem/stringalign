@@ -19,7 +19,7 @@ def test_simple_example() -> None:
 @hypothesis.given(text=string_strategy)
 def test_join_roundtrip(text):
     tokenizer = GraphemeClusterTokenizer()
-    text = tokenizer.pre_clustering_normalizer(text)
+    text = tokenizer.pre_tokenization_normalizer(text)
 
     tokens = tokenizer(text)
     assert tokenizer.join(tokens) == text
@@ -29,7 +29,7 @@ def test_join_roundtrip(text):
 def test_tokens_are_atomic(text):
     """Tokenizing a token should not change the token"""
     tokenizer = GraphemeClusterTokenizer()
-    text = tokenizer.pre_clustering_normalizer(text)
+    text = tokenizer.pre_tokenization_normalizer(text)
 
     tokens = tokenizer(text)
     hypothesis.assume(tokens)  # Skip test if there are no tokens (i.e. only whitespace in text)

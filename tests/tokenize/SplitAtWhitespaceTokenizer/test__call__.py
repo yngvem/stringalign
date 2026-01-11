@@ -23,7 +23,7 @@ def test_nonspace_whitespace(separator) -> None:
 @hypothesis.given(words=list_of_random_words_strategy)
 def test_join_roundtrip(words):
     tokenizer = SplitAtWhitespaceTokenizer()
-    words = [tokenizer.pre_clustering_normalizer(word) for word in words]
+    words = [tokenizer.pre_tokenization_normalizer(word) for word in words]
     text = " ".join(words)
 
     tokens = tokenizer(text)

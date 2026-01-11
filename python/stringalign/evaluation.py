@@ -1,8 +1,10 @@
+import string
 from collections import Counter, defaultdict, deque
 from collections.abc import Generator, Hashable, Iterator, Mapping
 from copy import deepcopy
 from dataclasses import dataclass
 from functools import cached_property
+from inspect import cleandoc
 from itertools import chain
 from typing import Any, Iterable, Literal, Self, TypeVar
 
@@ -22,6 +24,7 @@ from stringalign.error_classification.duplication_error import check_ngram_dupli
 from stringalign.normalize import StringNormalizer
 from stringalign.statistics import StringConfusionMatrix
 from stringalign.tokenize import Tokenizer
+from stringalign.utils import _indent
 from stringalign.visualize import HtmlString, create_alignment_html
 
 T = TypeVar("T")
@@ -325,7 +328,7 @@ class FrozenDict(Mapping[Hashable, Any]):
 
 
 @dataclass(frozen=True, slots=False)
-class AlignmentError:
+class AlignmentAnalyzer:
     """Utility data class that represents the errors for a single sample (reference/predicted pair)
 
     Parameters
@@ -387,7 +390,7 @@ class AlignmentError:
     case_errors: AlignmentTuple
 
     metadata: FrozenDict | None
-    tokenizer: Tokenizer | None
+    tokenizer: Tokenizer
 
     def summarise(self) -> dict[Hashable, Hashable]:
         """Convert this utility class to a dictionary, where the error classifications are converted to booleans.
@@ -436,7 +439,7 @@ class AlignmentError:
         metadata: Mapping[Hashable, Hashable] | None = None,
     ) -> Self:
         """
-        Create a AlignmentError based on a reference string and a predicted string given a tokenizer.
+        Create a AlignmentAnalyzer based on a reference string and a predicted string given a tokenizer.
 
         Parameters
         ----------
@@ -457,8 +460,8 @@ class AlignmentError:
 
         Returns
         -------
-        alignment_error : AlignmentError
-            The AlignmentError object.
+        alignment_error : AlignmentAnalyzer
+            The AlignmentAnalyzer object.
         """
         if tokenizer is None:
             tokenizer = stringalign.tokenize.DEFAULT_TOKENIZER
@@ -565,15 +568,33 @@ class AlignmentError:
         return create_alignment_html(alignment=alignment, space_alignment_ops=space_alignment_ops)
 
     def __repr__(self) -> str:
-        return f"LineError('{self.reference}', '{self.predicted}', metadata={self.metadata})"
+        repr_template = string.Template(
+            cleandoc(
+                """AlignmentAnalyzer(
+                reference=$reference,
+                predicted=$predicted,
+                metadata=$metadata,
+                tokenizer=$tokenizer
+            )"""
+            )
+        )
+        return repr_template.substitute(
+            reference=repr(self.reference),
+            predicted=repr(self.predicted),
+            metadata=repr(self.metadata),
+            tokenizer=_indent(
+                repr(self.tokenizer),
+                n_spaces=4,
+                skip=1,
+            ),
+        )
 
     __str__ = __repr__
 
 
 # TODO: consider what we want to do with property docstrings versus attribute docstrings
 @dataclass(frozen=True, slots=False)
-class TranscriptionEvaluator:
-    # TODO consider changing this name
+class MultiAlignmentAnalyzer:
     """Utility class for evaluating all samples in a dataset.
 
     Parameters
@@ -588,7 +609,8 @@ class TranscriptionEvaluator:
 
     references: tuple[str, ...]
     predictions: tuple[str, ...]
-    alignment_errors: tuple[AlignmentError, ...]
+    alignment_errors: tuple[AlignmentAnalyzer, ...]
+    tokenizer: stringalign.tokenize.Tokenizer
 
     def dump(self) -> list[dict[Hashable, Hashable]]:
         """Convert the alignment errors to dictionaries, where the error classifications are converted to booleans.
@@ -604,21 +626,21 @@ class TranscriptionEvaluator:
         return [le.summarise() for le in self.alignment_errors]
 
     @property
-    def horisontal_segmentation_errors(self) -> Generator[AlignmentError, None, None]:
-        """:class:`AlignmentError` instances that contain at least one edit due to a segmentation error.
+    def horisontal_segmentation_errors(self) -> Generator[AlignmentAnalyzer, None, None]:
+        """:class:`AlignmentAnalyzer` instances with at least one edit due to a segmentation error.
 
         An alignment is said to contain a horisontal segmentation error if there is an edit at the start or end of the
         alignment. See :func:`check_operation_for_horizontal_segmentation_error` for more information.
 
         Yields
         ------
-        AlignmentError
+        AlignmentAnalyzer
         """
         return (err for err in self.alignment_errors if err.horisontal_segmentation_errors)
 
     @property
-    def token_duplication_errors(self) -> Generator[AlignmentError, None, None]:
-        """:class:`AlignmentError` instances that contain at least one edit due to a duplication error.
+    def token_duplication_errors(self) -> Generator[AlignmentAnalyzer, None, None]:
+        """:class:`AlignmentAnalyzer` instances with at least one edit due to a duplication error.
 
         An alignment is said to contain a duplication error if at least one token is duplicated in the prediction
         where it is not duplicated in the reference. For example, transcribing ``"hello"`` as ``"helllo"`` would
@@ -627,13 +649,13 @@ class TranscriptionEvaluator:
 
         Yields
         ------
-        AlignmentError
+        AlignmentAnalyzer
         """
         return (err for err in self.alignment_errors if err.token_duplication_errors)
 
     @property
-    def removed_duplicate_token_errors(self) -> Generator[AlignmentError, None, None]:
-        """:class:`AlignmentError` instances that contain at least one edit due to a missed duplicated token.
+    def removed_duplicate_token_errors(self) -> Generator[AlignmentAnalyzer, None, None]:
+        """:class:`AlignmentAnalyzer` instances with at least one edit due to a missed duplicated token.
 
         An alignment is said to contain a removed duplicate token error if at least one token is duplicated in the
         reference where it is duplicated in the prediction. For example, transcribing ``"hello"`` as ``"helo"`` would
@@ -642,13 +664,13 @@ class TranscriptionEvaluator:
 
         Yields
         ------
-        AlignmentError
+        AlignmentAnalyzer
         """
         return (err for err in self.alignment_errors if err.removed_duplicate_token_errors)
 
     @property
-    def diacritic_errors(self) -> Generator[AlignmentError, None, None]:
-        """:class:`AlignmentError` instances that contain at least one edit due to wrongly placed or missing diacritics.
+    def diacritic_errors(self) -> Generator[AlignmentAnalyzer, None, None]:
+        """:class:`AlignmentAnalyzer` instances with at least one edit due to wrongly placed or missing diacritics.
 
         An alignment is said to contain a diacritic error if at least one of the edits would change into a Kept if we
         remove all diacritics. Note that this function also resolves confusables to be able to correctly remove
@@ -657,13 +679,13 @@ class TranscriptionEvaluator:
 
         Yields
         ------
-        AlignmentError
+        AlignmentAnalyzer
         """
         return (err for err in self.alignment_errors if err.diacritic_errors)
 
     @property
-    def confusable_errors(self) -> Generator[AlignmentError, None, None]:
-        """:class:`AlignmentError` instances that contain at least one edit from interchanging confusable characters.
+    def confusable_errors(self) -> Generator[AlignmentAnalyzer, None, None]:
+        """:class:`AlignmentAnalyzer` instances with at least one edit from interchanging confusable characters.
 
         An alignment is said to contain a confusable error if at least one of the edits would change into a Kept if we
         resolve confusables. See :func:`check_operation_for_confusable_error` and
@@ -671,13 +693,13 @@ class TranscriptionEvaluator:
 
         Yields
         ------
-        AlignmentError
+        AlignmentAnalyzer
         """
         return (err for err in self.alignment_errors if err.confusable_errors)
 
     @property
-    def case_errors(self) -> Generator[AlignmentError, None, None]:
-        """:class:`AlignmentError` instances that contain at least one edit from mixing upper- and lower-case letters.
+    def case_errors(self) -> Generator[AlignmentAnalyzer, None, None]:
+        """:class:`AlignmentAnalyzer` instances with at least one edit from mixing upper- and lower-case letters.
 
         An alignment is said to contain a case error if at least one of the edits would change into a Kept if we
         case fold the contents. See :func:`check_operation_for_case_error` and
@@ -685,20 +707,20 @@ class TranscriptionEvaluator:
 
         Yields
         ------
-        AlignmentError
+        AlignmentAnalyzer
         """
         return (err for err in self.alignment_errors if err.case_errors)
 
     @property
-    def not_unique_alignments(self) -> Generator[AlignmentError]:
-        """:class:`AlignmentError` instances whose alignments are not unique.
+    def not_unique_alignments(self) -> Generator[AlignmentAnalyzer]:
+        """:class:`AlignmentAnalyzer` instances whose alignments are not unique.
 
         This is useful to assess why alignments might not be unique. For example, whether the non-uniqueness stems from
         duplicated or transposed tokens.
 
         Yields
         ------
-        AlignmentError
+        AlignmentAnalyzer
         """
         return (err for err in self.alignment_errors if not err.unique_alignment)
 
@@ -716,8 +738,8 @@ class TranscriptionEvaluator:
         return sum((ae.confusion_matrix for ae in self.alignment_errors), start=StringConfusionMatrix.get_empty())
 
     @cached_property
-    def alignment_error_raw_lookup(self) -> dict[AlignmentOperation, frozenset[AlignmentError]]:
-        """Mapping from alignment operations to sets of :class:`AlignmentError` with that operation in the raw alignment.
+    def alignment_error_raw_lookup(self) -> dict[AlignmentOperation, frozenset[AlignmentAnalyzer]]:
+        """Mapping from alignment operations to sets of :class:`AlignmentAnalyzer` with that operation in the raw alignment.
 
         This function is used to find all samples that contain specific alignment operations. It can, for example be
         used to identify all lines that contain a specific error a transcription model makes, which again can be useful
@@ -731,8 +753,8 @@ class TranscriptionEvaluator:
         return {k: frozenset(v) for k, v in out.items()}
 
     @cached_property
-    def alignment_error_combined_lookup(self) -> dict[AlignmentOperation, frozenset[AlignmentError]]:
-        """Mapping from alignment operations to sets of :class:`AlignmentError` with that operation in the combined alignment.
+    def alignment_error_combined_lookup(self) -> dict[AlignmentOperation, frozenset[AlignmentAnalyzer]]:
+        """Mapping from alignment ops. to sets of :class:`AlignmentAnalyzer` with that operation in the combined alignment.
 
         This function is used to find all samples that contain specific alignment operations. It can, for example be
         used to identify all lines that contain a specific error a transcription model makes, which again can be useful
@@ -746,8 +768,8 @@ class TranscriptionEvaluator:
         return {k: frozenset(v) for k, v in out.items()}
 
     @cached_property
-    def false_positive_lookup(self) -> dict[str, frozenset[AlignmentError]]:
-        """Mapping from tokens to sets of :class:`AlignmentError`s with that false positive token"""
+    def false_positive_lookup(self) -> dict[str, frozenset[AlignmentAnalyzer]]:
+        """Mapping from tokens to sets of :class:`AlignmentAnalyzer`s with that false positive token"""
         out = defaultdict(set)
         for alignment_error in self.alignment_errors:
             for token in alignment_error.confusion_matrix.false_positives:
@@ -756,8 +778,8 @@ class TranscriptionEvaluator:
         return {k: frozenset(v) for k, v in out.items()}
 
     @cached_property
-    def false_negative_lookup(self) -> dict[str, frozenset[AlignmentError]]:
-        """Mapping from tokens to sets of :class:`AlignmentError`s with that false negative token"""
+    def false_negative_lookup(self) -> dict[str, frozenset[AlignmentAnalyzer]]:
+        """Mapping from tokens to sets of :class:`AlignmentAnalyzer`s with that false negative token"""
         out = defaultdict(set)
         for alignment_error in self.alignment_errors:
             for token in alignment_error.confusion_matrix.false_negatives:
@@ -791,7 +813,7 @@ class TranscriptionEvaluator:
 
         Returns
         -------
-        transcription_evaluator: TranscriptionEvaluator
+        transcription_evaluator: MultiAlignmentAnalyzer
         """
         references = tuple(references)
         predictions = tuple(predictions)
@@ -799,7 +821,7 @@ class TranscriptionEvaluator:
             metadata = tuple(None for _ in references)
 
         alignment_errors = tuple(
-            AlignmentError.from_strings(reference, prediction, tokenizer, metadata=metadata)
+            AlignmentAnalyzer.from_strings(reference, prediction, tokenizer, metadata=metadata)
             for reference, prediction, metadata in zip(references, predictions, metadata, strict=True)
         )
 
@@ -807,6 +829,7 @@ class TranscriptionEvaluator:
             references=references,
             predictions=predictions,
             alignment_errors=alignment_errors,
+            tokenizer=alignment_errors[0].tokenizer,
         )
 
     def __len__(self) -> int:
@@ -814,6 +837,282 @@ class TranscriptionEvaluator:
         return len(self.alignment_errors)
 
     def __repr__(self) -> str:
-        return f"TranscriptionEvaluator(len={len(self)})"
+        repr_template = string.Template(
+            cleandoc(
+                """MultiAlignmentAnalyzer(
+                len=$len,
+                tokenizer=$tokenizer
+            )"""
+            )
+        )
+        return repr_template.substitute(
+            len=len(self),
+            tokenizer=_indent(
+                repr(self.tokenizer),
+                n_spaces=4,
+                skip=1,
+            ),
+        )
 
     __str__ = __repr__
+
+
+def compute_ter(
+    reference: str,
+    predicted: str,
+    tokenizer: Tokenizer,
+) -> tuple[float, AlignmentAnalyzer]:
+    """Compute the token error rate (TER) for two strings.
+
+    This is just a convenience function that creates an :class:`AlignmentAnalyzer` and computes the TER with the
+    :meth:`stringalign.statistics.StringConfusionMatrix.compute_token_error_rate` method of the
+    :class:`AlignmentAnalyzer`'s :class:`stringalign.statistics.StringConfusionMatrix`.
+
+    For more information about the TER, see :ref:`_token_error_rate`.
+
+    Parameters
+    ----------
+    reference
+        The reference string, also known as gold standard and ground truth
+
+    predicted
+        The predicted string
+
+    tokenizer
+        Tokenizer to split the string into a iterable of tokens.
+
+
+    Returns
+    -------
+    float
+        The TER
+
+    AlignmentAnalyzer
+        The alignment analyzer used to compute the TER (token error rate)
+
+    See also
+    --------
+    stringalign.evaluation.compute_cer
+    stringalign.evaluation.compute_wer
+    stringalign.evaluation.AlignmentAnalyzer
+    stringalign.statistics.StringConfusionMatrix
+
+    Examples
+    --------
+
+    If we use a :class:`stringalign.tokenize.GraphemeClusterTokenizer`, we compute the character error rate:
+
+    >>> tokenizer = stringalign.tokenize.GraphemeClusterTokenizer()
+    >>> ter, analyzer = compute_ter("Hi there", "He there", tokenizer=tokenizer)
+    >>> ter
+    0.125
+    >>> analyzer.confusion_matrix.compute_token_error_rate()
+    0.125
+    >>> cer, _analyzer = compute_cer("Hi there", "He there")
+    >>> cer
+    0.125
+
+    And if we use a :class:`stringalign.tokenize.SplitAtWordBoundaryTokenizer`, we compute a word error rate:
+
+    >>> tokenizer = stringalign.tokenize.SplitAtWordBoundaryTokenizer()
+    >>> ter, analyzer = compute_ter("Hi there", "He there", tokenizer=tokenizer)
+    >>> ter
+    0.5
+    >>> analyzer.confusion_matrix.compute_token_error_rate()
+    0.5
+    >>> wer, _analyzer = compute_wer("Hi there", "He there", word_definition="whitespace")
+    >>> wer
+    0.5
+    >>> analyzer
+    AlignmentAnalyzer(
+        reference='Hello',
+        predicted='Halo',
+        metadata=None,
+        tokenizer=SplitAtWordBoundaryTokenizer(
+            pre_tokenization_normalizer=StringNormalizer(
+                normalization='NFC',
+                case_insensitive=False,
+                normalize_whitespace=False,
+                remove_whitespace=False,
+                remove_non_word_characters=False,
+                resolve_confusables=None,
+            ),
+            post_tokenization_normalizer=StringNormalizer(
+                normalization='NFC',
+                case_insensitive=False,
+                normalize_whitespace=False,
+                remove_whitespace=False,
+                remove_non_word_characters=False,
+                resolve_confusables=None,
+            )
+        )
+    )
+    """
+
+    analyzer = AlignmentAnalyzer.from_strings(
+        reference=reference,
+        predicted=predicted,
+        tokenizer=tokenizer,
+    )
+    return analyzer.confusion_matrix.compute_token_error_rate(), analyzer
+
+
+def compute_wer(
+    reference: str,
+    predicted: str,
+    word_definition: Literal["whitespace", "unicode", "unicode_word_boundary"] = "whitespace",
+) -> tuple[float, AlignmentAnalyzer]:
+    """Compute the WER for two strings.
+
+    This is just a convenience function that creates an :class:`AlignmentAnalyzer` with an appropriate tokenizer and
+    computes the WER with the :meth:`stringalign.statistics.StringConfusionMatrix.compute_token_error_rate` method of
+    the :class:`AlignmentAnalyzer`'s :class:`stringalign.statistics.StringConfusionMatrix`.
+
+    For more information about the WER, see :ref:`_token_error_rate`.
+
+    Parameters
+    ----------
+    reference
+        The reference string, also known as gold standard and ground truth
+
+    predicted
+        The predicted string
+
+    word_definition
+        How words are defined for the WER. Used to select tokenizer:
+
+        * ``"whitespace"``: :class:`stringalign.tokenize.SplitAtWhitespaceTokenizer`(default)
+        * ``"unicode"``: :class:`stringalign.tokenize.UnicodeWordTokenizer
+        * ``"unicode_boundary"``: :class:`stringalign.tokenize.SplitAtWordBoundaryTokenizer`(default)
+
+    Returns
+    -------
+    float
+        The WER
+
+    AlignmentAnalyzer
+        The alignment analyzer used to compute the WER (via the token error rate)
+
+    See also
+    --------
+    stringalign.evaluation.compute_ter
+    stringalign.evaluation.compute_cer
+    stringalign.evaluation.AlignmentAnalyzer
+    stringalign.statistics.StringConfusionMatrix
+
+    Examples
+    --------
+    >>> wer, analyzer = compute_wer("Hello world!", "Hello world")
+    >>> wer
+    0.5
+    >>> analyzer.confusion_matrix.compute_token_error_rate()
+    0.5
+    >>> analyzer
+    AlignmentAnalyzer(
+        reference='Hello world!',
+        predicted='Hello world',
+        metadata=None,
+        tokenizer=SplitAtWhitespaceTokenizer(
+            pre_tokenization_normalizer=StringNormalizer(
+                normalization='NFC',
+                case_insensitive=False,
+                normalize_whitespace=False,
+                remove_whitespace=False,
+                remove_non_word_characters=False,
+                resolve_confusables=None,
+            ),
+            post_tokenization_normalizer=StringNormalizer(
+                normalization='NFC',
+                case_insensitive=False,
+                normalize_whitespace=False,
+                remove_whitespace=False,
+                remove_non_word_characters=False,
+                resolve_confusables=None,
+            )
+        )
+    )
+    """
+    tokenizer: stringalign.tokenize.Tokenizer
+    if word_definition == "whitespace":
+        tokenizer = stringalign.tokenize.SplitAtWhitespaceTokenizer()
+    elif word_definition == "unicode":
+        tokenizer = stringalign.tokenize.UnicodeWordTokenizer()
+    elif word_definition == "unicode_boundary":
+        tokenizer = stringalign.tokenize.SplitAtWordBoundaryTokenizer()
+
+    return compute_ter(reference, predicted, tokenizer)
+
+
+def compute_cer(
+    reference: str,
+    predicted: str,
+) -> tuple[float, AlignmentAnalyzer]:
+    """Compute the CER for two strings.
+
+    This is just a convenience function that creates an :class:`AlignmentAnalyzer` with a
+    :class:`stringalign.tokenize.GraphemeClusterTokenizer` and computes the CER with the
+    :meth:`stringalign.statistics.StringConfusionMatrix.compute_token_error_rate` method of the
+    :class:`AlignmentAnalyzer`'s :class:`stringalign.statistics.StringConfusionMatrix`.
+
+    For more information about the CER, see :ref:`_token_error_rate`.
+
+    Parameters
+    ----------
+    reference
+        The reference string, also known as gold standard and ground truth
+
+    predicted
+        The predicted string
+
+
+    Returns
+    -------
+    float
+        The CER
+
+    AlignmentAnalyzer
+        The alignment analyzer used to compute the CER (via the token error rate)
+
+    See also
+    --------
+    stringalign.evaluation.compute_ter
+    stringalign.evaluation.compute_wer
+    stringalign.evaluation.AlignmentAnalyzer
+    stringalign.statistics.StringConfusionMatrix
+
+    Examples
+    --------
+    >>> tokenizer = stringalign.tokenize.GraphemeClusterTokenizer()
+    >>> ter, analyzer = compute_ter("Hi there", "He there")
+    >>> ter
+    0.125
+    >>> analyzer.confusion_matrix.compute_token_error_rate()
+    0.125
+    >>> analyzer
+    AlignmentAnalyzer(
+        reference='Hello',
+        predicted='Halo',
+        metadata=None,
+        tokenizer=GraphemeClusterTokenizer(
+            pre_tokenization_normalizer=StringNormalizer(
+                normalization='NFC',
+                case_insensitive=False,
+                normalize_whitespace=False,
+                remove_whitespace=False,
+                remove_non_word_characters=False,
+                resolve_confusables=None,
+            ),
+            post_tokenization_normalizer=StringNormalizer(
+                normalization='NFC',
+                case_insensitive=False,
+                normalize_whitespace=False,
+                remove_whitespace=False,
+                remove_non_word_characters=False,
+                resolve_confusables=None,
+            )
+        )
+    )
+    """
+    tokenizer = stringalign.tokenize.GraphemeClusterTokenizer()
+
+    return compute_ter(reference, predicted, tokenizer)

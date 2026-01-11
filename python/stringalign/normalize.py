@@ -65,6 +65,7 @@ def load_confusable_map(confusable_type: Literal["confusables", "intentional"]) 
         return json.load(f)
 
 
+#
 class StringNormalizer:
     """Simple string normalizer, used to remove "irrelevant" differences when comparing strings.
 
@@ -102,6 +103,13 @@ class StringNormalizer:
         self.remove_whitespace = remove_whitespace
         self.remove_non_word_characters = remove_non_word_characters
         self.resolve_confusables = resolve_confusables
+
+    def __repr__(self) -> str:
+        out = f"{self.__class__.__name__}(\n"
+        for key, value in self.__dict__.items():
+            out += f"    {key}={value!r},\n"
+        out += ")"
+        return out
 
     def __call__(self, text: str) -> str:
         # According to Unicode, we should normalize strings before casefolding them.
