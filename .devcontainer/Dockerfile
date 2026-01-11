@@ -12,5 +12,12 @@ RUN apt-get update && \
     pipx install pdm pre-commit && \
     git config --global --add safe.directory '*'
 
+RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && \
+    locale-gen en_GB.UTF-8 && \
+    update-locale LANG=en_GB.UTF-8
+ENV LANG en_GB.UTF-8
+ENV LANGUAGE en_GB.UTF-8
+ENV LC_ALL en_GB.UTF-8
+
 ENV SHELL=bash
 CMD ["/bin/bash"]
