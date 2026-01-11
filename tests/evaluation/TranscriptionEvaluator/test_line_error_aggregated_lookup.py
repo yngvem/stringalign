@@ -1,9 +1,9 @@
 from stringalign.align import Replaced
-from stringalign.evaluation import TranscriptionEvaluator
+from stringalign.evaluation import MultiAlignmentAnalyzer
 
 
 def test_raw_lookup():
-    evaluator = TranscriptionEvaluator.from_strings(
+    evaluator = MultiAlignmentAnalyzer.from_strings(
         references=["abc", "def", "aaa"],
         predictions=["bbc", "deg", "abb"],
     )
