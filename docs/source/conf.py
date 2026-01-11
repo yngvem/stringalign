@@ -23,13 +23,18 @@ extensions = [
     "sphinxcontrib.bibtex",
     "sphinx_book_theme",
     "sphinx_togglebutton",
+    "sphinx_gallery.gen_gallery",
 ]
 
 templates_path = ["_templates"]
 exclude_patterns: list[str] = []
 bibtex_bibfiles = ["bibliography.bib"]
 intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
-
+sphinx_gallery_conf = {
+    "examples_dirs": "../../examples/scripts",
+    "gallery_dirs": "auto_examples",
+    "capture_repr": ("_repr_html_", "__repr__"),
+}
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

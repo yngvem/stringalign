@@ -17,4 +17,5 @@ documentation for details.
 
    api/index
    concepts/index
+   auto_examples/index
    bibliography

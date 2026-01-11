@@ -540,6 +540,12 @@ class AlignmentAnalyzer:
             tokenizer=tokenizer,
         )
 
+    def compute_ter(self) -> float:
+        return self.confusion_matrix.compute_token_error_rate()
+
+    compute_ter.__doc__ = stringalign.statistics.StringConfusionMatrix.compute_token_error_rate.__doc__
+    # TODO: Test
+
     def visualize(self, which: Literal["raw", "combined"] = "raw", space_alignment_ops: bool = False) -> HtmlString:
         """Visualize the alignment (for Jupyter Notebooks).
 
@@ -856,6 +862,11 @@ class MultiAlignmentAnalyzer:
 
     __str__ = __repr__
 
+    def compute_ter(self) -> float:
+        return self.confusion_matrix.compute_token_error_rate()
+
+    # TODO: Docs
+
 
 def compute_ter(
     reference: str,
@@ -1083,7 +1094,7 @@ def compute_cer(
     Examples
     --------
     >>> tokenizer = stringalign.tokenize.GraphemeClusterTokenizer()
-    >>> ter, analyzer = compute_ter("Hi there", "He there")
+    >>> ter, analyzer = compute_cer("Hi there", "He there")
     >>> ter
     0.125
     >>> analyzer.confusion_matrix.compute_token_error_rate()

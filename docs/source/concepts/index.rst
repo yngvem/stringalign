@@ -6,3 +6,4 @@ Concepts
 
     levenshtein
     grapheme_clusters
+    cer_wer_ter

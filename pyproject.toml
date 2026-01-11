@@ -80,4 +80,7 @@ docs = [
     "sphinx-book-theme>=1.1.4",
     "sphinxcontrib-bibtex>=2.6.5",
     "sphinx-togglebutton>=0.3.2",
+    "sphinx-gallery>=0.20.0",
+    "matplotlib>=3.10.8",
+    "jiwer>=4.0.0",
 ]
