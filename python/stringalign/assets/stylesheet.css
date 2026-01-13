@@ -5,8 +5,8 @@
     --kept: hsl(198, 71%, 68%);
     --replaced: hsl(41, 100%, 75%);
     --inserted: hsl(0, 71%, 84%);
-    --neutral: "#fff";
-    font-size: 16px;
+    --neutral: #fff;
+    font-size: 1rem;
 }
 
 .alignment-chunk, .alignment-labels {
