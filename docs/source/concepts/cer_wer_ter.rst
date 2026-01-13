@@ -70,16 +70,16 @@ It would not be possible for someone else to reproduce or compare with the resul
 
 However, this problem is also present for CER and WER.
 In particular for WER as word segmentation is not well defined (for example, how do you consider punctuation? Should the parentheses be counted as separate words? What about hyphenation?)
-And even the CER can change depending on whether you segment characters based on code-points or :ref:`grapheme clusters <_grapheme_clusters>` and how you handle :ref:`unicode normalization <_unicode_normalization>`.
+And even the CER can change depending on whether you segment characters based on code-points or :ref:`grapheme clusters <grapheme_clusters>` and how you handle :ref:`unicode normalization <unicode_normalization>`.
 To ensure reproducable results, you should therefore always report how the characters and words are processed and tokenized whenever you report the CER, WER or TER.
 
 Because of this, Stringalign focuses on transparency whenever these metrics are computed.
 Tokenization is explicit, and whenever the :func:`stringalign.evaluate.compute_cer`, :func:`stringalign.evaluate.compute_wer` or :func:`stringalign.evaluate.compute_ter` convenience functions are used, the user also gets an :class:`stringaign.evaluate.AlignmentAnalyzer` object that displays tokenization details when it is printed.
-See :ref:`_cer_example` for an example of how this works in Stringalign.
+See :ref:`cer_example` for an example of how this works in Stringalign.
 
 
 .. note::
 
     There are two ways of estimating the WER and CER when you have multiple string-pairs to compute:
     You can either sum up the number of insertions, deletions, substitutions and tokens in total, or you can compute WER and CER for each string-pair and average them.
-    Stringalign has built-in support for the former (see :ref:`_cer_example` for more information).
+    Stringalign has built-in support for the former (see :ref:`cer_example` for more information).
