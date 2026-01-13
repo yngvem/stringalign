@@ -25,7 +25,7 @@ def count_confusable_errors(
     tokenizer: Tokenizer
         Tokenizer to use
     consider_confusables
-        Which confusable list to use, see :func:`stringalign.normalize.StringNormalizer` or :ref:`TODO` for more information.
+        Which confusable list to use, see :func:`stringalign.normalize.StringNormalizer` or :ref:`confusables` for more information.
 
     Returns:
     --------

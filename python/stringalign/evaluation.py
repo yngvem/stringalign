@@ -552,6 +552,8 @@ class AlignmentAnalyzer:
         This is a simple wrapper around :func:`stringalign.visualize.create_alignment_html`. Use that function if you
         want to customise the visualisation further.
 
+        See :ref:`_visualize_example` for an example.
+
         Parameters
         ----------
         which
@@ -879,7 +881,7 @@ def compute_ter(
     :meth:`stringalign.statistics.StringConfusionMatrix.compute_token_error_rate` method of the
     :class:`AlignmentAnalyzer`'s :class:`stringalign.statistics.StringConfusionMatrix`.
 
-    For more information about the TER, see :ref:`_token_error_rate`.
+    For more information about the TER, see :ref:`token_error_rate`.
 
     Parameters
     ----------
@@ -979,7 +981,7 @@ def compute_wer(
     computes the WER with the :meth:`stringalign.statistics.StringConfusionMatrix.compute_token_error_rate` method of
     the :class:`AlignmentAnalyzer`'s :class:`stringalign.statistics.StringConfusionMatrix`.
 
-    For more information about the WER, see :ref:`_token_error_rate`.
+    For more information about the WER, see :ref:`token_error_rate`.
 
     Parameters
     ----------
@@ -1065,7 +1067,7 @@ def compute_cer(
     :meth:`stringalign.statistics.StringConfusionMatrix.compute_token_error_rate` method of the
     :class:`AlignmentAnalyzer`'s :class:`stringalign.statistics.StringConfusionMatrix`.
 
-    For more information about the CER, see :ref:`_token_error_rate`.
+    For more information about the CER, see :ref:`token_error_rate`.
 
     Parameters
     ----------

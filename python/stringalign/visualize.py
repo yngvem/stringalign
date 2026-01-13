@@ -89,6 +89,8 @@ def create_alignment_html(
 ) -> HtmlString:
     """Create an HTML representation of the alignment with embedded CSS styles.
 
+    See :ref:`_visualize_example` for an example.
+
     Arguments:
     ----------
     alignment:

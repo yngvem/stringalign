@@ -1,4 +1,6 @@
 """
+.. _cer_example:
+
 Computing the CER and WER
 =========================
 
@@ -12,7 +14,7 @@ import stringalign
 # This class provides a collection of utilities that makes it easy to compare two strings and investigate what their
 # differences are.
 #
-# One way to measure the performance of a predicted text transcription compared to a reference is by calculating the character error rate (CER) and word error rate (WER) which are special cases of the token error rate (TER) (For more details on these metrics see :ref:`_token_error_rate`).
+# One way to measure the performance of a predicted text transcription compared to a reference is by calculating the character error rate (CER) and word error rate (WER) which are special cases of the token error rate (TER) (For more details on these metrics see :ref:`token_error_rate`).
 # To calculate the CER between two strings we first need a chracter-level tokenizer which we use to get an aligmment that we can use to compare the strings.
 #
 # .. sidebar::
@@ -40,13 +42,9 @@ print(f"The character error rate is {cer:.2f}")
 alignment_analyzer.visualize()
 
 # %%
-# We see that there was a :ref:`confusable character <_confusables>` used for the ``H``, and the benefit of this
+# We see that there was a :ref:`confusable character <confusables>` used for the ``H``, and the benefit of this
 # way of computing the CER and WER is that the tokenizer is explicit.
 # If we want to resolve confusables, then we just need to switch out the tokenizer.
-
-# TODO: GAMMEL
-# The benefit of this approach is that the tokenizer is explicit.
-# If we, for example, want the tokenizer to resolve confusables :ref:`confusable characters <_confusables>` we can specify this like so:
 
 reference = "Ηello world!"
 predicted = "Hello world!!"
@@ -131,7 +129,7 @@ print(f"We used this analyzer to compute the WER: {wer_analyzer}")
 # We can also evaluate multiple strings at once.
 # The most obvious way to do that might be to compute the CER for each sample and take an average.
 # However, that approach would put artificially high weight on characters in short strings.
-# Instead, we want to compute the total number of insertions, deletions, substitutions and reference tokens across all strings, and then compute the error rates using the equations defined in :ref:`_token_error_rate`.
+# Instead, we want to compute the total number of insertions, deletions, substitutions and reference tokens across all strings, and then compute the error rates using the equations defined in :ref:`token_error_rate`.
 # To do that in Stringalign, we create a :class:`stringalign.evaluation.MultiAlignmentAnalyzer`
 from stringalign.evaluation import MultiAlignmentAnalyzer
 
