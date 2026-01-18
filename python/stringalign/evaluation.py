@@ -6,6 +6,8 @@ from functools import cached_property
 from itertools import chain
 from typing import Any, Iterable, Literal, Self, TypeVar
 
+import numpy as np
+
 import stringalign
 from stringalign.align import (
     AlignmentOperation,
@@ -194,11 +196,19 @@ class LineError:
         predicted: str,
         tokenizer: Tokenizer | None,
         metadata: Mapping[Hashable, Hashable] | None = None,
+        randomize_alignment: bool = False,
+        random_state: np.random.Generator | int | None = None,
     ) -> Self:
         if tokenizer is None:
             tokenizer = stringalign.tokenize.DEFAULT_TOKENIZER
 
-        raw_alignment, unique_alignment = align_strings(reference, predicted, tokenizer=tokenizer)
+        raw_alignment, unique_alignment = align_strings(
+            reference,
+            predicted,
+            tokenizer=tokenizer,
+            randomize_alignment=randomize_alignment,
+            random_state=random_state,
+        )
         alignment = tuple(combine_alignment_ops(raw_alignment, tokenizer=tokenizer))
         if metadata is not None:
             frozen_metadata = FrozenDict(metadata)
@@ -370,6 +380,8 @@ class TranscriptionEvaluator:
         predictions: Iterable[str],
         tokenizer: Tokenizer | None = None,
         metadata: Iterable[Mapping[Hashable, Hashable] | None] | None = None,
+        randomize_alignment: bool = False,
+        random_state: np.random.Generator | int | None = None,
     ) -> Self:
         references = tuple(references)
         predictions = tuple(predictions)
@@ -377,7 +389,14 @@ class TranscriptionEvaluator:
             metadata = tuple(None for _ in references)
 
         line_errors = tuple(
-            LineError.from_strings(reference, prediction, tokenizer, metadata=metadata)
+            LineError.from_strings(
+                reference,
+                prediction,
+                tokenizer,
+                metadata=metadata,
+                randomize_alignment=randomize_alignment,
+                random_state=random_state,
+            )
             for reference, prediction, metadata in zip(references, predictions, metadata, strict=True)
         )
 

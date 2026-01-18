@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from numbers import Number
 from typing import Self, cast
 
+import numpy as np
+
 import stringalign
 from stringalign.align import AlignmentOperation, Kept, Replaced, align_strings
 from stringalign.tokenize import Tokenizer
@@ -96,11 +98,24 @@ class StringConfusionMatrix:
         )
 
     @classmethod
-    def from_strings(cls, reference: str, predicted: str, tokenizer: Tokenizer | None = None) -> Self:
+    def from_strings(
+        cls,
+        reference: str,
+        predicted: str,
+        tokenizer: Tokenizer | None = None,
+        randomize_alignment: bool = False,
+        random_state: np.random.Generator | int | None = None,
+    ) -> Self:
         if tokenizer is None:
             tokenizer = stringalign.tokenize.DEFAULT_TOKENIZER
 
-        alignment = align_strings(reference, predicted, tokenizer=tokenizer)[0]
+        alignment = align_strings(
+            reference,
+            predicted,
+            tokenizer=tokenizer,
+            randomize_alignment=randomize_alignment,
+            random_state=random_state,
+        )[0]
         return cls.from_strings_and_alignment(reference, predicted, alignment, tokenizer=tokenizer)
 
     @classmethod
