@@ -50,7 +50,7 @@ print(f"The overall CER is {cer}")
 # Look at the performance for the different lines
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-for alignment_error in evaluator.alignment_errors:
+for alignment_error in evaluator.alignment_analyzers:
     sample_cer = alignment_error.confusion_matrix.compute_token_error_rate()
 
     print(f"Reference:\n{alignment_error.reference}\n")

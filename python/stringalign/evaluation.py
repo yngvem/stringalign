@@ -460,7 +460,7 @@ class AlignmentAnalyzer:
 
         Returns
         -------
-        alignment_error : AlignmentAnalyzer
+        alignment_analyzer : AlignmentAnalyzer
             The AlignmentAnalyzer object.
         """
         if tokenizer is None:
@@ -611,13 +611,13 @@ class MultiAlignmentAnalyzer:
         Reference strings
     predictions:
         Strings to align with corresponding references.
-    alignment_errors:
+    alignment_analyzers:
         Alignment errors, one per sample.
     """
 
     references: tuple[str, ...]
     predictions: tuple[str, ...]
-    alignment_errors: tuple[AlignmentAnalyzer, ...]
+    alignment_analyzers: tuple[AlignmentAnalyzer, ...]
     tokenizer: stringalign.tokenize.Tokenizer
 
     def dump(self) -> list[dict[Hashable, Hashable]]:
@@ -631,7 +631,7 @@ class MultiAlignmentAnalyzer:
         summary : list[dict[Hashable, Hashable]]
 
         """
-        return [le.summarise() for le in self.alignment_errors]
+        return [le.summarise() for le in self.alignment_analyzers]
 
     @property
     def horisontal_segmentation_errors(self) -> Generator[AlignmentAnalyzer, None, None]:
@@ -644,7 +644,7 @@ class MultiAlignmentAnalyzer:
         ------
         AlignmentAnalyzer
         """
-        return (err for err in self.alignment_errors if err.horisontal_segmentation_errors)
+        return (err for err in self.alignment_analyzers if err.horisontal_segmentation_errors)
 
     @property
     def token_duplication_errors(self) -> Generator[AlignmentAnalyzer, None, None]:
@@ -659,7 +659,7 @@ class MultiAlignmentAnalyzer:
         ------
         AlignmentAnalyzer
         """
-        return (err for err in self.alignment_errors if err.token_duplication_errors)
+        return (err for err in self.alignment_analyzers if err.token_duplication_errors)
 
     @property
     def removed_duplicate_token_errors(self) -> Generator[AlignmentAnalyzer, None, None]:
@@ -674,7 +674,7 @@ class MultiAlignmentAnalyzer:
         ------
         AlignmentAnalyzer
         """
-        return (err for err in self.alignment_errors if err.removed_duplicate_token_errors)
+        return (err for err in self.alignment_analyzers if err.removed_duplicate_token_errors)
 
     @property
     def diacritic_errors(self) -> Generator[AlignmentAnalyzer, None, None]:
@@ -689,7 +689,7 @@ class MultiAlignmentAnalyzer:
         ------
         AlignmentAnalyzer
         """
-        return (err for err in self.alignment_errors if err.diacritic_errors)
+        return (err for err in self.alignment_analyzers if err.diacritic_errors)
 
     @property
     def confusable_errors(self) -> Generator[AlignmentAnalyzer, None, None]:
@@ -703,7 +703,7 @@ class MultiAlignmentAnalyzer:
         ------
         AlignmentAnalyzer
         """
-        return (err for err in self.alignment_errors if err.confusable_errors)
+        return (err for err in self.alignment_analyzers if err.confusable_errors)
 
     @property
     def case_errors(self) -> Generator[AlignmentAnalyzer, None, None]:
@@ -717,7 +717,7 @@ class MultiAlignmentAnalyzer:
         ------
         AlignmentAnalyzer
         """
-        return (err for err in self.alignment_errors if err.case_errors)
+        return (err for err in self.alignment_analyzers if err.case_errors)
 
     @property
     def not_unique_alignments(self) -> Generator[AlignmentAnalyzer]:
@@ -730,23 +730,61 @@ class MultiAlignmentAnalyzer:
         ------
         AlignmentAnalyzer
         """
-        return (err for err in self.alignment_errors if not err.unique_alignment)
+        return (err for err in self.alignment_analyzers if not err.unique_alignment)
 
     @cached_property
-    def alignment_operation_counts(self) -> Counter[AlignmentOperation]:
+    def alignment_operation_counts(self) -> dict[Literal["raw", "combined"], Counter[AlignmentOperation]]:
         """Count the number of times each alignment operation occurs.
 
         This is useful to identify common mistakes for a transcription model.
+
+        Returns
+        -------
+        Counter[AlignmentOperation]
+            The number of times each alignment operation occurs
+
+        See also
+        --------
+        edit_counts
         """
-        return Counter(op for err in self.alignment_errors for op in err.combined_alignment)
+        return {
+            "combined": Counter(op for analyzer in self.alignment_analyzers for op in analyzer.combined_alignment),
+            "raw": Counter(op for analyzer in self.alignment_analyzers for op in analyzer.raw_alignment),
+        }
+
+    @property
+    def edit_counts(self) -> dict[Literal["raw", "combined"], Counter[AlignmentOperation]]:
+        """Count the number of times each alignment operation representing edits occurs.
+
+        This is useful to identify common mistakes for a transcription model.
+
+        Returns
+        -------
+        Counter[AlignmentOperation]
+            The number of times each edit operation, i.e. alignment operations that represent edit (i.e.
+            :class:`stringalign.align.Deleted`, :class:`stringalign.align.Inserted`, or
+            :class:`stringalign.align.Replaced`, occurs.
+
+        See also
+        --------
+        alignment_operation_counts
+        """
+
+        def remove_kept_from_counter(cnt: Counter[AlignmentOperation]) -> Counter[AlignmentOperation]:
+            return Counter({k: v for k, v in cnt.items() if not isinstance(k, Kept)})
+
+        return {
+            "combined": remove_kept_from_counter(self.alignment_operation_counts["combined"]),
+            "raw": remove_kept_from_counter(self.alignment_operation_counts["raw"]),
+        }
 
     @cached_property
     def confusion_matrix(self) -> StringConfusionMatrix:
         """The micro-averaged confusion matrix for all samples."""
-        return sum((ae.confusion_matrix for ae in self.alignment_errors), start=StringConfusionMatrix.get_empty())
+        return sum((ae.confusion_matrix for ae in self.alignment_analyzers), start=StringConfusionMatrix.get_empty())
 
     @cached_property
-    def alignment_error_raw_lookup(self) -> dict[AlignmentOperation, frozenset[AlignmentAnalyzer]]:
+    def alignment_analyzer_raw_lookup(self) -> dict[AlignmentOperation, frozenset[AlignmentAnalyzer]]:
         """Mapping from alignment operations to sets of :class:`AlignmentAnalyzer` with that operation in the raw alignment.
 
         This function is used to find all samples that contain specific alignment operations. It can, for example be
@@ -754,14 +792,14 @@ class MultiAlignmentAnalyzer:
         for finding mistakes in the references.
         """
         out = defaultdict(set)
-        for alignment_error in self.alignment_errors:
-            for alignment_op in alignment_error.raw_alignment:
-                out[alignment_op].add(alignment_error)
+        for alignment_analyzer in self.alignment_analyzers:
+            for alignment_op in alignment_analyzer.raw_alignment:
+                out[alignment_op].add(alignment_analyzer)
 
         return {k: frozenset(v) for k, v in out.items()}
 
     @cached_property
-    def alignment_error_combined_lookup(self) -> dict[AlignmentOperation, frozenset[AlignmentAnalyzer]]:
+    def alignment_analyzer_combined_lookup(self) -> dict[AlignmentOperation, frozenset[AlignmentAnalyzer]]:
         """Mapping from alignment ops. to sets of :class:`AlignmentAnalyzer` with that operation in the combined alignment.
 
         This function is used to find all samples that contain specific alignment operations. It can, for example be
@@ -769,9 +807,9 @@ class MultiAlignmentAnalyzer:
         for finding mistakes in the references.
         """
         out = defaultdict(set)
-        for alignment_error in self.alignment_errors:
-            for alignment_op in alignment_error.combined_alignment:
-                out[alignment_op].add(alignment_error)
+        for alignment_analyzer in self.alignment_analyzers:
+            for alignment_op in alignment_analyzer.combined_alignment:
+                out[alignment_op].add(alignment_analyzer)
 
         return {k: frozenset(v) for k, v in out.items()}
 
@@ -779,9 +817,9 @@ class MultiAlignmentAnalyzer:
     def false_positive_lookup(self) -> dict[str, frozenset[AlignmentAnalyzer]]:
         """Mapping from tokens to sets of :class:`AlignmentAnalyzer`s with that false positive token"""
         out = defaultdict(set)
-        for alignment_error in self.alignment_errors:
-            for token in alignment_error.confusion_matrix.false_positives:
-                out[token].add(alignment_error)
+        for alignment_analyzer in self.alignment_analyzers:
+            for token in alignment_analyzer.confusion_matrix.false_positives:
+                out[token].add(alignment_analyzer)
 
         return {k: frozenset(v) for k, v in out.items()}
 
@@ -789,9 +827,9 @@ class MultiAlignmentAnalyzer:
     def false_negative_lookup(self) -> dict[str, frozenset[AlignmentAnalyzer]]:
         """Mapping from tokens to sets of :class:`AlignmentAnalyzer`s with that false negative token"""
         out = defaultdict(set)
-        for alignment_error in self.alignment_errors:
-            for token in alignment_error.confusion_matrix.false_negatives:
-                out[token].add(alignment_error)
+        for alignment_analyzer in self.alignment_analyzers:
+            for token in alignment_analyzer.confusion_matrix.false_negatives:
+                out[token].add(alignment_analyzer)
 
         return {k: frozenset(v) for k, v in out.items()}
 
@@ -828,7 +866,7 @@ class MultiAlignmentAnalyzer:
         if metadata is None:
             metadata = tuple(None for _ in references)
 
-        alignment_errors = tuple(
+        alignment_analyzers = tuple(
             AlignmentAnalyzer.from_strings(reference, prediction, tokenizer, metadata=metadata)
             for reference, prediction, metadata in zip(references, predictions, metadata, strict=True)
         )
@@ -836,13 +874,13 @@ class MultiAlignmentAnalyzer:
         return cls(
             references=references,
             predictions=predictions,
-            alignment_errors=alignment_errors,
-            tokenizer=alignment_errors[0].tokenizer,
+            alignment_analyzers=alignment_analyzers,
+            tokenizer=alignment_analyzers[0].tokenizer,
         )
 
     def __len__(self) -> int:
         """The number of samples in the transcription."""
-        return len(self.alignment_errors)
+        return len(self.alignment_analyzers)
 
     def __repr__(self) -> str:
         repr_template = string.Template(

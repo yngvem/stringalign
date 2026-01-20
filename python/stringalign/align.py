@@ -54,6 +54,9 @@ class Deleted:
             f'<span class="deleted predicted"></span>',
         )
 
+    def __str__(self) -> str:
+        return f"DELETED '{self.substring}'"
+
 
 @dataclass(frozen=True, slots=True)
 class Inserted:
@@ -76,6 +79,9 @@ class Inserted:
             f'<span class="inserted reference"></span>',
             f'<span class="inserted predicted">{html.escape(self.substring)}</span>',
         )
+
+    def __str__(self) -> str:
+        return f"INSERTED '{self.substring}'"
 
 
 @dataclass(frozen=True, slots=True)
@@ -113,6 +119,9 @@ class Replaced:
             f'<span class="replaced predicted">{html.escape(self.predicted)}</span>',
         )
 
+    def __str__(self) -> str:
+        return f"REPLACED '{self.reference}' -> '{self.predicted}'"
+
 
 @dataclass(frozen=True, slots=True)
 class Kept:
@@ -148,6 +157,9 @@ class Kept:
             f'<span class="kept reference">{html.escape(self.substring)}</span>',
             f'<span class="kept predicted">{html.escape(self.substring)}</span>',
         )
+
+    def __str__(self) -> str:
+        return f"KEPT '{self.substring}'"
 
 
 @runtime_checkable
