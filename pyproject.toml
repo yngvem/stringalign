@@ -36,6 +36,7 @@ ignore = ["TC006"]
 
 [tool.mypy]
 ignore_missing_imports = true
+exclude = ["examples/", "docs/_build/"]
 
 [tool.bumpversion]
 current_version = "0.0.2"
@@ -83,4 +84,5 @@ docs = [
     "sphinx-gallery>=0.20.0",
     "matplotlib>=3.10.8",
     "jiwer>=4.0.0",
+    "nb-tokenizer>=0.1.0",
 ]

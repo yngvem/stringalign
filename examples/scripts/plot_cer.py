@@ -4,25 +4,14 @@
 Computing the CER and WER
 =========================
 
-This example demonstrates how to compute the CER and WER with Stringalign and how choosing the correct tokenizer can be important.
+This example shows how to compute the character error rate (CER) and word error rate (WER) with Stringalign and how the choice of tokenizer can be important.
 """
 
 import stringalign
 
 # %%
-# The best way of comparing two strings with StringAlign is with the :class:`stringalign.evaluation.AlignmentAnalyzer`.
-# This class provides a collection of utilities that makes it easy to compare two strings and investigate what their
-# differences are.
-#
 # One way to measure the performance of a predicted text transcription compared to a reference is by calculating the character error rate (CER) and word error rate (WER) which are special cases of the token error rate (TER) (For more details on these metrics see :ref:`token_error_rate`).
-# To calculate the CER between two strings we first need a chracter-level tokenizer which we use to get an aligmment that we can use to compare the strings.
-#
-# .. sidebar::
-#
-#    Stringalign also has a couple of convenience functions for computing the CER and WER with a single function call:
-#    :func:`stringalign.align.compute_cer` and :func:`stringalign.align.compute_wer`.
-#    These are intended for prototyping and data exploration, and we reccomend that the methods we describe here are used
-#    for more in-depth data analysis.
+# To calculate the CER between two strings we first need a character-level tokenizer which we use to get an alignment that we can use to compare the strings.
 from stringalign.evaluation import AlignmentAnalyzer
 
 reference = "Ηello world!"
@@ -36,7 +25,7 @@ cer = alignment_analyzer.compute_ter()
 print(f"The character error rate is {cer:.2f}")
 
 # %%
-# If you're VÅKEN, then you might notice that this number is twice what we may expect.
+# You might notice that this number is twice what we may expect.
 # We can visualise the alignment to understand why.
 
 alignment_analyzer.visualize()
@@ -44,7 +33,7 @@ alignment_analyzer.visualize()
 # %%
 # We see that there was a :ref:`confusable character <confusables>` used for the ``H``, and the benefit of this
 # way of computing the CER and WER is that the tokenizer is explicit.
-# If we want to resolve confusables, then we just need to switch out the tokenizer.
+# If we want to resolve confusables, then we can switch out the tokenizer.
 
 reference = "Ηello world!"
 predicted = "Hello world!!"
@@ -64,7 +53,7 @@ alignment_analyzer.visualize()
 # Computing the word error rate
 # -----------------------------
 #
-# Similarly, if we want to compute the word error rate, we just need to switch out the tokenizer, and, for example,
+# Similarly, if we want to compute the word error rate, we can switch out the tokenizer, and, for example,
 # use whitespace characters to signify word boundaries.
 
 
@@ -104,15 +93,15 @@ print(f"The word error rate with a UnicodeWordTokenizer is:       {unicode_word_
 alignment_analyzer.visualize(space_alignment_ops=True)  # Space alignment ops to add whitespace around each word
 
 # %%
-# Covenience functions
-# --------------------
+# Convenience functions
+# ---------------------
 #
 # Generally, it is good practice to explicitly define your tokenizer before calculating the CER or WER.
 # Afterall, before looking at the CER you should have an idea of what you mean by "character" for your particular problem.
 # However, stringalign also supports three convinence functions for quickly calculating CER, WER and TER:
-# :func:`stringalign.evaluate.compute_cer`, :func:`stringalign.evaluate.compute_wer` and :func:`stringalign.evaluate.compute_ter`.
-# These functions will use sensible defaults and return the AlignmentAnalyser used for the calculation.
-# By inspecting the returned analyser, you can see the tokenization and normalization used to ensure reproducibility.
+# :func:`stringalign.evaluation.compute_cer`, :func:`stringalign.evaluation.compute_wer` and :func:`stringalign.evaluation.compute_ter`.
+# These functions will use sensible defaults and return the :class:`stringalign.evaluation.AlignmentAnalyzer` used for the calculation.
+# To ensure reproducibility, you can inspect the returned analyzer and note the tokenization and normalization.
 
 cer, cer_analyzer = stringalign.evaluation.compute_cer(reference, predicted)
 wer, wer_analyzer = stringalign.evaluation.compute_wer(reference, predicted)

@@ -33,6 +33,20 @@ def _is_combined_alignment(alignment: Iterable[AlignmentOperation], tokenizer: T
     return False
 
 
+def _compute_f1_from_tpr_and_ppv(tpr: float, ppv: float) -> float:
+    # If either tpr or ppv is 0, then the F1-score is zero.
+    # However, the ppv or tpr can be NAN if any of the computations would involve dividing by zero.
+    # Therefore, we need to explicitly return zero in this case to avoid return NAN (as 0 * NAN / (0 * NAN) = NAN).
+    #
+    # This can, e.g. happen if the model never predicts a given token. The positive predicted value, or precision
+    # is defined as TP / (TP + FP), however, if the model e.g. never predicted ``ø``, then TP=0 AND FP=0, which results
+    # in PPV = 0/0 = NAN
+    # However, the F1 score for ``ø`` should be 0.
+    if tpr == 0 or ppv == 0:
+        return 0.0
+    return (tpr * ppv) / (0.5 * (tpr + ppv))
+
+
 class CombinedAlignmentWarning(UserWarning):
     """Used to warn when passing alignments with potentially combined operations to the confusion matrix."""
 
@@ -284,11 +298,17 @@ class StringConfusionMatrix:
         if aggregate_over is not None and (aggregate_over := list(aggregate_over)):
             tp = sum(self.true_positives[c] for c in aggregate_over)
             fn = sum(self.false_negatives[c] for c in aggregate_over)
+            if tp + fn == 0:
+                return float("nan")
 
             return tp / (tp + fn)
 
         char_count = self.true_positives + self.false_negatives
-        return sort_by_values({key: self.true_positives[key] / char_count[key] for key in char_count}, reverse=True)
+        all_tokens = set(char_count) | set(self.false_positives)
+        return sort_by_values(
+            {key: self.true_positives[key] / char_count.get(key, float("nan")) for key in all_tokens},
+            reverse=True,
+        )
 
     compute_recall = compute_true_positive_rate
     compute_sensitivity = compute_true_positive_rate
@@ -297,8 +317,7 @@ class StringConfusionMatrix:
         """Compute the positive predicted value, also known as precision.
 
         The positive predicted value is given by the number of true positives divided by the total number of predicted
-        positives. Note that the positive predicted value is omitted for characters that have a true positive count of
-        zero.
+        positives.
 
         Parameters
         ----------
@@ -317,12 +336,16 @@ class StringConfusionMatrix:
         if aggregate_over:
             tp = sum(self.true_positives[c] for c in aggregate_over)
             fp = sum(self.false_positives[c] for c in aggregate_over)
+            if tp + fp == 0:
+                return float("nan")
 
             return tp / (tp + fp)
 
         predicted_positive = self.true_positives + self.false_positives
+        all_tokens = set(predicted_positive) | set(self.false_negatives)
         return sort_by_values(
-            {key: self.true_positives[key] / predicted_positive[key] for key in self.true_positives}, reverse=True
+            {key: self.true_positives[key] / predicted_positive.get(key, float("nan")) for key in all_tokens},
+            reverse=True,
         )
 
     compute_precision = compute_positive_predictive_value
@@ -331,8 +354,7 @@ class StringConfusionMatrix:
         """Compute the false discovery rate.
 
         The false discovery rate is given by the number of false positives divided by the total number of predicted
-        positives. Note that the false discovery rate is omitted for characters that have a false positive count of
-        zero.
+        positives.
 
         Parameters
         ----------
@@ -351,12 +373,15 @@ class StringConfusionMatrix:
         if aggregate_over:
             tp = sum(self.true_positives[c] for c in aggregate_over)
             fp = sum(self.false_positives[c] for c in aggregate_over)
+            if tp + fp == 0:
+                return float("nan")
 
             return fp / (tp + fp)
 
         predicted_positive = self.true_positives + self.false_positives
+        all_tokens = set(predicted_positive) | set(self.false_negatives)
         return sort_by_values(
-            {key: self.false_positives[key] / predicted_positive[key] for key in self.false_positives}, reverse=True
+            {key: self.false_positives[key] / predicted_positive[key] for key in all_tokens}, reverse=True
         )
 
     def compute_f1_score(self, aggregate_over: str | None = None) -> dict[str, float] | float:
@@ -385,17 +410,13 @@ class StringConfusionMatrix:
 
         if aggregate_over:
             assert isinstance(tpr, Number) and isinstance(ppv, Number)
-            return (tpr * ppv) / (0.5 * (tpr + ppv))
+            return _compute_f1_from_tpr_and_ppv(tpr, ppv)
 
         assert isinstance(tpr, dict) and isinstance(ppv, dict)
         all_chars = set(self.true_positives) | set(self.false_positives) | set(self.false_negatives)
         tpr, ppv = defaultdict(int, tpr), defaultdict(int, ppv)
         return sort_by_values(
-            {
-                c: (tpr[c] * ppv[c])
-                / (0.5 * (tpr[c] + ppv[c] or 1))  # or 1 avoids division by 0, the value is 0 anyways
-                for c in all_chars
-            },
+            {c: _compute_f1_from_tpr_and_ppv(tpr[c], ppv[c]) for c in all_chars},
             reverse=True,
         )
 

@@ -81,9 +81,6 @@ def add_join(sep: str = " ") -> Callable[[Callable[[str], list[str]]], Tokenizer
     return decorator
 
 
-# TODO: Change name of pre_clustering and post_clustering normalizers: Should be pre tokenizing maybe?
-
-
 class TokenizerReprMixin:
     def __repr__(self) -> str:
         # We include these assertions to stop mypy from complaining. This is a mixin class, and all classes that inherit
@@ -104,7 +101,7 @@ class TokenizerReprMixin:
 
 
 class GraphemeClusterTokenizer(TokenizerReprMixin):
-    """Turn a text string into a list of extended grapheme clusters :cite:p:`unicode-annex-29`.
+    """Turn a string into a list of :ref:`extended grapheme clusters <grapheme_clusters>` :cite:p:`unicode-annex-29`.
 
     This code uses the `unicode_segmentation`_ Rust crate to do split the text string into
     extended grapheme clusters.
