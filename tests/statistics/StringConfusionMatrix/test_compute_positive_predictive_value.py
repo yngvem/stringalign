@@ -16,7 +16,7 @@ def sample_confusion_matrix() -> StringConfusionMatrix:
 
 def test_compute_positive_predictive_value(sample_confusion_matrix: StringConfusionMatrix) -> None:
     ppv = sample_confusion_matrix.compute_positive_predictive_value()
-    assert ppv == pytest.approx({"a": 0.75, "b": 2 / 3, "c": 1.0})
+    assert ppv == pytest.approx({"a": 0.75, "b": 2 / 3, "c": 1.0, "d": 0.0, "e": float("nan")}, nan_ok=True)
 
 
 def test_compute_positive_predictive_value_aggregate(sample_confusion_matrix: StringConfusionMatrix) -> None:

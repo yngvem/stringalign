@@ -16,7 +16,7 @@ def sample_confusion_matrix() -> StringConfusionMatrix:
 
 def test_compute_true_positive_rate(sample_confusion_matrix: StringConfusionMatrix) -> None:
     tpr = sample_confusion_matrix.compute_true_positive_rate()
-    assert tpr == pytest.approx({"a": 0.75, "b": 1.0, "c": 0.5, "e": 0})
+    assert tpr == pytest.approx({"a": 0.75, "b": 1.0, "c": 0.5, "d": float("nan"), "e": 0}, nan_ok=True)
 
 
 def test_compute_true_positive_rate_aggregate(sample_confusion_matrix: StringConfusionMatrix) -> None:

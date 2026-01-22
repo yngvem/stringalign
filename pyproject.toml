@@ -59,6 +59,7 @@ filename = "Cargo.toml"
 
 [tool.pytest.ini_options]
 addopts = "--doctest-modules --import-mode=importlib"
+testpaths = ["tests"]
 
 [dependency-groups]
 dev = [
