@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import html
+import os
 from collections import deque
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
+
+import numpy as np
 
 import stringalign.tokenize
 from stringalign._stringutils import create_cost_matrix as _create_cost_matrix
@@ -11,8 +14,6 @@ from stringalign._stringutils import create_cost_matrix as _create_cost_matrix
 if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Generator, Iterable
     from typing import Self
-
-    import numpy as np
 
 __all__ = [
     "AlignmentOperation",
@@ -27,6 +28,9 @@ __all__ = [
     "combine_alignment_ops",
     "create_cost_matrix",
 ]
+
+_DEFAULT_RANDOM_SEED = int(os.getenv("STRINGALIGN_RANDOM_SEED", 42))
+DEFAULT_RNG = np.random.default_rng(_DEFAULT_RANDOM_SEED)
 
 
 @dataclass(frozen=True, slots=True)
@@ -152,11 +156,27 @@ def _backtrack(
         yield Replaced(reference_clusters[row - 1], predicted_clusters[col - 1])
 
 
+class InvalidRngError(TypeError):
+    def __init__(self, rng):
+        t = type(rng)
+        super().__init__(f"Invalid random state. Should be a numpy random number generator, an int or None, not {t}")
+
+
 def align_strings(
-    reference: str, predicted: str, tokenizer: stringalign.tokenize.Tokenizer | None = None
+    reference: str,
+    predicted: str,
+    tokenizer: stringalign.tokenize.Tokenizer | None = None,
+    randomize_alignment: bool = False,
+    random_state: np.random.Generator | int | None = None,
 ) -> tuple[AlignmentTuple, bool]:
     if tokenizer is None:
         tokenizer = stringalign.tokenize.DEFAULT_TOKENIZER
+    if randomize_alignment and random_state is None:
+        random_state = DEFAULT_RNG
+    elif randomize_alignment and isinstance(random_state, int):
+        random_state = np.random.default_rng(random_state)
+    if randomize_alignment and not isinstance(random_state, np.random.Generator):
+        raise InvalidRngError(random_state)
 
     reference_clusters, predicted_clusters = tokenizer(reference), tokenizer(predicted)
     cost_matrix = create_cost_matrix(reference_clusters, predicted_clusters)
@@ -166,7 +186,14 @@ def align_strings(
     unique = True
     while row > 0 or col > 0:
         next_alignment_ops = _backtrack(row, col, reference_clusters, predicted_clusters, cost_matrix)
-        next_op = next(next_alignment_ops)
+
+        if randomize_alignment:
+            # Mypy doesn't understand that this is an RNG despite the exception throwing above, so we just cast it to
+            # silence the false positive type error.
+            random_state = cast(np.random.Generator, random_state)
+            next_op = random_state.choice(list(next_alignment_ops))
+        else:
+            next_op = next(next_alignment_ops)
 
         alignment.append(next_op)
         unique = unique and (next(next_alignment_ops, None) is None)
