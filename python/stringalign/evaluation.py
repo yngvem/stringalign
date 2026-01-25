@@ -544,7 +544,6 @@ class AlignmentAnalyzer:
         return self.confusion_matrix.compute_token_error_rate()
 
     compute_ter.__doc__ = stringalign.statistics.StringConfusionMatrix.compute_token_error_rate.__doc__
-    # TODO: Test
 
     def visualize(self, which: Literal["raw", "combined"] = "raw", space_alignment_ops: bool = False) -> HtmlString:
         """Visualize the alignment (for Jupyter Notebooks).
@@ -815,7 +814,7 @@ class MultiAlignmentAnalyzer:
 
     @cached_property
     def false_positive_lookup(self) -> dict[str, frozenset[AlignmentAnalyzer]]:
-        """Mapping from tokens to sets of :class:`AlignmentAnalyzer`s with that false positive token"""
+        """Mapping from tokens to sets of :class:`AlignmentAnalyzer` with that false positive token"""
         out = defaultdict(set)
         for alignment_analyzer in self.alignment_analyzers:
             for token in alignment_analyzer.confusion_matrix.false_positives:
@@ -825,7 +824,7 @@ class MultiAlignmentAnalyzer:
 
     @cached_property
     def false_negative_lookup(self) -> dict[str, frozenset[AlignmentAnalyzer]]:
-        """Mapping from tokens to sets of :class:`AlignmentAnalyzer`s with that false negative token"""
+        """Mapping from tokens to sets of :class:`AlignmentAnalyzer` with that false negative token"""
         out = defaultdict(set)
         for alignment_analyzer in self.alignment_analyzers:
             for token in alignment_analyzer.confusion_matrix.false_negatives:
@@ -848,7 +847,7 @@ class MultiAlignmentAnalyzer:
         references
             Iterable containing the reference strings.
         predictions
-            Iterable containing The strings to align with the references.
+            Iterable containing the strings to align with the references.
         tokenizer : optional
             A tokenizer that turns a string into an iterable of tokens. For this function, it is sufficient that it is a
             callable that turns a string into an iterable of tokens. If not provided, then
