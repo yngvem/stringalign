@@ -8,6 +8,8 @@ from inspect import cleandoc
 from itertools import chain
 from typing import Any, Iterable, Literal, Self, TypeVar
 
+import numpy as np
+
 import stringalign
 from stringalign.align import (
     AlignmentOperation,
@@ -437,6 +439,8 @@ class AlignmentAnalyzer:
         predicted: str,
         tokenizer: Tokenizer | None,
         metadata: Mapping[Hashable, Hashable] | None = None,
+        randomize_alignment: bool = False,
+        random_state: np.random.Generator | int | None = None,
     ) -> Self:
         """
         Create a AlignmentAnalyzer based on a reference string and a predicted string given a tokenizer.
@@ -456,6 +460,11 @@ class AlignmentAnalyzer:
             tokenizer.
         metadata
             Additional metadata about the sample, e.g. sample id.
+        randomize_alignment
+            If ``True``, then a random optimal alignment is chosen (slightly slower if enabled)
+        random_state
+            The NumPy RNG or a seed to create a NumPy RNG used for picking the optimal alignment. If ``None``, then the
+            default RNG will be used instead.
 
 
         Returns
@@ -466,7 +475,13 @@ class AlignmentAnalyzer:
         if tokenizer is None:
             tokenizer = stringalign.tokenize.DEFAULT_TOKENIZER
 
-        raw_alignment, unique_alignment = align_strings(reference, predicted, tokenizer=tokenizer)
+        raw_alignment, unique_alignment = align_strings(
+            reference,
+            predicted,
+            tokenizer=tokenizer,
+            randomize_alignment=randomize_alignment,
+            random_state=random_state,
+        )
         combined_alignment = tuple(combine_alignment_ops(raw_alignment, tokenizer=tokenizer))
         if metadata is not None:
             frozen_metadata = FrozenDict(metadata)
@@ -839,6 +854,8 @@ class MultiAlignmentAnalyzer:
         predictions: Iterable[str],
         tokenizer: Tokenizer | None = None,
         metadata: Iterable[Mapping[Hashable, Hashable] | None] | None = None,
+        randomize_alignment: bool = False,
+        random_state: np.random.Generator | int | None = None,
     ) -> Self:
         """Creates a transcription evaluator from iterables containing references and predictions.
 
@@ -855,6 +872,11 @@ class MultiAlignmentAnalyzer:
             (character) tokenizer.
         metadata
             Additional metadata about the sample, e.g. sample id.
+        randomize_alignment
+            If ``True``, then a random optimal alignment is chosen (slightly slower if enabled)
+        random_state
+            The NumPy RNG or a seed to create a NumPy RNG used for picking the optimal alignment. If ``None``, then the
+            default RNG will be used instead.
 
         Returns
         -------
@@ -866,7 +888,14 @@ class MultiAlignmentAnalyzer:
             metadata = tuple(None for _ in references)
 
         alignment_analyzers = tuple(
-            AlignmentAnalyzer.from_strings(reference, prediction, tokenizer, metadata=metadata)
+            AlignmentAnalyzer.from_strings(
+                reference,
+                prediction,
+                tokenizer,
+                metadata=metadata,
+                randomize_alignment=randomize_alignment,
+                random_state=random_state,
+            )
             for reference, prediction, metadata in zip(references, predictions, metadata, strict=True)
         )
 

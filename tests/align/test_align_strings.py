@@ -1,9 +1,21 @@
 import unicodedata
+from typing import Any
+from unittest.mock import Mock
 
 import hypothesis.strategies as st
+import numpy as np
 import pytest
 from hypothesis import given
-from stringalign.align import AlignmentOperation, Deleted, Inserted, Kept, Replaced, align_strings
+from stringalign.align import (
+    AlignmentOperation,
+    Deleted,
+    Inserted,
+    InvalidRngError,
+    Kept,
+    Replaced,
+    align_strings,
+    compute_levenshtein_distance_from_alignment,
+)
 from stringalign.normalize import StringNormalizer
 from stringalign.tokenize import GraphemeClusterTokenizer
 
@@ -114,3 +126,140 @@ def test_align_emojis() -> None:
 )
 def test_detect_multiple_alignments(reference, predicted, unique_alignment) -> None:
     assert align_strings(reference, predicted)[1] == unique_alignment
+
+
+@pytest.mark.parametrize(
+    "reference, predicted",
+    [
+        ("aa", "a"),
+        ("aa", "b"),
+        ("ab", "ba"),
+    ],
+)
+def test_same_alignment_if_not_randomize(reference: str, predicted: str) -> None:
+    """If aligment is not randomized the same strings should always get the same alignment"""
+    first_alignment = align_strings(reference, predicted)
+
+    assert all(align_strings(reference, predicted) == first_alignment for _ in range(10))
+
+
+@pytest.mark.parametrize("random_state", [0, 1, 4, 101, 256])
+@pytest.mark.parametrize(
+    "reference, predicted",
+    [
+        ("aa", "a"),
+        ("aa", "b"),
+        ("ab", "ba"),
+    ],
+)
+def test_same_alignment_if_same_random_state(reference: str, predicted: str, random_state: int) -> None:
+    """If aligment is randomized with same random state the same strings should always get the same alignment"""
+    first_alignment = align_strings(
+        reference,
+        predicted,
+        randomize_alignment=True,
+        random_state=random_state,
+    )
+    assert all(
+        align_strings(
+            reference,
+            predicted,
+            randomize_alignment=True,
+            random_state=random_state,
+        )
+        == first_alignment
+        for _ in range(10)
+    )
+
+
+@pytest.mark.parametrize(
+    "reference, predicted",
+    [
+        ("aa", "a"),
+        ("aa", "b"),
+        ("ab", "ba"),
+    ],
+)
+def test_not_same_alignment_if_different_random_state(reference: str, predicted: str) -> None:
+    """If aligment is randomized with varying random state, the same strings shouldn't always get the same alignment"""
+    first_alignment = align_strings(
+        reference,
+        predicted,
+        randomize_alignment=True,
+    )
+    assert not all(
+        align_strings(reference, predicted, randomize_alignment=True, random_state=i) == first_alignment
+        for i in range(10)
+    )
+
+
+@pytest.mark.parametrize(
+    "reference, predicted",
+    [
+        ("aa", "a"),
+        ("aa", "b"),
+        ("ab", "ba"),
+    ],
+)
+def test_not_same_alignment_if_no_random_state(reference: str, predicted: str) -> None:
+    """If aligment is randomized without setting random state, the same strings shouldn't always get equal alignment"""
+    first_alignment = align_strings(
+        reference,
+        predicted,
+        randomize_alignment=True,
+    )
+    assert not all(align_strings(reference, predicted, randomize_alignment=True) == first_alignment for _ in range(10))
+
+
+@pytest.mark.parametrize(
+    "reference, predicted",
+    [
+        ("aa", "a"),
+        ("aa", "b"),
+        ("ab", "ba"),
+    ],
+)
+def test_same_levenshtein_if_different_random_state(reference: str, predicted: str) -> None:
+    """The same strings should get alignments with the same Levenshtein distance even for randomized alignments"""
+    first_alignment = align_strings(
+        reference,
+        predicted,
+        randomize_alignment=True,
+    )
+    first_alignment_levenshtein = compute_levenshtein_distance_from_alignment(first_alignment[0])
+    assert all(
+        compute_levenshtein_distance_from_alignment(
+            align_strings(reference, predicted, randomize_alignment=True, random_state=i)[0]
+        )
+        == first_alignment_levenshtein
+        for i in range(10)
+    )
+
+
+@pytest.mark.parametrize(
+    "reference, predicted",
+    [
+        ("aa", "a"),
+        ("aa", "b"),
+        ("ab", "ba"),
+    ],
+)
+def test_random_state_is_used_when_its_an_rng(reference: str, predicted: str):
+    """If the random state is provided as an RNG, then it is used"""
+    mocked = Mock(spec=np.random.Generator)
+    mocked.choice.return_value = Kept("mocked choice return value")
+
+    align_strings(reference, predicted, randomize_alignment=True, random_state=mocked)
+    mocked.choice.assert_called()
+
+
+@pytest.mark.parametrize("invalid_random_state", ["not a valid rng", np.inf, []])
+def test_invalid_random_state_raises(invalid_random_state: Any) -> None:
+    """When an invalid rng is provided, IvalidRngError should be raised."""
+    with pytest.raises(InvalidRngError):
+        align_strings(
+            "some string",
+            "different string",
+            randomize_alignment=True,
+            random_state=invalid_random_state,
+        )

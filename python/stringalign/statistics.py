@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from numbers import Number
 from typing import Self, cast
 
+import numpy as np
+
 import stringalign
 from stringalign.align import AlignmentOperation, Kept, Replaced, align_strings
 from stringalign.tokenize import Tokenizer
@@ -168,7 +170,14 @@ class StringConfusionMatrix:
         )
 
     @classmethod
-    def from_strings(cls, reference: str, predicted: str, tokenizer: Tokenizer | None = None) -> Self:
+    def from_strings(
+        cls,
+        reference: str,
+        predicted: str,
+        tokenizer: Tokenizer | None = None,
+        randomize_alignment: bool = False,
+        random_state: np.random.Generator | int | None = None,
+    ) -> Self:
         """Create confusion matrix based on a reference string and a predicted string.
 
         .. note::
@@ -188,6 +197,11 @@ class StringConfusionMatrix:
             callable that turns a string into an iterable of tokens. If not provided, then
             ``stringalign.tokenize.DEFAULT_TOKENIZER`` is used instead, which by default is a grapheme cluster
             (character) tokenizer.
+        randomize_alignment
+            If ``True``, then a random optimal alignment is chosen (slightly slower if enabled)
+        random_state
+            The NumPy RNG or a seed to create a NumPy RNG used for picking the optimal alignment. If ``None``, then the
+            default RNG will be used instead.
 
         Returns
         -------
@@ -197,7 +211,13 @@ class StringConfusionMatrix:
         if tokenizer is None:
             tokenizer = stringalign.tokenize.DEFAULT_TOKENIZER
 
-        alignment = align_strings(reference, predicted, tokenizer=tokenizer)[0]
+        alignment = align_strings(
+            reference,
+            predicted,
+            tokenizer=tokenizer,
+            randomize_alignment=randomize_alignment,
+            random_state=random_state,
+        )[0]
         return cls.from_strings_and_alignment(reference, predicted, alignment, tokenizer=tokenizer)
 
     @classmethod
