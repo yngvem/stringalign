@@ -55,7 +55,10 @@ class Deleted:
         )
 
     def __str__(self) -> str:
-        return f"DELETED '{self.substring}'"
+        return f"DELETED  '{self.substring}'"
+
+    def __format__(self, format_spec: str) -> str:
+        return format(str(self), format_spec)
 
 
 @dataclass(frozen=True, slots=True)
@@ -82,6 +85,9 @@ class Inserted:
 
     def __str__(self) -> str:
         return f"INSERTED '{self.substring}'"
+
+    def __format__(self, format_spec: str) -> str:
+        return format(str(self), format_spec)
 
 
 @dataclass(frozen=True, slots=True)
@@ -122,6 +128,9 @@ class Replaced:
     def __str__(self) -> str:
         return f"REPLACED '{self.reference}' -> '{self.predicted}'"
 
+    def __format__(self, format_spec: str) -> str:
+        return format(str(self), format_spec)
+
 
 @dataclass(frozen=True, slots=True)
 class Kept:
@@ -159,7 +168,10 @@ class Kept:
         )
 
     def __str__(self) -> str:
-        return f"KEPT '{self.substring}'"
+        return f"KEPT     '{self.substring}'"
+
+    def __format__(self, format_spec: str) -> str:
+        return format(str(self), format_spec)
 
 
 @runtime_checkable
