@@ -1,4 +1,6 @@
 """
+.. _most_common_errors_example:
+
 Exploring common errors in a transcription
 ==========================================
 

@@ -1,4 +1,6 @@
 """
+.. _token_specific_performance_example:
+
 Evaluating token-specific performance
 =====================================
 

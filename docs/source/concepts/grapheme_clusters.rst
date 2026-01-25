@@ -63,7 +63,7 @@ If we just naively compute string metrics (like how `Levenshtein <https://rapidf
 
     2
 
-Therefore, Stringalign will, by default, start by tokenising strings into extended grapheme clusters (characters), and compute the character edits required to transform one string into another:
+Therefore, Stringalign will, by default, start by tokenizing strings into extended grapheme clusters (characters), and compute the character edits required to transform one string into another:
 
 .. code:: python
 

@@ -8,3 +8,4 @@ Concepts
     grapheme_clusters
     cer_wer_ter
     confusables
+    sequence_alignment

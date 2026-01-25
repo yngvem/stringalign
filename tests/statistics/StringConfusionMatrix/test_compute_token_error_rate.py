@@ -66,11 +66,11 @@ def test_character_tokenizer_gives_same_cer_as_jiwer_for_ascii(
     predicted=st.text(alphabet=st.characters(max_codepoint=127)),  # ASCII characters only
     reference=st.text(alphabet=st.characters(max_codepoint=127), min_size=1),  # ASCII characters only
 )
-def test_word_tokeniser_gives_same_wer_as_jiwer_for_simple_words(
+def test_word_tokenizer_gives_same_wer_as_jiwer_for_simple_words(
     reference: str,
     predicted: str,
 ) -> None:
-    """Calculating error rate with the jiwer word tokeniser gives the same result as jiwer wer for simple words."""
+    """Calculating error rate with the jiwer word tokenizer gives the same result as jiwer wer for simple words."""
     predicted = predicted.strip().replace("\r", "")  # Jiwer doesn't handle newlines well
     reference = reference.strip().replace("\r", "")  # Jiwer doesn't handle newlines well
     hypothesis.assume(reference)

@@ -94,8 +94,8 @@ stringalign 1
 
 ## How does it work?
 
-Stringalign works in a two-step process: first, the input strings are tokenised into normalised extended grapheme clusters, before they are aligned using the Needleman-Wunsch algorithm.
-You can customise this if you want, e.g. switching out the tokeniser with one that casefolds all extended grapheme clusters, to get a case-insensitive alignment, or words to e.g. compute the word-error rate.
+Stringalign works in a two-step process: first, the input strings are tokenized into normalised extended grapheme clusters, before they are aligned using the Needleman-Wunsch algorithm.
+You can customise this if you want, e.g. switching out the tokenizer with one that casefolds all extended grapheme clusters, to get a case-insensitive alignment, or words to e.g. compute the word-error rate.
 
 We use an extension module written in Rust for two important parts of Stringalign: grouping unicode code-points into extended grapheme clusters (with the [unicode_segmentation](https://docs.rs/unicode-segmentation/latest/unicode_segmentation/index.html) crate) and assembling the Needleman-Wunsch cost-matrix (which has O(n²) time- and memory-complexity).
 
