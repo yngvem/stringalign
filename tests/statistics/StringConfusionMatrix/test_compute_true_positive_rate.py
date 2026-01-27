@@ -1,3 +1,4 @@
+import math
 from collections import Counter
 
 import pytest
@@ -27,3 +28,9 @@ def test_compute_true_positive_rate_aggregate(sample_confusion_matrix: StringCon
 def test_compute_true_positive_rate_aliases(sample_confusion_matrix: StringConfusionMatrix) -> None:
     assert sample_confusion_matrix.compute_recall == sample_confusion_matrix.compute_true_positive_rate
     assert sample_confusion_matrix.compute_sensitivity == sample_confusion_matrix.compute_true_positive_rate
+
+
+def test_no_tp_or_fn_gives_nan(sample_confusion_matrix: StringConfusionMatrix) -> None:
+    tpr = sample_confusion_matrix.compute_true_positive_rate(aggregate_over="h")
+    assert isinstance(tpr, float)
+    assert math.isnan(tpr)

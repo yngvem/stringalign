@@ -19,7 +19,7 @@ def sort_by_values(d: dict[str, float], reverse=False) -> dict[str, float]:
 
 
 def _is_combined_alignment(alignment: Iterable[AlignmentOperation], tokenizer: Tokenizer) -> bool:
-    """Check if the alignment is combined, i.e., no adjacent operations can be merged."""
+    """Check if any alignment op spans multiple tokens."""
     for op in alignment:
         if isinstance(op, Kept) and next(iter(tokenizer(op.substring)), None) != op.substring:
             return True
@@ -401,7 +401,8 @@ class StringConfusionMatrix:
         predicted_positive = self.true_positives + self.false_positives
         all_tokens = set(predicted_positive) | set(self.false_negatives)
         return sort_by_values(
-            {key: self.false_positives[key] / predicted_positive[key] for key in all_tokens}, reverse=True
+            {key: self.false_positives[key] / predicted_positive.get(key, float("nan")) for key in all_tokens},
+            reverse=True,
         )
 
     def compute_f1_score(self, aggregate_over: str | None = None) -> dict[str, float] | float:
