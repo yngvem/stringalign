@@ -15,7 +15,7 @@ documentation for details.
    :maxdepth: 2
    :caption: Contents:
 
-   api/index
    concepts/index
    auto_examples/index
+   api/index
    bibliography
