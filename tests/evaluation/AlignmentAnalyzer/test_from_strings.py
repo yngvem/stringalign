@@ -5,7 +5,7 @@ from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
 
 
 @pytest.mark.parametrize(
-    "reference, predicted, line_error",
+    "reference, predicted, alignment_analyzer",
     [
         (
             "Hello, world!",
@@ -166,15 +166,18 @@ from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
         ),
     ],
 )
-def test_from_strings_with_example(reference: str, predicted: str, line_error: AlignmentAnalyzer) -> None:
-    assert AlignmentAnalyzer.from_strings(reference, predicted, tokenizer=line_error.tokenizer) == line_error
+def test_from_strings_with_example(reference: str, predicted: str, alignment_analyzer: AlignmentAnalyzer) -> None:
+    assert (
+        AlignmentAnalyzer.from_strings(reference, predicted, tokenizer=alignment_analyzer.tokenizer)
+        == alignment_analyzer
+    )
 
 
 def test_from_strings_with_metadata():
     reference = "Hello, world!"
     predicted = "Helo, world!"
     metadata = {"a": 3}
-    line_error = AlignmentAnalyzer(
+    alignment_analyzer = AlignmentAnalyzer(
         reference="Hello, world!",
         predicted="Helo, world!",
         combined_alignment=(Kept("He"), Deleted("l"), Kept("lo, world!")),
@@ -192,5 +195,25 @@ def test_from_strings_with_metadata():
 
     assert (
         AlignmentAnalyzer.from_strings(reference, predicted, tokenizer=DEFAULT_TOKENIZER, metadata=metadata)
-        == line_error
+        == alignment_analyzer
     )
+
+
+def test_from_empty_strings() -> None:
+    alignment_analyzer1 = AlignmentAnalyzer.from_strings("", "", tokenizer=DEFAULT_TOKENIZER)
+    alignment_analyzer2 = AlignmentAnalyzer(
+        reference="",
+        predicted="",
+        combined_alignment=(),
+        raw_alignment=(),
+        unique_alignment=True,
+        horisontal_segmentation_errors=(),
+        token_duplication_errors=(),
+        removed_duplicate_token_errors=(),
+        diacritic_errors=(),
+        confusable_errors=(),
+        case_errors=(),
+        metadata=None,
+        tokenizer=DEFAULT_TOKENIZER,
+    )
+    assert alignment_analyzer1 == alignment_analyzer2

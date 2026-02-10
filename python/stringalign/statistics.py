@@ -298,8 +298,11 @@ class StringConfusionMatrix:
         If we compute the true positive rate without aggregating over tokens, we get a dict of true positive rates
 
         >>> cm = StringConfusionMatrix.from_strings("ostehøvel", "ostehovl")
-        >>> cm.compute_true_positive_rate()
-        {'o': 1.0, 's': 1.0, 't': 1.0, 'h': 1.0, 'v': 1.0, 'l': 1.0, 'e': 0.5, 'ø': 0.0}
+        >>> expected_tp = {'o': 1.0, 's': 1.0, 't': 1.0, 'h': 1.0, 'v': 1.0, 'l': 1.0, 'e': 0.5, 'ø': 0.0}
+        >>> tp = cm.compute_true_positive_rate()
+        >>> expected_tp == tp
+        True
+
 
         If we specify an iterable of tokens to aggregate over, we get the total true positive rate for those tokens. In
         this case, we aggregate over ``["æ", "ø", "å"]``, and the prediction did not find any of those tokens, so the

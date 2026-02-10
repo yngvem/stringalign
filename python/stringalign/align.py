@@ -238,7 +238,7 @@ def _backtrack(
 
 
 class InvalidRngError(TypeError):
-    def __init__(self, rng):
+    def __init__(self, rng) -> None:
         t = type(rng)
         super().__init__(f"Invalid random state. Should be a numpy random number generator, an int or None, not {t}")
 

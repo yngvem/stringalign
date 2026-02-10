@@ -27,7 +27,7 @@ from stringalign.normalize import StringNormalizer
 from stringalign.statistics import StringConfusionMatrix
 from stringalign.tokenize import Tokenizer
 from stringalign.utils import _indent
-from stringalign.visualize import HtmlString, create_alignment_html
+from stringalign.visualize import HtmlString
 
 T = TypeVar("T")
 
@@ -587,7 +587,7 @@ class AlignmentAnalyzer:
         else:
             alignment = self.combined_alignment
 
-        return create_alignment_html(alignment=alignment, space_alignment_ops=space_alignment_ops)
+        return stringalign.visualize.create_alignment_html(alignment=alignment, space_alignment_ops=space_alignment_ops)
 
     def __repr__(self) -> str:
         repr_template = string.Template(
@@ -991,23 +991,23 @@ def compute_ter(
     >>> cer
     0.125
 
-    And if we use a :class:`stringalign.tokenize.SplitAtWordBoundaryTokenizer`, we compute a word error rate:
+    And if we use a :class:`stringalign.tokenize.SplitAtWhitespaceTokenizer`, we compute a word error rate:
 
-    >>> tokenizer = stringalign.tokenize.SplitAtWordBoundaryTokenizer()
+    >>> tokenizer = stringalign.tokenize.SplitAtWhitespaceTokenizer()
     >>> ter, analyzer = compute_ter("Hi there", "He there", tokenizer=tokenizer)
     >>> ter
     0.5
     >>> analyzer.confusion_matrix.compute_token_error_rate()
     0.5
-    >>> wer, _analyzer = compute_wer("Hi there", "He there", word_definition="whitespace")
+    >>> wer, wer_analyzer = compute_wer("Hi there", "He there", word_definition="whitespace")
     >>> wer
     0.5
-    >>> analyzer
+    >>> wer_analyzer
     AlignmentAnalyzer(
-        reference='Hello',
-        predicted='Halo',
+        reference='Hi there',
+        predicted='He there',
         metadata=None,
-        tokenizer=SplitAtWordBoundaryTokenizer(
+        tokenizer=SplitAtWhitespaceTokenizer(
             pre_tokenization_normalizer=StringNormalizer(
                 normalization='NFC',
                 case_insensitive=False,
@@ -1169,8 +1169,8 @@ def compute_cer(
     0.125
     >>> analyzer
     AlignmentAnalyzer(
-        reference='Hello',
-        predicted='Halo',
+        reference='Hi there',
+        predicted='He there',
         metadata=None,
         tokenizer=GraphemeClusterTokenizer(
             pre_tokenization_normalizer=StringNormalizer(
