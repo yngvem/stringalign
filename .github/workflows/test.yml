@@ -4,6 +4,7 @@ on: [push, pull_request]
 
 env:
   PYTHON_TARGETS: '3.11 3.12 3.13'
+  PYO3_NO_PYTHON: TRUE
 
 jobs:
   run-tests:
