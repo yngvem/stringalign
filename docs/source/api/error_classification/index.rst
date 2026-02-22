@@ -1,5 +1,5 @@
-Alignment error classification
-==============================
+``stringalign.error_classification``
+====================================
 
 
 .. toctree::

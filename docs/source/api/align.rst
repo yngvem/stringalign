@@ -1,5 +1,5 @@
-Aligning strings
-================
+``stringalign.align``
+=====================
 
 .. automodule:: stringalign.align
     :members:

@@ -1,5 +1,5 @@
-Alignment visualisation
-=======================
+``stringalign.visualize``
+=========================
 
 .. automodule:: stringalign.visualize
     :members:

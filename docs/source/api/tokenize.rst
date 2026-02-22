@@ -1,5 +1,5 @@
-Tokenizing strings
-==================
+``stringalign.tokenize``
+========================
 
 .. automodule:: stringalign.tokenize
     :members:

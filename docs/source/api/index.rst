@@ -6,11 +6,11 @@ API reference
    :maxdepth: 1
    :caption: Contents:
 
-   align
    evaluation
+   tokenize
    normalize
    statistics
-   tokenize
    visualize
+   align
 
    error_classification/index

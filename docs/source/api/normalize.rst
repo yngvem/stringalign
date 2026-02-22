@@ -1,5 +1,5 @@
-Normalizing strings
-===================
+``stringalign.normalize``
+=========================
 
 .. automodule:: stringalign.normalize
     :members:

@@ -1,5 +1,5 @@
-Evaluating transcriptions
-=========================
+``stringalign.evaluate``
+========================
 
 .. automodule:: stringalign.evaluate
     :members:

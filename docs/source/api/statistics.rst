@@ -1,5 +1,5 @@
-String alignment statistics
-===========================
+``stringalign.statistics``
+==========================
 
 .. automodule:: stringalign.statistics
     :members:

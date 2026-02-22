@@ -50,6 +50,6 @@ See the :ref:`example_gallery` for more examples of what you can use Stringalign
 
    installation
    concepts/index
-   auto_examples/index
+   examples
    api/index
    bibliography
