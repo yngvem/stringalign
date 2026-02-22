@@ -34,19 +34,19 @@ def test_warning_raised_on_combined_alignment_unicode_word_tokenizer() -> None:
 
 def test_from_strings_and_alignment() -> None:
     reference = "abcbaa"
-    predicted = "acdeai"
+    predicted = "acdeaai"
     alignment = align_strings(reference=reference, predicted=predicted)[0]
 
     result = StringConfusionMatrix.from_strings_and_alignment(reference, predicted, alignment)
 
-    assert result.true_positives == Counter({"a": 2, "c": 1})
-    assert result.false_positives == Counter({"d": 1, "e": 1, "i": 1})
-    assert result.false_negatives == Counter({"b": 2, "a": 1})
+    assert result.true_positives == Counter({"a": 3})
+    assert result.false_positives == Counter({"c": 1, "d": 1, "e": 1, "i": 1})
+    assert result.false_negatives == Counter({"c": 1, "b": 2})
     assert result.edit_counts == Counter(
         {
-            Deleted("b"): 1,
-            Replaced("b", "d"): 1,
-            Replaced("a", "e"): 1,
+            Replaced("b", "c"): 1,
+            Replaced("c", "d"): 1,
+            Replaced("b", "e"): 1,
             Inserted("i"): 1,
         }
     )

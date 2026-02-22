@@ -229,12 +229,12 @@ def _backtrack(
     """Generator that yields all optimal alignment operations at the current position in the cost matrix."""
     if row > 0 and col > 0 and reference_clusters[row - 1] == predicted_clusters[col - 1]:
         yield Kept(reference_clusters[row - 1])
+    if row > 0 and col > 0 and cost_matrix[row, col] == cost_matrix[row - 1, col - 1] + 1:
+        yield Replaced(reference_clusters[row - 1], predicted_clusters[col - 1])
     if row > 0 and (col == 0 or cost_matrix[row, col] == cost_matrix[row - 1, col] + 1):
         yield Deleted(reference_clusters[row - 1])
     if col > 0 and (row == 0 or cost_matrix[row, col] == cost_matrix[row, col - 1] + 1):
         yield Inserted(predicted_clusters[col - 1])
-    if row > 0 and col > 0 and cost_matrix[row, col] == cost_matrix[row - 1, col - 1] + 1:
-        yield Replaced(reference_clusters[row - 1], predicted_clusters[col - 1])
 
 
 class InvalidRngError(TypeError):
