@@ -112,24 +112,29 @@ class StringNormalizer:
         return out
 
     def __call__(self, text: str) -> str:
-        # According to Unicode, we should normalize strings before casefolding them.
-        if self.normalization is not None:
-            text = unicodedata.normalize(self.normalization, text)
-
-        if self.case_insensitive:
-            text = text.casefold()
-        if self.normalize_whitespace:
-            text = normalize_whitespace(text)
-        if self.remove_whitespace:
-            text = remove_whitespace(text)
-        if self.remove_non_word_characters:
-            text = remove_non_word_characters(text)
+        # First, we resolve confusables, to avoid resolving confusables that occur due to case-folding.
         if self.resolve_confusables is not None:
             if isinstance(self.resolve_confusables, dict):
                 confusable_map = self.resolve_confusables
             else:
                 confusable_map = load_confusable_map(self.resolve_confusables)
             text = resolve_confusables(text, confusable_map)
+
+        # According to Unicode, strings should be we should case-folded + normalized + case-folded + normalized
+        # See https://www.unicode.org/reports/tr21/tr21-5.html
+        if self.case_insensitive:
+            text = text.casefold()
+        if self.normalization is not None:
+            text = unicodedata.normalize(self.normalization, text)
+        if self.case_insensitive:
+            text = text.casefold()
+
+        if self.normalize_whitespace:
+            text = normalize_whitespace(text)
+        if self.remove_whitespace:
+            text = remove_whitespace(text)
+        if self.remove_non_word_characters:
+            text = remove_non_word_characters(text)
 
         # Some of these operations, like casefolding, can make normalized text unnormalized.
         # So we normalize again to ensure the text is in the correct form.
