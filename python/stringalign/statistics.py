@@ -336,7 +336,9 @@ class StringConfusionMatrix:
     compute_recall = compute_true_positive_rate
     compute_sensitivity = compute_true_positive_rate
 
-    def compute_positive_predictive_value(self, aggregate_over: str | None = None) -> dict[str, float] | float:
+    def compute_positive_predictive_value(
+        self, aggregate_over: Iterable[str] | None = None
+    ) -> dict[str, float] | float:
         """Compute the positive predicted value, also known as precision.
 
         The positive predicted value is given by the number of true positives divided by the total number of predicted
@@ -373,7 +375,7 @@ class StringConfusionMatrix:
 
     compute_precision = compute_positive_predictive_value
 
-    def compute_false_discovery_rate(self, aggregate_over: str | None = None) -> dict[str, float] | float:
+    def compute_false_discovery_rate(self, aggregate_over: Iterable[str] | None = None) -> dict[str, float] | float:
         """Compute the false discovery rate.
 
         The false discovery rate is given by the number of false positives divided by the total number of predicted
@@ -408,7 +410,7 @@ class StringConfusionMatrix:
             reverse=True,
         )
 
-    def compute_f1_score(self, aggregate_over: str | None = None) -> dict[str, float] | float:
+    def compute_f1_score(self, aggregate_over: Iterable[str] | None = None) -> dict[str, float] | float:
         """Compute the F1 score, also known as the Dice score.
 
         The F1 score is given by the harmonic mean of the true positive rate and positive predictive value.
