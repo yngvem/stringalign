@@ -1,7 +1,7 @@
 from inspect import cleandoc
 
 import stringalign
-from stringalign.evaluation import AlignmentAnalyzer
+from stringalign.evaluate import AlignmentAnalyzer
 
 
 def test_from_strings_with_example() -> None:

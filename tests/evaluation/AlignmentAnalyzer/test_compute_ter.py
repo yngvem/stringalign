@@ -1,6 +1,6 @@
 import pytest
 from stringalign.align import Deleted, Kept, align_strings
-from stringalign.evaluation import AlignmentAnalyzer
+from stringalign.evaluate import AlignmentAnalyzer
 from stringalign.tokenize import GraphemeClusterTokenizer, SplitAtWhitespaceTokenizer
 
 

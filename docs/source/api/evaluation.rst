@@ -1,6 +1,6 @@
 Evaluating transcriptions
 =========================
 
-.. automodule:: stringalign.evaluation
+.. automodule:: stringalign.evaluate
     :members:
     :undoc-members:

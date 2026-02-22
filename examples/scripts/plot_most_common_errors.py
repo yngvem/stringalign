@@ -25,8 +25,8 @@ metadata = [{"image_path": data_path / f"line{line_num:02d}.jpg"} for line_num i
 
 
 # %%
-# After loading the data, we can create a :class:`stringalign.evaluation.MultiAlignmentAnalyzer` which aligns all reference/prediction-pairs and makes it easy for us to explore common transcription errors.
-analyzer = stringalign.evaluation.MultiAlignmentAnalyzer.from_strings(
+# After loading the data, we can create a :class:`stringalign.evaluate.MultiAlignmentAnalyzer` which aligns all reference/prediction-pairs and makes it easy for us to explore common transcription errors.
+analyzer = stringalign.evaluate.MultiAlignmentAnalyzer.from_strings(
     predictions=predictions,
     references=references,
     metadata=metadata,
@@ -55,7 +55,7 @@ for operation, count in counts.most_common(10):
 # --------------------------
 #
 # It can also be useful to visualise the data to get a better understanding of why the model makes the mistakes it does.
-# In particular, we can use the :meth:`MultiAlignmentAnalyzer.alignment_operator_index <stringalign.evaluation.MultiAlignmentAnalyzer.alignment_operator_index>` method to iterate over the :class:`AlignmentAnalyzer <stringalign.evaluation.AlignmentAnalyzer>` instances that contain transcriptions with a specified edit.
+# In particular, we can use the :meth:`MultiAlignmentAnalyzer.alignment_operator_index <stringalign.evaluate.MultiAlignmentAnalyzer.alignment_operator_index>` method to iterate over the :class:`AlignmentAnalyzer <stringalign.evaluate.AlignmentAnalyzer>` instances that contain transcriptions with a specified edit.
 
 most_common_error = counts.most_common(1)[0][0]
 

@@ -1,5 +1,5 @@
 import pytest
-from stringalign.evaluation import MultiAlignmentAnalyzer
+from stringalign.evaluate import MultiAlignmentAnalyzer
 
 
 def test_simple_example() -> None:

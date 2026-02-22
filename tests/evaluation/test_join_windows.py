@@ -2,7 +2,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 from stringalign.align import Kept
-from stringalign.evaluation import join_windows
+from stringalign.evaluate import join_windows
 
 
 @given(center_string=st.text())

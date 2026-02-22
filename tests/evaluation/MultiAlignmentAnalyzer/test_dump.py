@@ -1,4 +1,4 @@
-from stringalign.evaluation import MultiAlignmentAnalyzer
+from stringalign.evaluate import MultiAlignmentAnalyzer
 
 
 def test_with_example():

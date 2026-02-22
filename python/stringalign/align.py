@@ -444,8 +444,8 @@ def combine_alignment_ops(
     alignment
         Iterable of single-token alignment operations to combine.
     tokenizer : optional
-        A tokenizer. The :meth:`Tokenizer.join` method is used to combine tokens to create multi-token alignment
-        operations. If not provided, then
+        A tokenizer. The :meth:`stringalign.tokenize.Tokenizer.join` method is used to combine tokens to create
+        multi-token alignment operations. If not provided, then
         ``stringalign.tokenize.DEFAULT_TOKENIZER`` is used instead, which by default is a grapheme cluster (character)
         tokenizer.
 

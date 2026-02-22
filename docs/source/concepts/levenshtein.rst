@@ -21,7 +21,7 @@ The Levenshtein distance between ``sun`` and ``sand`` is two because to turn ``s
 
     2
 
-See the API documentation for :py:func:`stringalign.align.levenshtein` for more information about this function.
+See the API documentation for :py:func:`stringalign.align.levenshtein_distance` for more information about this function.
 
 .. note::
     What constitutes "one edit" depends on how the string is tokenized.

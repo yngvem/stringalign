@@ -1,6 +1,8 @@
 Concepts
 ========
 
+These pages contain descriptions of key concepts for using Stringalign (and string comparisons in general).
+
 .. toctree::
     :maxdepth: 1
 

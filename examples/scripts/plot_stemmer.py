@@ -24,8 +24,8 @@ example_prediction_2 = "Hun løp vekk fra regnet"  # She ran away from the rain
 # However, if we compare the models using just WER they appear to perform the same.
 
 tokenizer = SplitAtWhitespaceTokenizer()
-wer_1, evaluator_1 = stringalign.evaluation.compute_wer(example_reference, example_prediction_1)
-wer_2, evaluator_1 = stringalign.evaluation.compute_wer(example_reference, example_prediction_2)
+wer_1, evaluator_1 = stringalign.evaluate.compute_wer(example_reference, example_prediction_1)
+wer_2, evaluator_1 = stringalign.evaluate.compute_wer(example_reference, example_prediction_2)
 print(f"WER for example prediction 1: {wer_1:4.2f}, WER for example prediction 2: {wer_2:4.2f}")
 
 # %%
@@ -49,10 +49,10 @@ class NorwegianStemmerTokenizer:
 
 stem_tokenizer = NorwegianStemmerTokenizer()
 
-stemmed_wer_1, evaluator_1 = stringalign.evaluation.compute_ter(
+stemmed_wer_1, evaluator_1 = stringalign.evaluate.compute_ter(
     example_reference, example_prediction_1, tokenizer=NorwegianStemmerTokenizer()
 )
-stemmed_wer_2, evaluator_2 = stringalign.evaluation.compute_ter(
+stemmed_wer_2, evaluator_2 = stringalign.evaluate.compute_ter(
     example_reference, example_prediction_2, tokenizer=NorwegianStemmerTokenizer()
 )
 print(

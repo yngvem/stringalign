@@ -9,7 +9,7 @@ To aid this type of analysis, Stringalign has functionality to quickly display a
 """
 
 import stringalign
-from stringalign.evaluation import AlignmentAnalyzer
+from stringalign.evaluate import AlignmentAnalyzer
 
 reference = "Hello world!"
 predicted = "Hello w0rld!!"
@@ -21,7 +21,7 @@ analyzer.visualize()
 # %%
 # .. sidebar::
 #
-#     :meth:`stringalign.evaluation.AlignmentAnalyzer.visualize` returns a :class:`stringalign.visualize.HtmlString`.
+#     :meth:`stringalign.evaluate.AlignmentAnalyzer.visualize` returns a :class:`stringalign.visualize.HtmlString`.
 #     This class inherits from the builtin :class:`str`-class, but its contents are interpreted as HTML by tools like Jupyter Notebook.
 #
 # The visualization is based on html and CSS and can easily be displayed in a notebook, in dashboard-frameworks that support html or in a web application.
@@ -39,7 +39,7 @@ analyzer.visualize(space_alignment_ops=True)
 # %%
 # Customize the visualization
 # ---------------------------
-# The :meth:`stringalign.evaluation.AlignmentAnalyzer.visualize` method is a convenience wrapper around :func:`stringalign.visualize.create_alignment_html`.
+# The :meth:`stringalign.evaluate.AlignmentAnalyzer.visualize` method is a convenience wrapper around :func:`stringalign.visualize.create_alignment_html`.
 # If you want more customization you can use :func:`stringalign.visualize.create_alignment_html` directly. Then you can, for example, change the text labels
 
 stringalign.visualize.create_alignment_html(

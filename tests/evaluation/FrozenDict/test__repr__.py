@@ -1,4 +1,4 @@
-from stringalign.evaluation import FrozenDict
+from stringalign.evaluate import FrozenDict
 
 
 def test_simple_example():

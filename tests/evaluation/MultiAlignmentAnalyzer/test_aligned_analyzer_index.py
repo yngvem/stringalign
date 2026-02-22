@@ -1,5 +1,5 @@
 from stringalign.align import Replaced
-from stringalign.evaluation import MultiAlignmentAnalyzer
+from stringalign.evaluate import MultiAlignmentAnalyzer
 
 
 def test_raw_lookup() -> None:

@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, create_autospec
 import pytest
 import stringalign
 from stringalign.align import Kept
-from stringalign.evaluation import AlignmentAnalyzer
+from stringalign.evaluate import AlignmentAnalyzer
 from stringalign.tokenize import GraphemeClusterTokenizer
 
 

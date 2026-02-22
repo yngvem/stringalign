@@ -1,6 +1,6 @@
 import pytest
 from stringalign.align import Deleted, Inserted, Kept, Replaced, align_strings
-from stringalign.evaluation import AlignmentAnalyzer, FrozenDict
+from stringalign.evaluate import AlignmentAnalyzer, FrozenDict
 from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
 
 

@@ -1,7 +1,7 @@
 from collections import Counter
 
 from stringalign.align import Deleted, Kept, Replaced
-from stringalign.evaluation import MultiAlignmentAnalyzer
+from stringalign.evaluate import MultiAlignmentAnalyzer
 
 
 def test_simple_example_known_values() -> None:

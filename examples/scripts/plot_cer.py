@@ -12,7 +12,7 @@ import stringalign
 # %%
 # One way to measure the performance of a predicted text transcription compared to a reference is by calculating the character error rate (CER) and word error rate (WER) which are special cases of the token error rate (TER) (For more details on these metrics see :ref:`token_error_rate`).
 # To calculate the CER between two strings we first need a character-level tokenizer which we use to get an alignment that we can use to compare the strings.
-from stringalign.evaluation import AlignmentAnalyzer
+from stringalign.evaluate import AlignmentAnalyzer
 
 reference = "Ηello world!"
 predicted = "Hello world!!"
@@ -99,12 +99,12 @@ alignment_analyzer.visualize(space_alignment_ops=True)  # Space alignment ops to
 # Generally, it is good practice to explicitly define your tokenizer before calculating the CER or WER.
 # Afterall, before looking at the CER you should have an idea of what you mean by "character" for your particular problem.
 # However, stringalign also supports three convinence functions for quickly calculating CER, WER and TER:
-# :func:`stringalign.evaluation.compute_cer`, :func:`stringalign.evaluation.compute_wer` and :func:`stringalign.evaluation.compute_ter`.
-# These functions will use sensible defaults and return the :class:`stringalign.evaluation.AlignmentAnalyzer` used for the calculation.
+# :func:`stringalign.evaluate.compute_cer`, :func:`stringalign.evaluate.compute_wer` and :func:`stringalign.evaluate.compute_ter`.
+# These functions will use sensible defaults and return the :class:`stringalign.evaluate.AlignmentAnalyzer` used for the calculation.
 # To ensure reproducibility, you can inspect the returned analyzer and note the tokenization and normalization.
 
-cer, cer_analyzer = stringalign.evaluation.compute_cer(reference, predicted)
-wer, wer_analyzer = stringalign.evaluation.compute_wer(reference, predicted)
+cer, cer_analyzer = stringalign.evaluate.compute_cer(reference, predicted)
+wer, wer_analyzer = stringalign.evaluate.compute_wer(reference, predicted)
 
 print(f"The CER is {cer}")
 print(f"We used this analyzer to compute the CER: {cer_analyzer}")
@@ -119,8 +119,8 @@ print(f"We used this analyzer to compute the WER: {wer_analyzer}")
 # The most obvious way to do that might be to compute the CER for each sample and take an average.
 # However, that approach would put artificially high weight on characters in short strings.
 # Instead, we want to compute the total number of insertions, deletions, substitutions and reference tokens across all strings, and then compute the error rates using the equations defined in :ref:`token_error_rate`.
-# To do that in Stringalign, we create a :class:`stringalign.evaluation.MultiAlignmentAnalyzer`
-from stringalign.evaluation import MultiAlignmentAnalyzer
+# To do that in Stringalign, we create a :class:`stringalign.evaluate.MultiAlignmentAnalyzer`
+from stringalign.evaluate import MultiAlignmentAnalyzer
 
 references = ["Ηello world!", "Goodbye for now :)"]
 predictions = ["Hello world!!", "Godbye for now!"]

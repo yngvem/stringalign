@@ -23,12 +23,12 @@ references = reference_path.read_text().splitlines()
 image_paths = data_path.glob("line*.jpg")
 
 # %%
-# Normally, when we evaluate token-specific statistics, we would create a :class:`MultiAlignmentAnalyzer <stringalign.evaluation.MultiAlignmentAnalyzer>`.
+# Normally, when we evaluate token-specific statistics, we would create a :class:`MultiAlignmentAnalyzer <stringalign.evaluate.MultiAlignmentAnalyzer>`.
 # However, now, we want to get uncertainty metrics on the different edit operations.
-# To get those, we need many :class:`MultiAlignmentAnalyzer <stringalign.evaluation.MultiAlignmentAnalyzer>` instances that use randomised alignments with different random seeds.
+# To get those, we need many :class:`MultiAlignmentAnalyzer <stringalign.evaluate.MultiAlignmentAnalyzer>` instances that use randomised alignments with different random seeds.
 
 analyzers = [
-    stringalign.evaluation.MultiAlignmentAnalyzer.from_strings(
+    stringalign.evaluate.MultiAlignmentAnalyzer.from_strings(
         references=references,
         predictions=predictions,
         randomize_alignment=True,

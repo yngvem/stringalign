@@ -1,6 +1,6 @@
 import pytest
 from stringalign.align import AlignmentOperation, Deleted, Inserted, Kept, Replaced
-from stringalign.evaluation import check_operation_for_case_error
+from stringalign.evaluate import check_operation_for_case_error
 
 
 @pytest.mark.parametrize("previous_operation", [None, Kept("a"), Inserted("a"), Deleted("a"), Replaced("a", "b")])

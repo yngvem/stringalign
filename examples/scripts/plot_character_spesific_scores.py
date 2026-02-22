@@ -24,7 +24,7 @@ predictions = [
 ]
 
 tokenizer = stringalign.tokenize.GraphemeClusterTokenizer()
-analyzer = stringalign.evaluation.MultiAlignmentAnalyzer.from_strings(references, predictions, tokenizer)
+analyzer = stringalign.evaluate.MultiAlignmentAnalyzer.from_strings(references, predictions, tokenizer)
 cm = analyzer.confusion_matrix
 
 cer = cm.compute_token_error_rate()

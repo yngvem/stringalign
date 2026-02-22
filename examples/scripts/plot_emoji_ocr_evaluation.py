@@ -18,7 +18,7 @@ import PIL.Image
 import stringalign
 
 jiwer_cer = jiwer.cer("🐈‍⬛", "🐦‍⬛")
-stringalign_cer, _analyzer = stringalign.evaluation.compute_cer("🐈‍⬛", "🐦‍⬛")
+stringalign_cer, _analyzer = stringalign.evaluate.compute_cer("🐈‍⬛", "🐦‍⬛")
 print("Jiwer:", jiwer_cer)
 print("Stringalign:", stringalign_cer)
 
@@ -62,7 +62,7 @@ references = [sample["gold_standard"] for sample in dataset["samples"]]
 predictions = [sample["transcription"] for sample in dataset["samples"]]
 
 tokenizer = stringalign.tokenize.GraphemeClusterTokenizer()  # This is the default, but it's still nice to be explicit
-evaluator = stringalign.evaluation.MultiAlignmentAnalyzer.from_strings(
+evaluator = stringalign.evaluate.MultiAlignmentAnalyzer.from_strings(
     references=references, predictions=predictions, tokenizer=tokenizer
 )
 

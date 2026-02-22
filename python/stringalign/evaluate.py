@@ -41,10 +41,10 @@ def join_windows(center_string: str, previous_operation: Kept | None, next_opera
         The text in the center string, must come from an edit operation.
     previous_operation
         The previous alignment operation. Since the error classification algorithms use combined alignments, this is
-        guaranteed to be a :class:`Kept`-operation or ``None``.
+        guaranteed to be a :class:`stringalign.align.Kept`-operation or ``None``.
     next_operation
         The next alignment operation. Since the error classification algorithms use combined alignments, this is
-        guaranteed to be a :class:`Kept`-operation or ``None``.
+        guaranteed to be a :class:`stringalign.align.Kept`-operation or ``None``.
     """
     window_text = ""
     if previous_operation is not None:
@@ -725,7 +725,7 @@ class MultiAlignmentAnalyzer:
 
         An alignment is said to contain a case error if at least one of the edits would change into a Kept if we
         case fold the contents. See :func:`check_operation_for_case_error` and
-        :func:`stringalign.error_classification.confusable_error.count_case_errors` for more information.
+        :func:`stringalign.error_classification.case_error.count_case_errors` for more information.
 
         Yields
         ------
@@ -967,9 +967,9 @@ def compute_ter(
 
     See also
     --------
-    stringalign.evaluation.compute_cer
-    stringalign.evaluation.compute_wer
-    stringalign.evaluation.AlignmentAnalyzer
+    stringalign.evaluate.compute_cer
+    stringalign.evaluate.compute_wer
+    stringalign.evaluate.AlignmentAnalyzer
     stringalign.statistics.StringConfusionMatrix
 
     Examples
@@ -1070,9 +1070,9 @@ def compute_wer(
 
     See also
     --------
-    stringalign.evaluation.compute_ter
-    stringalign.evaluation.compute_cer
-    stringalign.evaluation.AlignmentAnalyzer
+    stringalign.evaluate.compute_ter
+    stringalign.evaluate.compute_cer
+    stringalign.evaluate.AlignmentAnalyzer
     stringalign.statistics.StringConfusionMatrix
 
     Examples
@@ -1150,9 +1150,9 @@ def compute_cer(
 
     See also
     --------
-    stringalign.evaluation.compute_ter
-    stringalign.evaluation.compute_wer
-    stringalign.evaluation.AlignmentAnalyzer
+    stringalign.evaluate.compute_ter
+    stringalign.evaluate.compute_wer
+    stringalign.evaluate.AlignmentAnalyzer
     stringalign.statistics.StringConfusionMatrix
 
     Examples

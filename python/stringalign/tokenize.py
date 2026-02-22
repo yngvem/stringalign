@@ -109,9 +109,10 @@ class GraphemeClusterTokenizer(TokenizerReprMixin):
     Parameters
     ----------
     pre_tokenization_normalizer:
-        An optional :py:class:`StringNormalizer` to apply before splitting into extended grapheme clusters.
+        An optional :py:class:`stringalign.normalize.StringNormalizer` to apply before splitting into extended
+        grapheme clusters.
     post_tokenization_normalizer:
-        An optional :py:class:`StringNormalizer` to apply to each token after splitting.
+        An optional :py:class:`stringalign.normalize.StringNormalizer` to apply to each token after splitting.
 
     Examples
     --------
@@ -149,9 +150,9 @@ class UnicodeWordTokenizer(TokenizerReprMixin):
     Parameters
     ----------
     pre_tokenization_normalizer:
-        An optional :py:class:`StringNormalizer` to apply before splitting into words.
+        An optional :py:class:`stringalign.normalize.StringNormalizer` to apply before splitting into words.
     post_tokenization_normalizer:
-        An optional :py:class:`StringNormalizer` to apply to each token after splitting.
+        An optional :py:class:`stringalign.normalize.StringNormalizer` to apply to each token after splitting.
 
     Examples
     --------
@@ -190,9 +191,9 @@ class SplitAtWordBoundaryTokenizer(TokenizerReprMixin):
     Parameters
     ----------
     pre_tokenization_normalizer:
-        An optional :py:class:`StringNormalizer` to apply before splitting at word boundaries.
+        An optional :py:class:`stringalign.normalize.StringNormalizer` to apply before splitting at word boundaries.
     post_tokenization_normalizer:
-        An optional :py:class:`StringNormalizer` to apply to each token after splitting.
+        An optional :py:class:`stringalign.normalize.StringNormalizer` to apply to each token after splitting.
     remove_whitespace:
         If True, remove tokens that are only whitespace after splitting.
 
@@ -246,9 +247,9 @@ class SplitAtWhitespaceTokenizer(TokenizerReprMixin):
     Parameters
     ----------
     pre_tokenization_normalizer:
-        An optional :py:class:`StringNormalizer` to apply before splitting at whitespace.
+        An optional :py:class:`stringalign.normalize.StringNormalizer` to apply before splitting at whitespace.
     post_tokenization_normalizer:
-        An optional :py:class:`StringNormalizer` to apply to each token after splitting.
+        An optional :py:class:`stringalign.normalize.StringNormalizer` to apply to each token after splitting.
 
     Examples
     --------

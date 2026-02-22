@@ -74,7 +74,7 @@ And even the CER can change depending on whether you segment characters based on
 To ensure reproducable results, you should therefore always report how the characters and words are processed and tokenized whenever you report the CER, WER or TER.
 
 Because of this, Stringalign focuses on transparency whenever these metrics are computed.
-Tokenization is explicit, and whenever the :func:`stringalign.evaluate.compute_cer`, :func:`stringalign.evaluate.compute_wer` or :func:`stringalign.evaluate.compute_ter` convenience functions are used, the user also gets an :class:`stringaign.evaluate.AlignmentAnalyzer` object that displays tokenization details when it is printed.
+Tokenization is explicit, and whenever the :func:`stringalign.evaluate.compute_cer`, :func:`stringalign.evaluate.compute_wer` or :func:`stringalign.evaluate.compute_ter` convenience functions are used, the user also gets an :class:`stringalign.evaluate.AlignmentAnalyzer` object that displays tokenization details when it is printed.
 See :ref:`cer_example` for an example of how this works in Stringalign.
 
 

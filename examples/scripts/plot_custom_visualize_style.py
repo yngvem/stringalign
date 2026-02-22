@@ -11,7 +11,7 @@ Below is an example where we modify the style sheet to change the colors used, t
 """
 
 import stringalign
-from stringalign.evaluation import AlignmentAnalyzer
+from stringalign.evaluate import AlignmentAnalyzer
 
 reference = "Hello world!"
 predicted = "Helo w0rld!!"
