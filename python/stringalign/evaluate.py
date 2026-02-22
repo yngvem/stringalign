@@ -1,3 +1,4 @@
+import enum
 import string
 from collections import Counter, defaultdict, deque
 from collections.abc import Generator, Hashable, Iterator, Mapping
@@ -614,7 +615,17 @@ class AlignmentAnalyzer:
     __str__ = __repr__
 
 
-# TODO: consider what we want to do with property docstrings versus attribute docstrings
+class ErrorType(enum.StrEnum):
+    """Enum representing different edit types."""
+
+    HORISONTAL_SEGMENTATION_ERROR = enum.auto()
+    TOKEN_DUPLICATION_ERROR = enum.auto()
+    REMOVED_DUPLICATE_TOKEN_ERROR = enum.auto()
+    DIACRITIC_ERROR = enum.auto()
+    CONFUSABLE_ERROR = enum.auto()
+    CASE_ERROR = enum.auto()
+
+
 @dataclass(frozen=True, slots=False)
 class MultiAlignmentAnalyzer:
     """Utility class for evaluating all samples in a dataset.
@@ -646,92 +657,6 @@ class MultiAlignmentAnalyzer:
 
         """
         return [le.summarise() for le in self.alignment_analyzers]
-
-    @property
-    def horisontal_segmentation_errors(self) -> Generator[AlignmentAnalyzer, None, None]:
-        """:class:`AlignmentAnalyzer` instances with at least one edit due to a segmentation error.
-
-        An alignment is said to contain a horisontal segmentation error if there is an edit at the start or end of the
-        alignment. See :func:`check_operation_for_horizontal_segmentation_error` for more information.
-
-        Yields
-        ------
-        AlignmentAnalyzer
-        """
-        return (err for err in self.alignment_analyzers if err.horisontal_segmentation_errors)
-
-    @property
-    def token_duplication_errors(self) -> Generator[AlignmentAnalyzer, None, None]:
-        """:class:`AlignmentAnalyzer` instances with at least one edit due to a duplication error.
-
-        An alignment is said to contain a duplication error if at least one token is duplicated in the prediction
-        where it is not duplicated in the reference. For example, transcribing ``"hello"`` as ``"helllo"`` would
-        correspond to a duplication error. See :func:`check_operation_for_ngram_duplication_error` for more
-        information.
-
-        Yields
-        ------
-        AlignmentAnalyzer
-        """
-        return (err for err in self.alignment_analyzers if err.token_duplication_errors)
-
-    @property
-    def removed_duplicate_token_errors(self) -> Generator[AlignmentAnalyzer, None, None]:
-        """:class:`AlignmentAnalyzer` instances with at least one edit due to a missed duplicated token.
-
-        An alignment is said to contain a removed duplicate token error if at least one token is duplicated in the
-        reference where it is duplicated in the prediction. For example, transcribing ``"hello"`` as ``"helo"`` would
-        correspond to a removed duplicate token error. See :func:`check_operation_for_ngram_duplication_error` and
-        :func:`stringalign.error_classification.duplication_error.check_ngram_duplication_errors` for more information.
-
-        Yields
-        ------
-        AlignmentAnalyzer
-        """
-        return (err for err in self.alignment_analyzers if err.removed_duplicate_token_errors)
-
-    @property
-    def diacritic_errors(self) -> Generator[AlignmentAnalyzer, None, None]:
-        """:class:`AlignmentAnalyzer` instances with at least one edit due to wrongly placed or missing diacritics.
-
-        An alignment is said to contain a diacritic error if at least one of the edits would change into a Kept if we
-        remove all diacritics. Note that this function also resolves confusables to be able to correctly remove
-        diacritics. See :func:`check_operation_for_diacritic_error` and
-        :func:`stringalign.error_classification.diacritic_error.count_diacritic_errors` for more information.
-
-        Yields
-        ------
-        AlignmentAnalyzer
-        """
-        return (err for err in self.alignment_analyzers if err.diacritic_errors)
-
-    @property
-    def confusable_errors(self) -> Generator[AlignmentAnalyzer, None, None]:
-        """:class:`AlignmentAnalyzer` instances with at least one edit from interchanging confusable characters.
-
-        An alignment is said to contain a confusable error if at least one of the edits would change into a Kept if we
-        resolve confusables. See :func:`check_operation_for_confusable_error` and
-        :func:`stringalign.error_classification.confusable_error.count_confusable_errors` for more information.
-
-        Yields
-        ------
-        AlignmentAnalyzer
-        """
-        return (err for err in self.alignment_analyzers if err.confusable_errors)
-
-    @property
-    def case_errors(self) -> Generator[AlignmentAnalyzer, None, None]:
-        """:class:`AlignmentAnalyzer` instances with at least one edit from mixing upper- and lower-case letters.
-
-        An alignment is said to contain a case error if at least one of the edits would change into a Kept if we
-        case fold the contents. See :func:`check_operation_for_case_error` and
-        :func:`stringalign.error_classification.case_error.count_case_errors` for more information.
-
-        Yields
-        ------
-        AlignmentAnalyzer
-        """
-        return (err for err in self.alignment_analyzers if err.case_errors)
 
     @property
     def not_unique_alignments(self) -> Generator[AlignmentAnalyzer]:
@@ -843,6 +768,69 @@ class MultiAlignmentAnalyzer:
 
         return {k: frozenset(v) for k, v in out.items()}
 
+    @property
+    def error_type_index(self) -> dict[ErrorType, Generator[AlignmentAnalyzer, None, None]]:
+        """
+        Mapping from error type to generators yielding :class:`AlignmentAnalyzer` with at least one edit of that type.
+
+        **Horisontal segmentation errors**
+
+        An alignment is said to contain a horisontal segmentation error if there is an edit at the start or end of the
+        alignment. See :func:`check_operation_for_horizontal_segmentation_error` for more information.
+
+        **Token duplication errors**
+
+        An alignment is said to contain a duplication error if at least one token is duplicated in the prediction
+        where it is not duplicated in the reference. For example, transcribing ``"hello"`` as ``"helllo"`` would
+        correspond to a duplication error. See :func:`check_operation_for_ngram_duplication_error` for more
+        information.
+
+        **Missed duplicated token errors**
+
+        An alignment is said to contain a removed duplicate token error if at least one token is duplicated in the
+        reference where it is duplicated in the prediction. For example, transcribing ``"hello"`` as ``"helo"`` would
+        correspond to a removed duplicate token error. See :func:`check_operation_for_ngram_duplication_error` and
+        :func:`stringalign.error_classification.duplication_error.check_ngram_duplication_errors` for more information.
+
+        **Missing diacritic errors**
+
+        An alignment is said to contain a diacritic error if at least one of the edits would change into a Kept if we
+        remove all diacritics. Note that this function also resolves confusables to be able to correctly remove
+        diacritics. See :func:`check_operation_for_diacritic_error` and
+        :func:`stringalign.error_classification.diacritic_error.count_diacritic_errors` for more information.
+
+        **Confusable character errors**
+
+        An alignment is said to contain a confusable error if at least one of the edits would change into a Kept if we
+        resolve confusables. See :func:`check_operation_for_confusable_error` and
+        :func:`stringalign.error_classification.confusable_error.count_confusable_errors` for more information.
+
+        **Case errors**
+
+        An alignment is said to contain a case error if at least one of the edits would change into a Kept if we
+        case fold the contents. See :func:`check_operation_for_case_error` and
+        :func:`stringalign.error_classification.case_error.count_case_errors` for more information.
+
+        Returns
+        -------
+        dict[ErrorType, Generator[AlignmentAnalyzer, None, None]]
+
+        """
+        return {
+            ErrorType.HORISONTAL_SEGMENTATION_ERROR: (
+                err for err in self.alignment_analyzers if err.horisontal_segmentation_errors
+            ),
+            ErrorType.TOKEN_DUPLICATION_ERROR: (
+                err for err in self.alignment_analyzers if err.token_duplication_errors
+            ),
+            ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (
+                err for err in self.alignment_analyzers if err.removed_duplicate_token_errors
+            ),
+            ErrorType.DIACRITIC_ERROR: (err for err in self.alignment_analyzers if err.diacritic_errors),
+            ErrorType.CONFUSABLE_ERROR: (err for err in self.alignment_analyzers if err.confusable_errors),
+            ErrorType.CASE_ERROR: (err for err in self.alignment_analyzers if err.case_errors),
+        }
+
     @classmethod
     def from_strings(
         cls,
@@ -928,8 +916,6 @@ class MultiAlignmentAnalyzer:
 
     def compute_ter(self) -> float:
         return self.confusion_matrix.compute_token_error_rate()
-
-    # TODO: Docs
 
 
 def compute_ter(
