@@ -798,37 +798,33 @@ class MultiAlignmentAnalyzer:
         return sum((ae.confusion_matrix for ae in self.alignment_analyzers), start=StringConfusionMatrix.get_empty())
 
     @cached_property
-    def alignment_analyzer_raw_lookup(self) -> dict[AlignmentOperation, frozenset[AlignmentAnalyzer]]:
-        """Mapping from alignment operations to sets of :class:`AlignmentAnalyzer` with that operation in the raw alignment.
-
-        This function is used to find all samples that contain specific alignment operations. It can, for example be
-        used to identify all lines that contain a specific error a transcription model makes, which again can be useful
-        for finding mistakes in the references.
-        """
-        out = defaultdict(set)
-        for alignment_analyzer in self.alignment_analyzers:
-            for alignment_op in alignment_analyzer.raw_alignment:
-                out[alignment_op].add(alignment_analyzer)
-
-        return {k: frozenset(v) for k, v in out.items()}
-
-    @cached_property
-    def alignment_analyzer_combined_lookup(self) -> dict[AlignmentOperation, frozenset[AlignmentAnalyzer]]:
+    def alignment_operator_index(
+        self,
+    ) -> dict[Literal["raw", "combined"], dict[AlignmentOperation, frozenset[AlignmentAnalyzer]]]:
         """Mapping from alignment ops. to sets of :class:`AlignmentAnalyzer` with that operation in the combined alignment.
 
         This function is used to find all samples that contain specific alignment operations. It can, for example be
         used to identify all lines that contain a specific error a transcription model makes, which again can be useful
         for finding mistakes in the references.
         """
-        out = defaultdict(set)
+
+        raw_index = defaultdict(set)
+        for alignment_analyzer in self.alignment_analyzers:
+            for alignment_op in alignment_analyzer.raw_alignment:
+                raw_index[alignment_op].add(alignment_analyzer)
+
+        combined_index = defaultdict(set)
         for alignment_analyzer in self.alignment_analyzers:
             for alignment_op in alignment_analyzer.combined_alignment:
-                out[alignment_op].add(alignment_analyzer)
+                combined_index[alignment_op].add(alignment_analyzer)
 
-        return {k: frozenset(v) for k, v in out.items()}
+        return {
+            "raw": {k: frozenset(v) for k, v in raw_index.items()},
+            "combined": {k: frozenset(v) for k, v in combined_index.items()},
+        }
 
     @cached_property
-    def false_positive_lookup(self) -> dict[str, frozenset[AlignmentAnalyzer]]:
+    def false_positive_index(self) -> dict[str, frozenset[AlignmentAnalyzer]]:
         """Mapping from tokens to sets of :class:`AlignmentAnalyzer` with that false positive token"""
         out = defaultdict(set)
         for alignment_analyzer in self.alignment_analyzers:
@@ -838,7 +834,7 @@ class MultiAlignmentAnalyzer:
         return {k: frozenset(v) for k, v in out.items()}
 
     @cached_property
-    def false_negative_lookup(self) -> dict[str, frozenset[AlignmentAnalyzer]]:
+    def false_negative_index(self) -> dict[str, frozenset[AlignmentAnalyzer]]:
         """Mapping from tokens to sets of :class:`AlignmentAnalyzer` with that false negative token"""
         out = defaultdict(set)
         for alignment_analyzer in self.alignment_analyzers:

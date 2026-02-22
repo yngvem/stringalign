@@ -55,14 +55,14 @@ for operation, count in counts.most_common(10):
 # --------------------------
 #
 # It can also be useful to visualise the data to get a better understanding of why the model makes the mistakes it does.
-# In particular, we can use the :meth:`MultiAlignmentAnalyzer.alignment_analyzer_combined_lookup <stringalign.evaluation.MultiAlignmentAnalyzer.alignment_analyzer_combined_lookup>` method to iterate over the :class:`AlignmentAnalyzer <stringalign.evaluation.AlignmentAnalyzer>` instances that contain transcriptions with a specified edit.
+# In particular, we can use the :meth:`MultiAlignmentAnalyzer.alignment_operator_index <stringalign.evaluation.MultiAlignmentAnalyzer.alignment_operator_index>` method to iterate over the :class:`AlignmentAnalyzer <stringalign.evaluation.AlignmentAnalyzer>` instances that contain transcriptions with a specified edit.
 
 most_common_error = counts.most_common(1)[0][0]
 
 # We create a long HTML string to display the visualisation in Sphinx.
 # If you're using Jupyter, then you can use ``IPython.display.display`` in each iteration instead.
 table_html = ""
-for line_analyzer in analyzer.alignment_analyzer_combined_lookup[most_common_error]:
+for line_analyzer in analyzer.alignment_operator_index["combined"][most_common_error]:
     image_html = create_html_image(line_analyzer.metadata["image_path"])
     alignment_html = line_analyzer.visualize(which="combined")
     table_html += image_html + alignment_html
