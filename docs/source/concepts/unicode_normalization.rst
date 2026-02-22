@@ -10,7 +10,7 @@ Here is one example for the Norwegian letter ``å``:
 
     print("å" == "å")
 
-.. code:: raw
+.. code::
 
     False
 

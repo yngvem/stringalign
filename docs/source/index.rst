@@ -18,7 +18,7 @@ A tiny example
 
 For example, if the `reference` string is `Banana pancakes` and the `predicted` string is `bananana pancake`, then string align will align it
 
-.. code:: raw
+.. code::
 
     Reference: B--anana pancakes
    Prediction: bananana pancake-
@@ -26,14 +26,14 @@ For example, if the `reference` string is `Banana pancakes` and the `predicted` 
 
 This alignment is stored as a collection of *replacements*, *insertions*, *deletions* and *keeps*, that describe what we need to do with the predicted string to make it equal to the reference string. For the string above, we get
 
-.. code:: raw
+.. code:: python
 
    [Replaced('B', 'b'), Inserted('a'), Inserted('n'), Kept('a'), Kept('n'), Kept('a'), Kept('n'), Kept('a'), Kept(' '), Kept('p'), Kept('a'), Kept('n'), Kept('c'), Kept('a'), Kept('k'), Kept('e'), Deleted('s')]
 
 
 or, if we join consequtive the `Deleted`, `Inserted` and `Replaced`:
 
-.. code:: raw
+.. code:: python
 
    [Replaced('B', 'ban'), Keep('anana pancake'), Deleted('s')]
 
@@ -49,9 +49,7 @@ See the :ref:`example_gallery` for more examples of what you can use Stringalign
    :caption: Contents:
 
    installation
-   design
    concepts/index
    auto_examples/index
    api/index
    bibliography
-   contributing

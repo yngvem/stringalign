@@ -566,7 +566,7 @@ class AlignmentAnalyzer:
         This is a simple wrapper around :func:`stringalign.visualize.create_alignment_html`. Use that function if you
         want to customise the visualisation further.
 
-        See :ref:`_visualize_example` for an example.
+        See :ref:`visualize_example` for an example.
 
         Parameters
         ----------
@@ -1060,9 +1060,9 @@ def compute_wer(
     word_definition
         How words are defined for the WER. Used to select tokenizer:
 
-        * ``"whitespace"``: :class:`stringalign.tokenize.SplitAtWhitespaceTokenizer`(default)
-        * ``"unicode"``: :class:`stringalign.tokenize.UnicodeWordTokenizer
-        * ``"unicode_boundary"``: :class:`stringalign.tokenize.SplitAtWordBoundaryTokenizer`(default)
+        * ``"whitespace"``: :class:`stringalign.tokenize.SplitAtWhitespaceTokenizer` (default)
+        * ``"unicode"``: :class:`stringalign.tokenize.UnicodeWordTokenizer`
+        * ``"unicode_boundary"``: :class:`stringalign.tokenize.SplitAtWordBoundaryTokenizer`
 
     Returns
     -------

@@ -28,7 +28,7 @@ It depends on what type of model you evaluate and what application you are evalu
 Either way it is good to reflect on, and be aware of, how you treat confusable characters when evaluating.
 In Stringalign you can enable confusable normalisation in the :class:`stringalign.normalize.StringNormalizer`,
 either based on the unicode ``confusables.txt`` list or the ``intentional.txt`` list or input a custom dictionary with a confusable normalisation mapping.
-For an example, see :ref:`confusables_example`.
+For an example, see :ref:`cer_example`.
 
 .. note::
 

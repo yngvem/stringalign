@@ -15,7 +15,7 @@ Users will think of this as a single character, but it contains two unicode code
 
 
 Therefore, if you are interested in the user perceived length of text, you shouldn't segment the text based on code-points, but based on something called grapheme cluster boundaries.
-The Unicode standard has defined a default algorithm for detecting grapheme cluster boundaries in Unicode strings that should work well in most cases[1]_.
+The Unicode standard has defined a default algorithm for detecting grapheme cluster boundaries in Unicode strings that should work well in most cases [1]_.
 The grapheme clusters we obtain with this algorithm are called *extended grapheme clusters*.
 
 Sometimes, we can :ref:`normalize <unicode_normalization>` multi code point grapheme clusters into single code points. For example

@@ -53,7 +53,7 @@ In total, this means that there are six different possible optimal character-ali
 
 These "degeneracies" mean that we need to take care when we compare character-specific operations.
 For example, the true positive rate for a given character can change depending on which of the optimal alignments Stringalign chooses.
-Still, our experience is that while non-uniqueness poses a theoretical issue, inspecting these character-specific metrics can provide valuable insight into model performance, as demonstrated in :ref:`full_tutorial_example`.
+Still, our experience is that while non-uniqueness poses a theoretical issue, inspecting these character-specific metrics can provide valuable insight into model performance, as demonstrated in :ref:`norhand_example`.
 
 Dealing with multiple optimal alignments
 ----------------------------------------

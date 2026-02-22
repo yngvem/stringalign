@@ -201,7 +201,7 @@ def create_cost_matrix(reference_tokens: Iterable[str], predicted_tokens: Iterab
 
     Element `(i, j)` of this matrix corresponds to the cost of aligning the token with index `i` in the reference
     string with the token with index `j` in the predicted string. For more information, see e.g.
-    :cite:p:`navarro2001guided` or :cite:p:`needleman1970general`.
+    :cite:p:`navarro_guided_2001` or :cite:p:`needleman1970general`.
 
     This is an internal function used by :func:`align_strings`, so you should probably not call this function directly.
 
@@ -255,7 +255,7 @@ def align_strings(
     It uses the Needleman-Wunsch algorithm for optimal string alignment :cite:p:`needleman1970general`, which is a
     dynamic programming algorithm with :math:`O(mn)` time and memory complexity, where :math:`m` and :math:`n` are the
     length of the reference and predicted strings. This algorithm has been discovered many times, for a more thorough
-    description, see e.g. :cite:p:`navarro2001guided`.
+    description, see e.g. :cite:p:`navarro_guided_2001`.
 
     Parameters
     ----------
