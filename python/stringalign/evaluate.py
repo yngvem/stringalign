@@ -330,6 +330,17 @@ class FrozenDict(Mapping[Hashable, Any]):
         return f"{type(self).__name__}({self._data!r})"
 
 
+class ErrorType(enum.StrEnum):
+    """Enum representing different edit types."""
+
+    HORISONTAL_SEGMENTATION_ERROR = enum.auto()
+    TOKEN_DUPLICATION_ERROR = enum.auto()
+    REMOVED_DUPLICATE_TOKEN_ERROR = enum.auto()
+    DIACRITIC_ERROR = enum.auto()
+    CONFUSABLE_ERROR = enum.auto()
+    CASE_ERROR = enum.auto()
+
+
 @dataclass(frozen=True, slots=False)
 class AlignmentAnalyzer:
     """Utility data class that represents the errors for a single sample (reference/predicted pair)
@@ -385,12 +396,7 @@ class AlignmentAnalyzer:
     raw_alignment: AlignmentTuple
     unique_alignment: bool
 
-    horisontal_segmentation_errors: AlignmentTuple
-    token_duplication_errors: AlignmentTuple
-    removed_duplicate_token_errors: AlignmentTuple
-    diacritic_errors: AlignmentTuple
-    confusable_errors: AlignmentTuple
-    case_errors: AlignmentTuple
+    heuristic_edit_classifications: FrozenDict
 
     metadata: FrozenDict | None
     tokenizer: Tokenizer
@@ -412,12 +418,16 @@ class AlignmentAnalyzer:
         return {
             "reference": self.reference,
             "predicted": self.predicted,
-            "horisontal_segmentation_error": bool(self.horisontal_segmentation_errors),
-            "token_duplication_error": bool(self.token_duplication_errors),
-            "removed_duplicate_token_error": bool(self.removed_duplicate_token_errors),
-            "diacritic_error": bool(self.diacritic_errors),
-            "confusable_error": bool(self.confusable_errors),
-            "case_error": bool(self.case_errors),
+            "horisontal_segmentation_error": bool(
+                self.heuristic_edit_classifications[ErrorType.HORISONTAL_SEGMENTATION_ERROR]
+            ),
+            "token_duplication_error": bool(self.heuristic_edit_classifications[ErrorType.TOKEN_DUPLICATION_ERROR]),
+            "removed_duplicate_token_error": bool(
+                self.heuristic_edit_classifications[ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR]
+            ),
+            "diacritic_error": bool(self.heuristic_edit_classifications[ErrorType.DIACRITIC_ERROR]),
+            "confusable_error": bool(self.heuristic_edit_classifications[ErrorType.CONFUSABLE_ERROR]),
+            "case_error": bool(self.heuristic_edit_classifications[ErrorType.CASE_ERROR]),
             **metadata,
         }
 
@@ -496,12 +506,7 @@ class AlignmentAnalyzer:
                 combined_alignment=tuple(),
                 raw_alignment=tuple(),
                 unique_alignment=True,
-                horisontal_segmentation_errors=tuple(),
-                token_duplication_errors=tuple(),
-                removed_duplicate_token_errors=tuple(),
-                diacritic_errors=tuple(),
-                confusable_errors=tuple(),
-                case_errors=tuple(),
+                heuristic_edit_classifications=FrozenDict({et: tuple() for et in ErrorType}),
                 metadata=frozen_metadata,
                 tokenizer=tokenizer,
             )
@@ -546,12 +551,16 @@ class AlignmentAnalyzer:
             combined_alignment=combined_alignment,
             raw_alignment=tuple(raw_alignment),
             unique_alignment=unique_alignment,
-            horisontal_segmentation_errors=tuple(horisontal_segmentation_errors),
-            token_duplication_errors=tuple(token_duplication_errors),
-            removed_duplicate_token_errors=tuple(removed_duplicate_token_errors),
-            diacritic_errors=tuple(diacritic_errors),
-            confusable_errors=tuple(confusable_errors),
-            case_errors=tuple(case_errors),
+            heuristic_edit_classifications=FrozenDict(
+                {
+                    ErrorType.HORISONTAL_SEGMENTATION_ERROR: tuple(horisontal_segmentation_errors),
+                    ErrorType.TOKEN_DUPLICATION_ERROR: tuple(token_duplication_errors),
+                    ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: tuple(removed_duplicate_token_errors),
+                    ErrorType.DIACRITIC_ERROR: tuple(diacritic_errors),
+                    ErrorType.CONFUSABLE_ERROR: tuple(confusable_errors),
+                    ErrorType.CASE_ERROR: tuple(case_errors),
+                }
+            ),
             metadata=frozen_metadata,
             tokenizer=tokenizer,
         )
@@ -615,17 +624,6 @@ class AlignmentAnalyzer:
     __str__ = __repr__
 
 
-class ErrorType(enum.StrEnum):
-    """Enum representing different edit types."""
-
-    HORISONTAL_SEGMENTATION_ERROR = enum.auto()
-    TOKEN_DUPLICATION_ERROR = enum.auto()
-    REMOVED_DUPLICATE_TOKEN_ERROR = enum.auto()
-    DIACRITIC_ERROR = enum.auto()
-    CONFUSABLE_ERROR = enum.auto()
-    CASE_ERROR = enum.auto()
-
-
 @dataclass(frozen=True, slots=False)
 class MultiAlignmentAnalyzer:
     """Utility class for evaluating all samples in a dataset.
@@ -656,7 +654,7 @@ class MultiAlignmentAnalyzer:
         summary : list[dict[Hashable, Hashable]]
 
         """
-        return [le.summarise() for le in self.alignment_analyzers]
+        return [err.summarise() for err in self.alignment_analyzers]
 
     @property
     def not_unique_alignments(self) -> Generator[AlignmentAnalyzer]:
@@ -816,20 +814,12 @@ class MultiAlignmentAnalyzer:
         dict[ErrorType, Generator[AlignmentAnalyzer, None, None]]
 
         """
-        return {
-            ErrorType.HORISONTAL_SEGMENTATION_ERROR: (
-                err for err in self.alignment_analyzers if err.horisontal_segmentation_errors
-            ),
-            ErrorType.TOKEN_DUPLICATION_ERROR: (
-                err for err in self.alignment_analyzers if err.token_duplication_errors
-            ),
-            ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (
-                err for err in self.alignment_analyzers if err.removed_duplicate_token_errors
-            ),
-            ErrorType.DIACRITIC_ERROR: (err for err in self.alignment_analyzers if err.diacritic_errors),
-            ErrorType.CONFUSABLE_ERROR: (err for err in self.alignment_analyzers if err.confusable_errors),
-            ErrorType.CASE_ERROR: (err for err in self.alignment_analyzers if err.case_errors),
-        }
+
+        def make_alignment_analyzer_generator(error_type: ErrorType) -> Generator[AlignmentAnalyzer, None, None]:
+            """We need this function to bind the error type variable in the generator"""
+            return (aa for aa in self.alignment_analyzers if aa.heuristic_edit_classifications[error_type])
+
+        return {et: make_alignment_analyzer_generator(et) for et in ErrorType}
 
     @classmethod
     def from_strings(

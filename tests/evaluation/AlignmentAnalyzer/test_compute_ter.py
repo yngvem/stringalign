@@ -1,6 +1,6 @@
 import pytest
 from stringalign.align import Deleted, Kept, align_strings
-from stringalign.evaluate import AlignmentAnalyzer
+from stringalign.evaluate import AlignmentAnalyzer, FrozenDict
 from stringalign.tokenize import GraphemeClusterTokenizer, SplitAtWhitespaceTokenizer
 
 
@@ -14,12 +14,7 @@ from stringalign.tokenize import GraphemeClusterTokenizer, SplitAtWhitespaceToke
                 combined_alignment=(Kept("Hi, world"), Deleted("!")),
                 raw_alignment=tuple(align_strings("Hi, world!", "Hi, world")[0]),
                 unique_alignment=True,
-                horisontal_segmentation_errors=(Deleted("!"),),
-                token_duplication_errors=(),
-                removed_duplicate_token_errors=(),
-                diacritic_errors=(),
-                confusable_errors=(),
-                case_errors=(),
+                heuristic_edit_classifications=FrozenDict(),
                 metadata=None,
                 tokenizer=GraphemeClusterTokenizer(),
             ),
@@ -32,12 +27,7 @@ from stringalign.tokenize import GraphemeClusterTokenizer, SplitAtWhitespaceToke
                 combined_alignment=(Kept("H"),),
                 raw_alignment=(Kept("H"),),
                 unique_alignment=True,
-                horisontal_segmentation_errors=(),
-                token_duplication_errors=(),
-                removed_duplicate_token_errors=(),
-                diacritic_errors=(),
-                confusable_errors=(),
-                case_errors=(),
+                heuristic_edit_classifications=FrozenDict(),
                 metadata=None,
                 tokenizer=GraphemeClusterTokenizer(),
             ),
@@ -50,12 +40,7 @@ from stringalign.tokenize import GraphemeClusterTokenizer, SplitAtWhitespaceToke
                 combined_alignment=(Deleted("Hello"),),
                 raw_alignment=(Deleted("Hello"),),
                 unique_alignment=True,
-                horisontal_segmentation_errors=(),
-                token_duplication_errors=(),
-                removed_duplicate_token_errors=(),
-                diacritic_errors=(),
-                confusable_errors=(),
-                case_errors=(),
+                heuristic_edit_classifications=FrozenDict(),
                 metadata=None,
                 tokenizer=SplitAtWhitespaceTokenizer(),
             ),

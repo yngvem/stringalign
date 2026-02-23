@@ -1,7 +1,12 @@
+from typing import TYPE_CHECKING
+
 import pytest
 from stringalign.align import Deleted, Inserted, Kept, Replaced, align_strings
-from stringalign.evaluate import AlignmentAnalyzer, FrozenDict
+from stringalign.evaluate import AlignmentAnalyzer, ErrorType, FrozenDict
 from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
+
+if TYPE_CHECKING:
+    from collections.abc import Hashable, Mapping
 
 
 @pytest.mark.parametrize(
@@ -16,12 +21,16 @@ from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
                 combined_alignment=(Kept("Hello, world!"),),
                 raw_alignment=tuple(align_strings("Hello, world!", "Hello, world!")[0]),
                 unique_alignment=True,
-                horisontal_segmentation_errors=(),
-                token_duplication_errors=(),
-                removed_duplicate_token_errors=(),
-                diacritic_errors=(),
-                confusable_errors=(),
-                case_errors=(),
+                heuristic_edit_classifications=FrozenDict(
+                    {
+                        ErrorType.HORISONTAL_SEGMENTATION_ERROR: (),
+                        ErrorType.TOKEN_DUPLICATION_ERROR: (),
+                        ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
+                        ErrorType.DIACRITIC_ERROR: (),
+                        ErrorType.CONFUSABLE_ERROR: (),
+                        ErrorType.CASE_ERROR: (),
+                    }
+                ),
                 metadata=None,
                 tokenizer=DEFAULT_TOKENIZER,
             ),
@@ -35,12 +44,16 @@ from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
                 combined_alignment=(Kept("Hello, world"), Deleted("!")),
                 raw_alignment=tuple(align_strings("Hello, world!", "Hello, world")[0]),
                 unique_alignment=True,
-                horisontal_segmentation_errors=(Deleted("!"),),
-                token_duplication_errors=(),
-                removed_duplicate_token_errors=(),
-                diacritic_errors=(),
-                confusable_errors=(),
-                case_errors=(),
+                heuristic_edit_classifications=FrozenDict(
+                    {
+                        ErrorType.HORISONTAL_SEGMENTATION_ERROR: (Deleted("!"),),
+                        ErrorType.TOKEN_DUPLICATION_ERROR: (),
+                        ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
+                        ErrorType.DIACRITIC_ERROR: (),
+                        ErrorType.CONFUSABLE_ERROR: (),
+                        ErrorType.CASE_ERROR: (),
+                    }
+                ),
                 metadata=None,
                 tokenizer=DEFAULT_TOKENIZER,
             ),
@@ -54,15 +67,19 @@ from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
                 combined_alignment=(Replaced("H", "h"), Kept("ello, world"), Deleted("!")),
                 raw_alignment=tuple(align_strings("Hello, world!", "hello, world")[0]),
                 unique_alignment=True,
-                horisontal_segmentation_errors=(
-                    Replaced("H", "h"),
-                    Deleted("!"),
+                heuristic_edit_classifications=FrozenDict(
+                    {
+                        ErrorType.HORISONTAL_SEGMENTATION_ERROR: (
+                            Replaced("H", "h"),
+                            Deleted("!"),
+                        ),
+                        ErrorType.TOKEN_DUPLICATION_ERROR: (),
+                        ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
+                        ErrorType.DIACRITIC_ERROR: (),
+                        ErrorType.CONFUSABLE_ERROR: (),
+                        ErrorType.CASE_ERROR: (Replaced("H", "h"),),
+                    }
                 ),
-                token_duplication_errors=(),
-                diacritic_errors=(),
-                removed_duplicate_token_errors=(),
-                case_errors=(Replaced("H", "h"),),
-                confusable_errors=(),
                 metadata=None,
                 tokenizer=DEFAULT_TOKENIZER,
             ),
@@ -76,12 +93,16 @@ from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
                 combined_alignment=(Kept("He"), Inserted("l"), Kept("llo, world!")),
                 raw_alignment=tuple(align_strings("Hello, world!", "Helllo, world!")[0]),
                 unique_alignment=False,
-                horisontal_segmentation_errors=(),
-                token_duplication_errors=(Inserted("l"),),
-                removed_duplicate_token_errors=(),
-                diacritic_errors=(),
-                confusable_errors=(),
-                case_errors=(),
+                heuristic_edit_classifications=FrozenDict(
+                    {
+                        ErrorType.HORISONTAL_SEGMENTATION_ERROR: (),
+                        ErrorType.TOKEN_DUPLICATION_ERROR: (Inserted(substring="l"),),
+                        ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
+                        ErrorType.DIACRITIC_ERROR: (),
+                        ErrorType.CONFUSABLE_ERROR: (),
+                        ErrorType.CASE_ERROR: (),
+                    }
+                ),
                 metadata=None,
                 tokenizer=DEFAULT_TOKENIZER,
             ),
@@ -95,12 +116,16 @@ from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
                 combined_alignment=(Kept("He"), Deleted("l"), Kept("lo, world!")),
                 raw_alignment=tuple(align_strings("Hello, world!", "Helo, world!")[0]),
                 unique_alignment=False,
-                horisontal_segmentation_errors=(),
-                token_duplication_errors=(),
-                removed_duplicate_token_errors=(Deleted("l"),),
-                diacritic_errors=(),
-                confusable_errors=(),
-                case_errors=(),
+                heuristic_edit_classifications=FrozenDict(
+                    {
+                        ErrorType.HORISONTAL_SEGMENTATION_ERROR: (),
+                        ErrorType.TOKEN_DUPLICATION_ERROR: (),
+                        ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (Deleted(substring="l"),),
+                        ErrorType.DIACRITIC_ERROR: (),
+                        ErrorType.CONFUSABLE_ERROR: (),
+                        ErrorType.CASE_ERROR: (),
+                    }
+                ),
                 metadata=None,
                 tokenizer=DEFAULT_TOKENIZER,
             ),
@@ -114,12 +139,16 @@ from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
                 combined_alignment=(Kept("Hel"), Replaced("l", "ł"), Kept("o, world!")),
                 raw_alignment=tuple(align_strings("Hello, world!", "Helło, world!")[0]),
                 unique_alignment=True,
-                horisontal_segmentation_errors=(),
-                token_duplication_errors=(),
-                removed_duplicate_token_errors=(),
-                diacritic_errors=(Replaced("l", "ł"),),
-                confusable_errors=(),
-                case_errors=(),
+                heuristic_edit_classifications=FrozenDict(
+                    {
+                        ErrorType.HORISONTAL_SEGMENTATION_ERROR: (),
+                        ErrorType.TOKEN_DUPLICATION_ERROR: (),
+                        ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
+                        ErrorType.DIACRITIC_ERROR: (Replaced("l", "ł"),),
+                        ErrorType.CONFUSABLE_ERROR: (),
+                        ErrorType.CASE_ERROR: (),
+                    }
+                ),
                 metadata=None,
                 tokenizer=DEFAULT_TOKENIZER,
             ),
@@ -133,12 +162,16 @@ from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
                 combined_alignment=(Kept("Hel"), Replaced("l", "1"), Kept("o, world!")),
                 raw_alignment=tuple(align_strings("Hello, world!", "Hel1o, world!")[0]),
                 unique_alignment=True,
-                horisontal_segmentation_errors=(),
-                token_duplication_errors=(),
-                removed_duplicate_token_errors=(),
-                diacritic_errors=(),
-                confusable_errors=(Replaced("l", "1"),),
-                case_errors=(),
+                heuristic_edit_classifications=FrozenDict(
+                    {
+                        ErrorType.HORISONTAL_SEGMENTATION_ERROR: (),
+                        ErrorType.TOKEN_DUPLICATION_ERROR: (),
+                        ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
+                        ErrorType.DIACRITIC_ERROR: (),
+                        ErrorType.CONFUSABLE_ERROR: (Replaced("l", "1"),),
+                        ErrorType.CASE_ERROR: (),
+                    }
+                ),
                 metadata=None,
                 tokenizer=DEFAULT_TOKENIZER,
             ),
@@ -154,12 +187,16 @@ from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
                     align_strings("Hello, world!", "Helo, world!", tokenizer=UnicodeWordTokenizer())[0]
                 ),
                 unique_alignment=True,
-                horisontal_segmentation_errors=(Replaced(reference="Hello", predicted="Helo"),),
-                token_duplication_errors=(),
-                removed_duplicate_token_errors=(),
-                diacritic_errors=(),
-                confusable_errors=(),
-                case_errors=(),
+                heuristic_edit_classifications=FrozenDict(
+                    {
+                        ErrorType.HORISONTAL_SEGMENTATION_ERROR: (Replaced(reference="Hello", predicted="Helo"),),
+                        ErrorType.TOKEN_DUPLICATION_ERROR: (),
+                        ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
+                        ErrorType.DIACRITIC_ERROR: (),
+                        ErrorType.CONFUSABLE_ERROR: (),
+                        ErrorType.CASE_ERROR: (),
+                    }
+                ),
                 metadata=None,
                 tokenizer=UnicodeWordTokenizer(),
             ),
@@ -173,22 +210,26 @@ def test_from_strings_with_example(reference: str, predicted: str, alignment_ana
     )
 
 
-def test_from_strings_with_metadata():
+def test_from_strings_with_metadata() -> None:
     reference = "Hello, world!"
     predicted = "Helo, world!"
-    metadata = {"a": 3}
+    metadata: Mapping[Hashable, Hashable] = {"a": 3}
     alignment_analyzer = AlignmentAnalyzer(
         reference="Hello, world!",
         predicted="Helo, world!",
         combined_alignment=(Kept("He"), Deleted("l"), Kept("lo, world!")),
         raw_alignment=tuple(align_strings("Hello, world!", "Helo, world!")[0]),
         unique_alignment=False,
-        horisontal_segmentation_errors=(),
-        token_duplication_errors=(),
-        removed_duplicate_token_errors=(Deleted("l"),),
-        diacritic_errors=(),
-        confusable_errors=(),
-        case_errors=(),
+        heuristic_edit_classifications=FrozenDict(
+            {
+                ErrorType.HORISONTAL_SEGMENTATION_ERROR: (),
+                ErrorType.TOKEN_DUPLICATION_ERROR: (),
+                ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (Deleted("l"),),
+                ErrorType.DIACRITIC_ERROR: (),
+                ErrorType.CONFUSABLE_ERROR: (),
+                ErrorType.CASE_ERROR: (),
+            }
+        ),
         metadata=FrozenDict({"a": 3}),
         tokenizer=DEFAULT_TOKENIZER,
     )
@@ -207,12 +248,7 @@ def test_from_empty_strings() -> None:
         combined_alignment=(),
         raw_alignment=(),
         unique_alignment=True,
-        horisontal_segmentation_errors=(),
-        token_duplication_errors=(),
-        removed_duplicate_token_errors=(),
-        diacritic_errors=(),
-        confusable_errors=(),
-        case_errors=(),
+        heuristic_edit_classifications=FrozenDict({et: () for et in ErrorType}),
         metadata=None,
         tokenizer=DEFAULT_TOKENIZER,
     )
