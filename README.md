@@ -1,4 +1,4 @@
-# Stringalign (experimental)
+# Stringalign
 
 <img src="https://raw.githubusercontent.com/yngvem/stringalign/refs/heads/main/docs/source/images/logo_flat.svg" width="600px" alt="Two cute caterpillars dancing under bunting with the letters 'STRING ALIGN'" role="img"/>
 
