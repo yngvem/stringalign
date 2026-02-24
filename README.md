@@ -10,6 +10,8 @@ Stringalign is a library for comparing strings.
 At its base, Stringalign takes two strings, a reference string and a predicted string, and aligns them.
 Based on this alignment, we can then compute many interesting performance metrics, such as the edit distance (Levenshtein), error rates and much more.
 
+For more information, see Stringalign's extensive documentation on [http://stringalign.com/](http://stringalign.com/).
+
 ### A little example
 
 For example, if the `reference` string is `Banana pancakes` and the `predicted` string is `bananana pancake`, then string align will align it
@@ -28,12 +30,13 @@ This alignment is stored as a collection of *replacements*, *insertions*, *delet
 or, if we join consequtive the `Deleted`, `Inserted` and `Replaced`:
 
 ```raw
-[Replaced('B', 'ban'), Keep('anana pancake'), Deleted('s')]
+[Replaced('B', 'ban'), Kept('anana pancake'), Deleted('s')]
 ```
 
 Based on these alignments, we can compute standard string comparison metrics such as the *Levenshtein distance* and *character error rate*.
 However, Stringalign also contains functions to do more in-depth analysis of the types of errors that occur when you have a whole collection of reference and predicted strings.
 Examples of this is: the most common character confusions, the letters most often omitted in the prediction, the letters most often incorrectly included in the prediction, etc.
+See our [gallery of examples](http://stringalign.com/examples.html) for more information.
 
 ## What's the point?
 
@@ -98,15 +101,6 @@ Stringalign works in a two-step process: first, the input strings are tokenized 
 You can customise this if you want, e.g. switching out the tokenizer with one that casefolds all extended grapheme clusters, to get a case-insensitive alignment, or words to e.g. compute the word-error rate.
 
 We use an extension module written in Rust for two important parts of Stringalign: grouping unicode code-points into extended grapheme clusters (with the [unicode_segmentation](https://docs.rs/unicode-segmentation/latest/unicode_segmentation/index.html) crate) and assembling the Needleman-Wunsch cost-matrix (which has O(n²) time- and memory-complexity).
-
-## Installing Stringalign
-
-Since Stringalign is still experimental, we don't yet provide wheels so you need to compile it from source.
-To do this, you first need to install [Rustup](https://rustup.rs/), which will give you the neccessary Rust tools.
-Then, you can install Stringalign directly form Git: `pip install git+https://github.com/yngvem/stringalign`.
-Alternatively, if you want to use it in a PEP621-formatted pyproject.toml file: `stringalign@git+https://github.com/yngvem/stringalign`.
-
-If you want to install a specific commit of stringalign, then you can run `pip install https://github.com/yngvem/stringalign/archive/{commit-hash}.zip`, or, in a pyproject.toml file: `stringalign@https://github.com/yngvem/stringalign/archive/39d8eab113b5eca272c533b5384da3f4dbe29424.zip`
 
 ## Citing Stringalign
 
