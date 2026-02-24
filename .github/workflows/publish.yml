@@ -129,7 +129,7 @@ jobs:
       matrix:
         target: [x64, x86]
     steps:
-      - uses: actions/checkout@4
+      - uses: actions/checkout@v4
         with:
           ref: 'v${{ needs.bump_version.outputs.version }}'
       - uses: dtolnay/rust-toolchain@stable
