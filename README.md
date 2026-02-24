@@ -1,6 +1,6 @@
 # Stringalign (experimental)
 
-<img src="https://raw.githubusercontent.com/yngvem/stringalign/refs/heads/main/assets/logo_flat.svg" width="600px" alt="Two cute caterpillars dancing under bunting with the letters 'STRING ALIGN'" role="img"/>
+<img src="https://raw.githubusercontent.com/yngvem/stringalign/refs/heads/main/docs/source/images/logo_flat.svg" width="600px" alt="Two cute caterpillars dancing under bunting with the letters 'STRING ALIGN'" role="img"/>
 
 **A string comparison library that adhers to the quirks of Unicode.**
 
@@ -22,7 +22,7 @@ Prediction: bananana pancake-
 This alignment is stored as a collection of *replacements*, *insertions*, *deletions* and *keeps*, that describe what we need to do with the predicted string to make it equal to the reference string. For the string above, we get
 
 ```raw
-[Replaced('B', 'b'), Inserted('a'), Inserted('n'), Keep('a'), Keep('n'), Keep('a'), Keep('n'), Keep('a'), Keep(' '), Keep('p'), Keep('a'), Keep('n'), Keep('c'), Keep('a'), Keep('k'), Keep('e'), Deleted('s')]
+[Replaced('B', 'b'), Inserted('a'), Inserted('n'), Kept('a'), Kept('n'), Kept('a'), Kept('n'), Kept('a'), Kept(' '), Kept('p'), Kept('a'), Kept('n'), Kept('c'), Kept('a'), Kept('k'), Kept('e'), Deleted('s')]
 ```
 
 or, if we join consequtive the `Deleted`, `Inserted` and `Replaced`:
@@ -38,7 +38,7 @@ Examples of this is: the most common character confusions, the letters most ofte
 ## What's the point?
 
 Stringalign might sound similar to other Python libraries, like Jiwer and Levenshtein (which both use Rapidfuzz behind-the-scenes).
-However, what puts Stringalign apart is that it handles Unicode "correctly".
+However, what puts Stringalign apart is that it handles Unicode "correctly" and provides easy-to-use tools for going in-depth in the analysis.
 
 Take this example:
 
@@ -94,8 +94,8 @@ stringalign 1
 
 ## How does it work?
 
-Stringalign works in a two-step process: first, the input strings are tokenised into normalised extended grapheme clusters, before they are aligned using the Needleman-Wunsch algorithm.
-You can customise this if you want, e.g. switching out the tokeniser with one that casefolds all extended grapheme clusters, to get a case-insensitive alignment, or words to e.g. compute the word-error rate.
+Stringalign works in a two-step process: first, the input strings are tokenized into normalised extended grapheme clusters, before they are aligned using the Needleman-Wunsch algorithm.
+You can customise this if you want, e.g. switching out the tokenizer with one that casefolds all extended grapheme clusters, to get a case-insensitive alignment, or words to e.g. compute the word-error rate.
 
 We use an extension module written in Rust for two important parts of Stringalign: grouping unicode code-points into extended grapheme clusters (with the [unicode_segmentation](https://docs.rs/unicode-segmentation/latest/unicode_segmentation/index.html) crate) and assembling the Needleman-Wunsch cost-matrix (which has O(n²) time- and memory-complexity).
 

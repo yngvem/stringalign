@@ -36,6 +36,7 @@ ignore = ["TC006"]
 
 [tool.mypy]
 ignore_missing_imports = true
+exclude = ["examples/", "docs/_build/"]
 
 [tool.bumpversion]
 current_version = "0.0.2"
@@ -58,6 +59,7 @@ filename = "Cargo.toml"
 
 [tool.pytest.ini_options]
 addopts = "--doctest-modules --import-mode=importlib"
+testpaths = ["tests"]
 
 [dependency-groups]
 dev = [
@@ -76,4 +78,14 @@ dev = [
 docs = [
     "jupyter>=1.1.1",
     "pandas>=2.2.3",
+    "sphinx>=8.2.3",
+    "sphinx-book-theme>=1.1.4",
+    "sphinxcontrib-bibtex>=2.6.5",
+    "sphinx-togglebutton>=0.3.2",
+    "sphinx-gallery>=0.20.0",
+    "matplotlib>=3.10.8",
+    "jiwer>=4.0.0",
+    "nb-tokenizer>=0.1.0",
+    "nltk>=3.9.2",
+    "nbsphinx>=0.9.8",
 ]

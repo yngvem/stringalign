@@ -38,8 +38,8 @@ def test_align_strings_types(reference: str, predicted: str) -> None:
 @given(reference=st.text(), predicted=st.text())
 def test_align_strings_reconstruct(reference: str, predicted: str) -> None:
     tokenizer = GraphemeClusterTokenizer(
-        pre_clustering_normalizer=StringNormalizer(normalization=None),
-        post_clustering_normalizer=StringNormalizer(normalization=None),
+        pre_tokenization_normalizer=StringNormalizer(normalization=None),
+        post_tokenization_normalizer=StringNormalizer(normalization=None),
     )
     alignment = align_strings(reference, predicted, tokenizer=tokenizer)[0]
 

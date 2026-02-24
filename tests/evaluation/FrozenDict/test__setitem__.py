@@ -1,5 +1,5 @@
 import pytest
-from stringalign.evaluation import FrozenDict
+from stringalign.evaluate import FrozenDict
 
 
 def test_frozendict_immutable() -> None:

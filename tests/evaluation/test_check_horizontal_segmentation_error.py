@@ -2,7 +2,7 @@ from collections import deque
 
 import pytest
 from stringalign.align import AlignmentOperation, Deleted, Inserted, Kept, Replaced
-from stringalign.evaluation import check_operation_for_horizontal_segmentation_error
+from stringalign.evaluate import check_operation_for_horizontal_segmentation_error
 
 # Some things to keep in mind:
 #    Input to AlignmentOperation classification functions:

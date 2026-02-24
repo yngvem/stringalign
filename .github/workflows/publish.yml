@@ -14,8 +14,10 @@ on:
         - patch
 
 env:
-  PYTHON_TARGETS: '3.11 3.12 3.13'
+  PYTHON_TARGETS: '3.11 3.12 3.13 3.14'
   SDIST_BUILD_PLATFORM: 'x86_64'
+  PYO3_NO_PYTHON: TRUE
+
 
 jobs:
   bump_version:

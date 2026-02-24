@@ -5,6 +5,7 @@ import pytest
 from hypothesis import given, settings
 from stringalign.align import (
     AlignmentOperation,
+    AlignmentTuple,
     Deleted,
     Inserted,
     Kept,
@@ -30,7 +31,7 @@ from stringalign.align import (
     ],
 )
 def test_find_all_alignments_with_examples(
-    reference: str, predicted: str, alignments: tuple[tuple[AlignmentOperation, ...], ...]
+    reference: str, predicted: str, alignments: tuple[AlignmentTuple, ...]
 ) -> None:
     """All expected aligmments should be found with no duplicates."""
     all_aligments = tuple(find_all_alignments(reference, predicted))

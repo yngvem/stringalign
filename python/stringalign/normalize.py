@@ -43,8 +43,8 @@ def load_confusable_map(confusable_type: Literal["confusables", "intentional"]) 
     For more information, see the Unicode Technical Standard #39 (UTS #39) about security consideration for unicode at
     https://www.unicode.org/reports/tr39/.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     confusable_type:
         The type of confusable characters to load. Can be either "confusables" or "intentional".
 
@@ -65,11 +65,12 @@ def load_confusable_map(confusable_type: Literal["confusables", "intentional"]) 
         return json.load(f)
 
 
+#
 class StringNormalizer:
     """Simple string normalizer, used to remove "irrelevant" differences when comparing strings.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     normalization:
         Which unicode normalization to use
     case_insensitive:
@@ -103,25 +104,37 @@ class StringNormalizer:
         self.remove_non_word_characters = remove_non_word_characters
         self.resolve_confusables = resolve_confusables
 
-    def __call__(self, text: str) -> str:
-        # According to Unicode, we should normalize strings before casefolding them.
-        if self.normalization is not None:
-            text = unicodedata.normalize(self.normalization, text)
+    def __repr__(self) -> str:
+        out = f"{self.__class__.__name__}(\n"
+        for key, value in self.__dict__.items():
+            out += f"    {key}={value!r},\n"
+        out += ")"
+        return out
 
-        if self.case_insensitive:
-            text = text.casefold()
-        if self.normalize_whitespace:
-            text = normalize_whitespace(text)
-        if self.remove_whitespace:
-            text = remove_whitespace(text)
-        if self.remove_non_word_characters:
-            text = remove_non_word_characters(text)
+    def __call__(self, text: str) -> str:
+        # First, we resolve confusables, to avoid resolving confusables that occur due to case-folding.
         if self.resolve_confusables is not None:
             if isinstance(self.resolve_confusables, dict):
                 confusable_map = self.resolve_confusables
             else:
                 confusable_map = load_confusable_map(self.resolve_confusables)
             text = resolve_confusables(text, confusable_map)
+
+        # According to Unicode, strings should be we should case-folded + normalized + case-folded + normalized
+        # See https://www.unicode.org/reports/tr21/tr21-5.html
+        if self.case_insensitive:
+            text = text.casefold()
+        if self.normalization is not None:
+            text = unicodedata.normalize(self.normalization, text)
+        if self.case_insensitive:
+            text = text.casefold()
+
+        if self.normalize_whitespace:
+            text = normalize_whitespace(text)
+        if self.remove_whitespace:
+            text = remove_whitespace(text)
+        if self.remove_non_word_characters:
+            text = remove_non_word_characters(text)
 
         # Some of these operations, like casefolding, can make normalized text unnormalized.
         # So we normalize again to ensure the text is in the correct form.

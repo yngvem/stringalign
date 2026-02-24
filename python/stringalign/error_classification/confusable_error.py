@@ -11,6 +11,27 @@ def count_confusable_errors(
     tokenizer: Tokenizer,
     consider_confusables: Literal["confusables", "intentional"] | dict[str, str],
 ) -> int:
+    """Count the number of errors that are solely due to characters being replaced with a confusable (e.g. I and 1).
+
+    This function counts the number of edits we can avoid if we resolve the confusable characters in the strings before
+    aligning them.
+
+    Parameters:
+    -----------
+    reference
+        The reference text.
+    predicted
+        The predicted text.
+    tokenizer: Tokenizer
+        Tokenizer to use
+    consider_confusables
+        Which confusable list to use, see :func:`stringalign.normalize.StringNormalizer` or :ref:`confusables` for more information.
+
+    Returns:
+    --------
+    int
+        The number of confusable errors.
+    """
     normalizer = StringNormalizer(normalization=None, resolve_confusables=consider_confusables)
     alignment, _ = align_strings(reference, predicted, tokenizer=tokenizer)
 

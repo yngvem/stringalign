@@ -1,0 +1,10 @@
+{
+    "samples": [
+        {"image": "emojis.jpg", "gold_standard": "🪄🐈‍⬛🎃\n🐻‍❄️🎿🥶", "transcription": "🪄🐦‍⬛🎃\n🐻⛸️🥶"},
+        {"image": "feel_better.jpg", "gold_standard": "Message\nLorem Ipsum\nHope you feel better soon!❤️‍🩹", "transcription": "Massage\nLorem lpsum\nHope you feel better soon!❤️"},
+        {"image": "great_idea.jpg", "gold_standard": "What a great idea😑", "transcription": "What a grea t idea🙂"},
+        {"image": "happy_pride.jpg", "gold_standard": "Happy pride month! 🏳️‍🌈🌈🎉", "transcription": "Happy pride moth! 🏳️‍🌈🌈🎉"},
+        {"image": "that_was_close.jpg", "gold_standard": "That was\nclose! 😮‍💨", "transcription": "That was\nclose!"},
+        {"image": "that_was_close.jpg", "gold_standard": "1🐻‍❄️", "transcription": "🐻‍❄️"}
+    ]
+}
