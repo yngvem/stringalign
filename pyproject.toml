@@ -87,4 +87,5 @@ docs = [
     "jiwer>=4.0.0",
     "nb-tokenizer>=0.1.0",
     "nltk>=3.9.2",
+    "nbsphinx>=0.9.8",
 ]

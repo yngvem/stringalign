@@ -23,11 +23,12 @@ extensions = [
     "sphinxcontrib.bibtex",
     "sphinx_book_theme",
     "sphinx_togglebutton",
+    "nbsphinx",
     "sphinx_gallery.gen_gallery",
 ]
 
 templates_path = ["_templates"]
-exclude_patterns: list[str] = []
+exclude_patterns: list[str] = ["auto_examples/*.ipynb", "auto_examples/index.rst"]
 bibtex_bibfiles = ["bibliography.bib"]
 intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
 sphinx_gallery_conf = {
@@ -42,3 +43,6 @@ sphinx_gallery_conf = {
 html_theme = "sphinx_book_theme"
 html_logo = "images/bunting_flat.svg"
 html_favicon = "images/favicon.svg"
+
+nbsphinx_execute = "always"
+nbsphinx_allow_errors = False

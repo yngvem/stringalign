@@ -12,7 +12,7 @@ We start by loading some toy data based on an excerpt from a digitized copy of `
 from pathlib import Path
 
 import stringalign
-from stringalign.visualize import HtmlString, create_alignment_html, create_html_image
+from stringalign.visualize import HtmlString, create_html_image
 
 data_path = Path("synthetic_transcription_data")
 predictions_path = data_path / "predicted.txt"

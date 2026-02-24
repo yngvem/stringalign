@@ -50,6 +50,7 @@ See the :ref:`example_gallery` for more examples of what you can use Stringalign
 
    installation
    concepts/index
+   worked_example.ipynb
    examples
    api/index
    bibliography

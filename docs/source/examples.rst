@@ -1,3 +1,5 @@
+.. _example_gallery:
+
 Gallery of short examples
 -------------------------
 
