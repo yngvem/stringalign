@@ -22,8 +22,21 @@ def remove_non_word_characters(text: str) -> str:
 
 
 def resolve_confusables(text: str, confusable_map: dict[str, str]) -> str:
-    """Resolve confusable characters in the text using the provided mapping."""
-    return "".join(confusable_map.get(char, char) for char in text)
+    r"""Resolve confusable characters in the text using the provided mapping.
+
+    Confusables are resolved by first resolving each single code point confusable, which has the computational
+    complexity :math:`O(n)`, with :math:`n` being the string length. Then, we iterate over all confusables that span
+    multiple code points and resolve them one-by-one, which has the computational complexity
+    :math:`O(|\text{len}(\text{conf}) > 2| n)`, where :math:`|\text{len}(\text{conf})| > 1|` is the number of
+    confusables with more than one code point.
+    """
+    out = "".join(confusable_map.get(char, char) for char in text)
+
+    for k, v in confusable_map.items():
+        if len(k) > 1:
+            out = out.replace(k, v)
+
+    return out
 
 
 @lru_cache
@@ -67,7 +80,7 @@ def load_confusable_map(confusable_type: Literal["confusables", "intentional"]) 
 
 #
 class StringNormalizer:
-    """Simple string normalizer, used to remove "irrelevant" differences when comparing strings.
+    r"""Simple string normalizer, used to remove "irrelevant" differences when comparing strings.
 
     Parameters
     ----------
@@ -82,10 +95,24 @@ class StringNormalizer:
     remove_non_word_characters:
         Remove any character non-alphabetic and non-numeric unicode characters except spaces.
     resolve_confusables:
-        How to resolve confusable characters. If it's a string, then it should signify whether it's the Unicode
-        confusable or intentional confusable list that should be used. If it's a dictionary, then any occurence
-        of a key in the text will be replaced with its corresponding value (so ``{"a": "b"}`` will replace all
+        How to resolve confusable characters. If ``resolve_confusables`` is a string, then it should signify whether
+        it's the Unicode confusable or intentional confusable list that should be used. If it's a dictionary, then any
+        occurence of a key in the text will be replaced with its corresponding value (so ``{"a": "b"}`` will replace all
         occurences of "a" with "b" in the text). If it's None, then no confusable characters will be resolved.
+
+        Confusables are resolved by first resolving each single code point confusable, which has the computational
+        complexity :math:`O(n)`, with :math:`n` being the string length. Then, we iterate over all confusables that span
+        multiple code points and resolve them one-by-one, which has the computational complexity
+        :math:`O(|\text{len}(\text{conf}) > 2| n)`, where :math:`|\text{len}(\text{conf})| > 1|` is the number of
+        confusables with more than one code point.
+
+    See also
+    --------
+    normalize_whitespace
+    remove_whitespace
+    remove_non_word_characters
+    resolve_confusables
+    load_confusable_map
     """
 
     def __init__(
