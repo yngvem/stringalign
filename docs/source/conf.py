@@ -8,9 +8,8 @@
 import stringalign
 
 project = "Stringalign"
-copyright = "2025, Yngve Mardal Moe & Marie Roald"
+copyright = "Yngve Mardal Moe & Marie Roald"
 author = "Yngve Mardal Moe & Marie Roald"
-release = stringalign.__version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -43,6 +42,7 @@ sphinx_gallery_conf = {
 html_theme = "sphinx_book_theme"
 html_logo = "images/bunting_flat.svg"
 html_favicon = "images/favicon.svg"
+html_title = "Stringalign"
 
 nbsphinx_execute = "always"
 nbsphinx_allow_errors = False
