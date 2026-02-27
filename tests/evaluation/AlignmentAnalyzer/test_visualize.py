@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, create_autospec
 import pytest
 import stringalign
 from stringalign.align import Kept
-from stringalign.evaluate import AlignmentAnalyzer, ErrorType, FrozenDict
+from stringalign.evaluate import AlignmentAnalyzer, EditType, FrozenDict
 from stringalign.tokenize import GraphemeClusterTokenizer
 
 
@@ -37,12 +37,12 @@ def test_raw_alignment_is_used(monkeypatch: pytest.MonkeyPatch, which: Literal["
         unique_alignment=True,
         heuristic_edit_classifications=FrozenDict(
             {
-                ErrorType.HORISONTAL_SEGMENTATION_ERROR: (),
-                ErrorType.TOKEN_DUPLICATION_ERROR: (),
-                ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
-                ErrorType.DIACRITIC_ERROR: (),
-                ErrorType.CONFUSABLE_ERROR: (),
-                ErrorType.CASE_ERROR: (),
+                EditType.HORISONTAL_SEGMENTATION_ERROR: (),
+                EditType.TOKEN_DUPLICATION_ERROR: (),
+                EditType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
+                EditType.DIACRITIC_ERROR: (),
+                EditType.CONFUSABLE_ERROR: (),
+                EditType.CASE_ERROR: (),
             }
         ),
         metadata=None,

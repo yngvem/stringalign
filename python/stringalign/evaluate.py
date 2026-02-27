@@ -330,7 +330,7 @@ class FrozenDict(Mapping[Hashable, Any]):
         return f"{type(self).__name__}({self._data!r})"
 
 
-class ErrorType(enum.StrEnum):
+class EditType(enum.StrEnum):
     """Enum representing different edit types."""
 
     HORISONTAL_SEGMENTATION_ERROR = enum.auto()
@@ -419,15 +419,15 @@ class AlignmentAnalyzer:
             "reference": self.reference,
             "predicted": self.predicted,
             "horisontal_segmentation_error": bool(
-                self.heuristic_edit_classifications[ErrorType.HORISONTAL_SEGMENTATION_ERROR]
+                self.heuristic_edit_classifications[EditType.HORISONTAL_SEGMENTATION_ERROR]
             ),
-            "token_duplication_error": bool(self.heuristic_edit_classifications[ErrorType.TOKEN_DUPLICATION_ERROR]),
+            "token_duplication_error": bool(self.heuristic_edit_classifications[EditType.TOKEN_DUPLICATION_ERROR]),
             "removed_duplicate_token_error": bool(
-                self.heuristic_edit_classifications[ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR]
+                self.heuristic_edit_classifications[EditType.REMOVED_DUPLICATE_TOKEN_ERROR]
             ),
-            "diacritic_error": bool(self.heuristic_edit_classifications[ErrorType.DIACRITIC_ERROR]),
-            "confusable_error": bool(self.heuristic_edit_classifications[ErrorType.CONFUSABLE_ERROR]),
-            "case_error": bool(self.heuristic_edit_classifications[ErrorType.CASE_ERROR]),
+            "diacritic_error": bool(self.heuristic_edit_classifications[EditType.DIACRITIC_ERROR]),
+            "confusable_error": bool(self.heuristic_edit_classifications[EditType.CONFUSABLE_ERROR]),
+            "case_error": bool(self.heuristic_edit_classifications[EditType.CASE_ERROR]),
             **metadata,
         }
 
@@ -506,7 +506,7 @@ class AlignmentAnalyzer:
                 combined_alignment=tuple(),
                 raw_alignment=tuple(),
                 unique_alignment=True,
-                heuristic_edit_classifications=FrozenDict({et: tuple() for et in ErrorType}),
+                heuristic_edit_classifications=FrozenDict({et: tuple() for et in EditType}),
                 metadata=frozen_metadata,
                 tokenizer=tokenizer,
             )
@@ -553,12 +553,12 @@ class AlignmentAnalyzer:
             unique_alignment=unique_alignment,
             heuristic_edit_classifications=FrozenDict(
                 {
-                    ErrorType.HORISONTAL_SEGMENTATION_ERROR: tuple(horisontal_segmentation_errors),
-                    ErrorType.TOKEN_DUPLICATION_ERROR: tuple(token_duplication_errors),
-                    ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: tuple(removed_duplicate_token_errors),
-                    ErrorType.DIACRITIC_ERROR: tuple(diacritic_errors),
-                    ErrorType.CONFUSABLE_ERROR: tuple(confusable_errors),
-                    ErrorType.CASE_ERROR: tuple(case_errors),
+                    EditType.HORISONTAL_SEGMENTATION_ERROR: tuple(horisontal_segmentation_errors),
+                    EditType.TOKEN_DUPLICATION_ERROR: tuple(token_duplication_errors),
+                    EditType.REMOVED_DUPLICATE_TOKEN_ERROR: tuple(removed_duplicate_token_errors),
+                    EditType.DIACRITIC_ERROR: tuple(diacritic_errors),
+                    EditType.CONFUSABLE_ERROR: tuple(confusable_errors),
+                    EditType.CASE_ERROR: tuple(case_errors),
                 }
             ),
             metadata=frozen_metadata,
@@ -767,7 +767,7 @@ class MultiAlignmentAnalyzer:
         return {k: frozenset(v) for k, v in out.items()}
 
     @property
-    def error_type_index(self) -> dict[ErrorType, Generator[AlignmentAnalyzer, None, None]]:
+    def edit_type_index(self) -> dict[EditType, Generator[AlignmentAnalyzer, None, None]]:
         """
         Mapping from error type to generators yielding :class:`AlignmentAnalyzer` with at least one edit of that type.
 
@@ -811,15 +811,15 @@ class MultiAlignmentAnalyzer:
 
         Returns
         -------
-        dict[ErrorType, Generator[AlignmentAnalyzer, None, None]]
+        dict[EditType, Generator[AlignmentAnalyzer, None, None]]
 
         """
 
-        def make_alignment_analyzer_generator(error_type: ErrorType) -> Generator[AlignmentAnalyzer, None, None]:
+        def make_alignment_analyzer_generator(error_type: EditType) -> Generator[AlignmentAnalyzer, None, None]:
             """We need this function to bind the error type variable in the generator"""
             return (aa for aa in self.alignment_analyzers if aa.heuristic_edit_classifications[error_type])
 
-        return {et: make_alignment_analyzer_generator(et) for et in ErrorType}
+        return {et: make_alignment_analyzer_generator(et) for et in EditType}
 
     @classmethod
     def from_strings(

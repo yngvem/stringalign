@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 from stringalign.align import Deleted, Inserted, Kept, Replaced, align_strings
-from stringalign.evaluate import AlignmentAnalyzer, ErrorType, FrozenDict
+from stringalign.evaluate import AlignmentAnalyzer, EditType, FrozenDict
 from stringalign.tokenize import DEFAULT_TOKENIZER, UnicodeWordTokenizer
 
 if TYPE_CHECKING:
@@ -23,12 +23,12 @@ if TYPE_CHECKING:
                 unique_alignment=True,
                 heuristic_edit_classifications=FrozenDict(
                     {
-                        ErrorType.HORISONTAL_SEGMENTATION_ERROR: (),
-                        ErrorType.TOKEN_DUPLICATION_ERROR: (),
-                        ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
-                        ErrorType.DIACRITIC_ERROR: (),
-                        ErrorType.CONFUSABLE_ERROR: (),
-                        ErrorType.CASE_ERROR: (),
+                        EditType.HORISONTAL_SEGMENTATION_ERROR: (),
+                        EditType.TOKEN_DUPLICATION_ERROR: (),
+                        EditType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
+                        EditType.DIACRITIC_ERROR: (),
+                        EditType.CONFUSABLE_ERROR: (),
+                        EditType.CASE_ERROR: (),
                     }
                 ),
                 metadata=None,
@@ -46,12 +46,12 @@ if TYPE_CHECKING:
                 unique_alignment=True,
                 heuristic_edit_classifications=FrozenDict(
                     {
-                        ErrorType.HORISONTAL_SEGMENTATION_ERROR: (Deleted("!"),),
-                        ErrorType.TOKEN_DUPLICATION_ERROR: (),
-                        ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
-                        ErrorType.DIACRITIC_ERROR: (),
-                        ErrorType.CONFUSABLE_ERROR: (),
-                        ErrorType.CASE_ERROR: (),
+                        EditType.HORISONTAL_SEGMENTATION_ERROR: (Deleted("!"),),
+                        EditType.TOKEN_DUPLICATION_ERROR: (),
+                        EditType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
+                        EditType.DIACRITIC_ERROR: (),
+                        EditType.CONFUSABLE_ERROR: (),
+                        EditType.CASE_ERROR: (),
                     }
                 ),
                 metadata=None,
@@ -69,15 +69,15 @@ if TYPE_CHECKING:
                 unique_alignment=True,
                 heuristic_edit_classifications=FrozenDict(
                     {
-                        ErrorType.HORISONTAL_SEGMENTATION_ERROR: (
+                        EditType.HORISONTAL_SEGMENTATION_ERROR: (
                             Replaced("H", "h"),
                             Deleted("!"),
                         ),
-                        ErrorType.TOKEN_DUPLICATION_ERROR: (),
-                        ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
-                        ErrorType.DIACRITIC_ERROR: (),
-                        ErrorType.CONFUSABLE_ERROR: (),
-                        ErrorType.CASE_ERROR: (Replaced("H", "h"),),
+                        EditType.TOKEN_DUPLICATION_ERROR: (),
+                        EditType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
+                        EditType.DIACRITIC_ERROR: (),
+                        EditType.CONFUSABLE_ERROR: (),
+                        EditType.CASE_ERROR: (Replaced("H", "h"),),
                     }
                 ),
                 metadata=None,
@@ -95,12 +95,12 @@ if TYPE_CHECKING:
                 unique_alignment=False,
                 heuristic_edit_classifications=FrozenDict(
                     {
-                        ErrorType.HORISONTAL_SEGMENTATION_ERROR: (),
-                        ErrorType.TOKEN_DUPLICATION_ERROR: (Inserted(substring="l"),),
-                        ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
-                        ErrorType.DIACRITIC_ERROR: (),
-                        ErrorType.CONFUSABLE_ERROR: (),
-                        ErrorType.CASE_ERROR: (),
+                        EditType.HORISONTAL_SEGMENTATION_ERROR: (),
+                        EditType.TOKEN_DUPLICATION_ERROR: (Inserted(substring="l"),),
+                        EditType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
+                        EditType.DIACRITIC_ERROR: (),
+                        EditType.CONFUSABLE_ERROR: (),
+                        EditType.CASE_ERROR: (),
                     }
                 ),
                 metadata=None,
@@ -118,12 +118,12 @@ if TYPE_CHECKING:
                 unique_alignment=False,
                 heuristic_edit_classifications=FrozenDict(
                     {
-                        ErrorType.HORISONTAL_SEGMENTATION_ERROR: (),
-                        ErrorType.TOKEN_DUPLICATION_ERROR: (),
-                        ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (Deleted(substring="l"),),
-                        ErrorType.DIACRITIC_ERROR: (),
-                        ErrorType.CONFUSABLE_ERROR: (),
-                        ErrorType.CASE_ERROR: (),
+                        EditType.HORISONTAL_SEGMENTATION_ERROR: (),
+                        EditType.TOKEN_DUPLICATION_ERROR: (),
+                        EditType.REMOVED_DUPLICATE_TOKEN_ERROR: (Deleted(substring="l"),),
+                        EditType.DIACRITIC_ERROR: (),
+                        EditType.CONFUSABLE_ERROR: (),
+                        EditType.CASE_ERROR: (),
                     }
                 ),
                 metadata=None,
@@ -141,12 +141,12 @@ if TYPE_CHECKING:
                 unique_alignment=True,
                 heuristic_edit_classifications=FrozenDict(
                     {
-                        ErrorType.HORISONTAL_SEGMENTATION_ERROR: (),
-                        ErrorType.TOKEN_DUPLICATION_ERROR: (),
-                        ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
-                        ErrorType.DIACRITIC_ERROR: (Replaced("l", "ł"),),
-                        ErrorType.CONFUSABLE_ERROR: (),
-                        ErrorType.CASE_ERROR: (),
+                        EditType.HORISONTAL_SEGMENTATION_ERROR: (),
+                        EditType.TOKEN_DUPLICATION_ERROR: (),
+                        EditType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
+                        EditType.DIACRITIC_ERROR: (Replaced("l", "ł"),),
+                        EditType.CONFUSABLE_ERROR: (),
+                        EditType.CASE_ERROR: (),
                     }
                 ),
                 metadata=None,
@@ -164,12 +164,12 @@ if TYPE_CHECKING:
                 unique_alignment=True,
                 heuristic_edit_classifications=FrozenDict(
                     {
-                        ErrorType.HORISONTAL_SEGMENTATION_ERROR: (),
-                        ErrorType.TOKEN_DUPLICATION_ERROR: (),
-                        ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
-                        ErrorType.DIACRITIC_ERROR: (),
-                        ErrorType.CONFUSABLE_ERROR: (Replaced("l", "1"),),
-                        ErrorType.CASE_ERROR: (),
+                        EditType.HORISONTAL_SEGMENTATION_ERROR: (),
+                        EditType.TOKEN_DUPLICATION_ERROR: (),
+                        EditType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
+                        EditType.DIACRITIC_ERROR: (),
+                        EditType.CONFUSABLE_ERROR: (Replaced("l", "1"),),
+                        EditType.CASE_ERROR: (),
                     }
                 ),
                 metadata=None,
@@ -189,12 +189,12 @@ if TYPE_CHECKING:
                 unique_alignment=True,
                 heuristic_edit_classifications=FrozenDict(
                     {
-                        ErrorType.HORISONTAL_SEGMENTATION_ERROR: (Replaced(reference="Hello", predicted="Helo"),),
-                        ErrorType.TOKEN_DUPLICATION_ERROR: (),
-                        ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
-                        ErrorType.DIACRITIC_ERROR: (),
-                        ErrorType.CONFUSABLE_ERROR: (),
-                        ErrorType.CASE_ERROR: (),
+                        EditType.HORISONTAL_SEGMENTATION_ERROR: (Replaced(reference="Hello", predicted="Helo"),),
+                        EditType.TOKEN_DUPLICATION_ERROR: (),
+                        EditType.REMOVED_DUPLICATE_TOKEN_ERROR: (),
+                        EditType.DIACRITIC_ERROR: (),
+                        EditType.CONFUSABLE_ERROR: (),
+                        EditType.CASE_ERROR: (),
                     }
                 ),
                 metadata=None,
@@ -222,12 +222,12 @@ def test_from_strings_with_metadata() -> None:
         unique_alignment=False,
         heuristic_edit_classifications=FrozenDict(
             {
-                ErrorType.HORISONTAL_SEGMENTATION_ERROR: (),
-                ErrorType.TOKEN_DUPLICATION_ERROR: (),
-                ErrorType.REMOVED_DUPLICATE_TOKEN_ERROR: (Deleted("l"),),
-                ErrorType.DIACRITIC_ERROR: (),
-                ErrorType.CONFUSABLE_ERROR: (),
-                ErrorType.CASE_ERROR: (),
+                EditType.HORISONTAL_SEGMENTATION_ERROR: (),
+                EditType.TOKEN_DUPLICATION_ERROR: (),
+                EditType.REMOVED_DUPLICATE_TOKEN_ERROR: (Deleted("l"),),
+                EditType.DIACRITIC_ERROR: (),
+                EditType.CONFUSABLE_ERROR: (),
+                EditType.CASE_ERROR: (),
             }
         ),
         metadata=FrozenDict({"a": 3}),
@@ -248,7 +248,7 @@ def test_from_empty_strings() -> None:
         combined_alignment=(),
         raw_alignment=(),
         unique_alignment=True,
-        heuristic_edit_classifications=FrozenDict({et: () for et in ErrorType}),
+        heuristic_edit_classifications=FrozenDict({et: () for et in EditType}),
         metadata=None,
         tokenizer=DEFAULT_TOKENIZER,
     )
