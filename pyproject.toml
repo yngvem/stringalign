@@ -39,7 +39,7 @@ ignore_missing_imports = true
 exclude = ["examples/", "docs/_build/"]
 
 [tool.bumpversion]
-current_version = "0.1.3"
+current_version = "0.1.4"
 
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
 serialize = ["{major}.{minor}.{patch}"]
