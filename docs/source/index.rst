@@ -2,6 +2,7 @@ Stringalign
 ===========
 
 .. image:: images/logo_flat.svg
+   :class: stringalign-logo
    :width: 600px
    :alt: Two cute caterpillars dancing under bunting with the letters 'STRING ALIGN'
 

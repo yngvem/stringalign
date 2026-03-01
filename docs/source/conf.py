@@ -43,6 +43,8 @@ html_theme = "sphinx_book_theme"
 html_logo = "images/bunting_flat.svg"
 html_favicon = "images/favicon.svg"
 html_title = "Stringalign"
+html_static_path = ["_static"]
+html_css_files = ["style.css"]
 
 nbsphinx_execute = "always"
 nbsphinx_allow_errors = False
