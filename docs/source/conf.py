@@ -8,8 +8,8 @@
 import stringalign
 
 project = "Stringalign"
-copyright = "Yngve Mardal Moe & Marie Roald"
-author = "Yngve Mardal Moe & Marie Roald"
+copyright = ""
+author = ""
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
