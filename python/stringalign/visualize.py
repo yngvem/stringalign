@@ -21,6 +21,9 @@ class HtmlString(str):
     def _repr_html_(self) -> str:
         return self
 
+    def __add__(self, other: str) -> HtmlString:
+        return HtmlString(super().__add__(other))
+
 
 def compress_css(css: str) -> str:
     """Simple compression of css that turns all whitespace into a single space.
