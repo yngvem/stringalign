@@ -8,8 +8,8 @@
 import stringalign
 
 project = "Stringalign"
-copyright = ""
-author = ""
+copyright = "Yngve Mardal Moe and Marie Roald"
+author = "Yngve Mardal Moe and Marie Roald"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -45,6 +45,21 @@ html_favicon = "images/favicon.svg"
 html_title = "Stringalign"
 html_static_path = ["_static"]
 html_css_files = ["style.css"]
+
+html_theme_options = {
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/yngvem/stringalign",
+            "icon": "fa-brands fa-github",
+        },
+        {
+            "name": "Paper",
+            "url": "https://link.springer.com/chapter/10.1007/978-3-032-36033-5_31",
+            "icon": "fa-solid fa-file-lines",
+        },
+    ],
+}
 
 nbsphinx_execute = "always"
 nbsphinx_allow_errors = False

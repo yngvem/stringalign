@@ -13,6 +13,8 @@ Stringalign is a library for comparing strings.
 At its base, Stringalign takes two strings, a reference string and a predicted string, and aligns them.
 Based on this alignment, we can compute many interesting performance metrics, such as the edit distance (Levenshtein), error rates, common character replacements and much more.
 By aggregating many such alignments, Stringalign facilitates exploration and evaluation of e.g. text and speech recognition models.
+Stringalign was presented at ICDAR 2026 :cite:p:`10.1007/978-3-032-36033-5_31`.
+You can read the paper, which also contains an overview of other string comparison libraries, :download:`here <../../paper.pdf>`.
 
 A tiny example
 ==============
