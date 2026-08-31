@@ -378,7 +378,7 @@ class AlignmentAnalyzer:
         Alignment operations that correspond to diacritics being added or removed (e.g. ``"ë" -> "e"``).
 
     confusable_errors
-        Alignment operations that correspond to confusable tplems being predicted.
+        Alignment operations that correspond to confusable tokens being predicted.
 
     case_errors
         Alignment operations that correspond to case errors (i.e. errors that are resolved by casefolding the strings).
