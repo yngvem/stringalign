@@ -2,7 +2,7 @@
 .. _custom_confusables:
 
 Resolving confusables and ligatures with custom lists
------------------------------------------------------
+=====================================================
 
 Some historical documents contain ligatures and symbols that are not a part of Unicode.
 To account for that, several projects use Unicode's private use area (e.g. `MUFI <https://www.mufi.info/q.php?p=mufi/home>`_).
